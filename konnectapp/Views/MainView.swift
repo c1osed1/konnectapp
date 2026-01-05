@@ -19,7 +19,7 @@ struct MainView: View {
             TabContentView(selectedTab: $selectedTab)
                 .overlay(alignment: .bottom) {
                     BottomNavigationView(selectedTab: $selectedTab)
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 10)
                         .padding(.bottom, -10)
                         .ignoresSafeArea(edges: .bottom)
                 }

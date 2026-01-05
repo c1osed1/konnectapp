@@ -88,7 +88,7 @@ struct FeedView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 8)
                 .padding(.bottom, 100)
             }
             .refreshable {
@@ -309,7 +309,7 @@ struct FeedView: View {
                 FeedTypeTab(title: "Все", type: .all, selected: $selectedFeedType)
                 FeedTypeTab(title: "Подписки", type: .following, selected: $selectedFeedType)
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 6)
             .padding(.vertical, 8)
             .background(
                 ZStack {
@@ -374,7 +374,7 @@ struct FeedTypeTab: View {
                 Text(title)
                     .font(.system(size: 14, weight: selected == type ? .semibold : .regular))
                     .foregroundColor(selected == type ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.6, green: 0.6, blue: 0.6))
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 8)
                     .padding(.vertical, 8)
             }
             .frame(maxWidth: .infinity)

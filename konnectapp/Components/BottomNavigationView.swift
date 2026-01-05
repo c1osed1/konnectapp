@@ -58,7 +58,7 @@ struct BottomNavigationView: View {
                 }
             }
             .frame(height: 60)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 6)
             .padding(.vertical, 4)
             .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 36))
         }
@@ -93,7 +93,7 @@ struct BottomNavigationView: View {
             }
         }
         .frame(height: 60)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 6)
         .padding(.vertical, 4)
         .background(
             ZStack {
