@@ -56,7 +56,7 @@ class AuthManager: ObservableObject {
             let response = try await AuthService.shared.checkAuth()
             if response.isAuthenticated {
                 self.isAuthenticated = true
-                self.currentUser = response.user
+            self.currentUser = response.user
             } else {
                 try? KeychainManager.deleteTokens()
                 self.isAuthenticated = false
