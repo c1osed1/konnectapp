@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainView: View {
     @StateObject private var authManager = AuthManager.shared
+    @StateObject private var keyboardObserver = KeyboardObserver()
     @State private var selectedTab: TabItem = .feed
     
     var body: some View {
@@ -18,10 +19,11 @@ struct MainView: View {
             
             TabContentView(selectedTab: $selectedTab)
                 .overlay(alignment: .bottom) {
-                    BottomNavigationView(selectedTab: $selectedTab)
-                        .padding(.horizontal, 10)
-                        .padding(.bottom, -10)
-                        .ignoresSafeArea(edges: .bottom)
+                    if !keyboardObserver.isKeyboardVisible {
+                        BottomNavigationView(selectedTab: $selectedTab)
+                            .padding(.horizontal, 10)
+                            .padding(.bottom, -20)
+                    }
                 }
         }
     }

@@ -101,7 +101,13 @@ struct PostCard: View {
             .padding(16)
             
             if !uniqueMedia.isEmpty {
-                PostMediaView(mediaURLs: uniqueMedia)
+                PostMediaView(mediaURLs: uniqueMedia, isNsfw: post.is_nsfw ?? false)
+            }
+            
+            if let music = post.music, !music.isEmpty {
+                PostMusicView(tracks: music)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 8)
             }
         }
     }

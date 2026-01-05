@@ -40,7 +40,7 @@ struct BottomNavigationView: View {
                         ZStack {
                             if selectedTab == tab {
                                 Capsule()
-                                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2).opacity(0.4))
+                                    .fill(Color(red: 0.7, green: 0.7, blue: 0.9).opacity(0.25))
                                     .frame(height: 48)
                                     .padding(.horizontal, 6)
                             }

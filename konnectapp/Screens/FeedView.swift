@@ -22,6 +22,18 @@ struct FeedView: View {
                     onlineUsersBlock
                         .padding(.top, 8)
                     
+                    CreatePostView {
+                        Task {
+                            await viewModel.loadInitialFeed()
+                        }
+                    }
+                    .simultaneousGesture(
+                        TapGesture()
+                            .onEnded { _ in
+                                // Prevent dismissing keyboard when tapping inside CreatePostView
+                            }
+                    )
+                    
                     feedTypeTabs
                     
                     if viewModel.isLoading && viewModel.posts.isEmpty {
@@ -95,6 +107,9 @@ struct FeedView: View {
                 await viewModel.loadInitialFeed()
                 await onlineUsersViewModel.loadOnlineUsers()
             }
+            .onTapGesture {
+                hideKeyboard()
+            }
         }
         .task {
             if viewModel.posts.isEmpty {
@@ -111,6 +126,10 @@ struct FeedView: View {
                 await viewModel.changeFeedType(newValue)
             }
         }
+    }
+    
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
     private var onlineUsersBlock: some View {

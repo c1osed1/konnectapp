@@ -1,0 +1,157 @@
+import Foundation
+import UIKit
+
+class PostService {
+    static let shared = PostService()
+    private let baseURL = "https://k-connect.ru"
+    
+    private var userAgent: String {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            let scale = window.screen.scale
+            return "KConnect-iOS/1.0 (iPhone; iOS \(UIDevice.current.systemVersion); Scale/\(String(format: "%.1f", scale)))"
+        }
+        return "KConnect-iOS/1.0 (iPhone; iOS \(UIDevice.current.systemVersion); Scale/3.0)"
+    }
+    
+    private init() {}
+    
+    func createPost(
+        content: String? = nil,
+        images: [UIImage] = [],
+        video: Data? = nil,
+        isNsfw: Bool = false
+    ) async throws -> Post {
+        guard let token = try KeychainManager.getToken() else {
+            throw PostError.notAuthenticated
+        }
+        
+        guard let sessionKey = try KeychainManager.getSessionKey() else {
+            throw PostError.notAuthenticated
+        }
+        
+        guard let url = URL(string: "\(baseURL)/api/posts/create") else {
+            throw PostError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
+        request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        
+        if let content = content, !content.isEmpty {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"content\"\r\n\r\n".data(using: .utf8)!)
+            body.append(content.data(using: .utf8)!)
+            body.append("\r\n".data(using: .utf8)!)
+        }
+        
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"is_nsfw\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(isNsfw)".data(using: .utf8)!)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"type\"\r\n\r\n".data(using: .utf8)!)
+        body.append("post".data(using: .utf8)!)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        for (index, image) in images.enumerated() {
+            guard let imageData = image.jpegData(compressionQuality: 0.8) else { continue }
+            
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"images[\(index)]\"; filename=\"image\(index).jpg\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+            body.append(imageData)
+            body.append("\r\n".data(using: .utf8)!)
+        }
+        
+        if let video = video {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"video\"; filename=\"video.mp4\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: video/mp4\r\n\r\n".data(using: .utf8)!)
+            body.append(video)
+            body.append("\r\n".data(using: .utf8)!)
+        }
+        
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        print("🟢 CREATE POST REQUEST: URL: \(url.absoluteString) Method: POST Headers: [\"Authorization\": \"Bearer \(token.prefix(20))...\", \"User-Agent\": \"\(userAgent)\", \"X-Mobile-Client\": \"true\", \"X-Session-Key\": \"\(sessionKey.prefix(20))...\"] Body size: \(body.count) bytes")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw PostError.invalidResponse
+        }
+        
+        print("🟢 CREATE POST RESPONSE: Status Code: \(httpResponse.statusCode) Data size: \(data.count) bytes")
+        
+        if httpResponse.statusCode == 200 {
+            do {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                let createResponse = try decoder.decode(CreatePostResponse.self, from: data)
+                print("🟢 CREATE POST SUCCESS: post_id=\(createResponse.post.id)")
+                return createResponse.post
+            } catch {
+                print("❌ JSON Decoding Error: \(error)")
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Response body: \(jsonString)")
+                }
+                throw PostError.decodingError(error)
+            }
+        } else if httpResponse.statusCode == 429 {
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Response body: \(jsonString)")
+            }
+            throw PostError.rateLimit
+        } else {
+            print("❌ CREATE POST ERROR: Status Code: \(httpResponse.statusCode)")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Response body: \(jsonString)")
+            }
+            throw PostError.serverError(httpResponse.statusCode)
+        }
+    }
+}
+
+struct CreatePostResponse: Codable {
+    let success: Bool
+    let post: Post
+}
+
+enum PostError: Error {
+    case notAuthenticated
+    case invalidURL
+    case invalidResponse
+    case serverError(Int)
+    case decodingError(Error)
+    case rateLimit
+    
+    var localizedDescription: String {
+        switch self {
+        case .notAuthenticated:
+            return "Не авторизован"
+        case .invalidURL:
+            return "Неверный URL"
+        case .invalidResponse:
+            return "Неверный ответ сервера"
+        case .serverError(let code):
+            return "Ошибка сервера: \(code)"
+        case .decodingError(let error):
+            return "Ошибка декодирования: \(error.localizedDescription)"
+        case .rateLimit:
+            return "Превышен лимит создания постов"
+        }
+    }
+}
+

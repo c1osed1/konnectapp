@@ -12,7 +12,7 @@ class AuthManager: ObservableObject {
     @Published var errorMessage: String?
     
     private init() {
-        if let _ = try? KeychainManager.getToken() {
+        if let token = try? KeychainManager.getToken(), token.isEmpty == false {
             isAuthenticated = true
         }
         Task {
@@ -43,14 +43,32 @@ class AuthManager: ObservableObject {
     }
     
     func checkAuthStatus() async {
+        guard let token = try? KeychainManager.getToken(), !token.isEmpty else {
+            self.isAuthenticated = false
+            self.currentUser = nil
+            return
+        }
+        
         isLoading = true
         defer { isLoading = false }
         
         do {
             let response = try await AuthService.shared.checkAuth()
-            self.isAuthenticated = response.isAuthenticated
-            self.currentUser = response.user
+            if response.isAuthenticated {
+                self.isAuthenticated = true
+                self.currentUser = response.user
+            } else {
+                try? KeychainManager.deleteTokens()
+                self.isAuthenticated = false
+                self.currentUser = nil
+            }
         } catch {
+            if case AuthError.unauthorized = error {
+                try? KeychainManager.deleteTokens()
+            }
+            if case AuthError.banned = error {
+                try? KeychainManager.deleteTokens()
+            }
             self.isAuthenticated = false
             self.currentUser = nil
         }

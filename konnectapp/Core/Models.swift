@@ -99,12 +99,14 @@ struct Post: Codable, Identifiable {
     let fact: Fact?
     let edited: Bool?
     let last_comment: Comment?
+    let is_nsfw: Bool?
+    let music: [MusicTrack]?
     
     enum CodingKeys: String, CodingKey {
         case id, content, user, created_at, updated_at, timestamp
         case likes_count, comments_count, reposts_count, views_count
         case is_liked, is_reposted, is_repost, media, images, image
-        case type, original_post, fact, edited, last_comment
+        case type, original_post, fact, edited, last_comment, is_nsfw, music
     }
 }
 
@@ -166,6 +168,37 @@ enum FeedType: String, Codable {
     case all = "all"
     case following = "following"
     case recommended = "recommended"
+}
+
+// MARK: - Music Track Model
+struct MusicTrack: Codable, Identifiable {
+    let id: Int64
+    let title: String
+    let artist: String?
+    let album: String?
+    let cover_path: String?
+    let file_path: String
+    let duration: Int
+    let genre: String?
+    let is_liked: Bool?
+    let likes_count: Int?
+    let plays_count: Int?
+    let user_id: Int64?
+    let user_name: String?
+    let user_username: String?
+    let verified: Bool?
+    let created_at: String?
+    let description: String?
+    let artist_id: Int64?
+}
+
+// MARK: - Music Response
+struct MusicResponse: Codable {
+    let current_page: Int
+    let pages: Int
+    let success: Bool?
+    let total: Int
+    let tracks: [MusicTrack]
 }
 
 // MARK: - Auth Errors
