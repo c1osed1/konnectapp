@@ -16,13 +16,13 @@ struct MainView: View {
             )
             .ignoresSafeArea()
             
-            ZStack(alignment: .bottom) {
-                TabContentView(selectedTab: $selectedTab)
-                
-                BottomNavigationView(selectedTab: $selectedTab)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 12)
-            }
+            TabContentView(selectedTab: $selectedTab)
+                .overlay(alignment: .bottom) {
+                    BottomNavigationView(selectedTab: $selectedTab)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, -10)
+                        .ignoresSafeArea(edges: .bottom)
+                }
         }
     }
 }
