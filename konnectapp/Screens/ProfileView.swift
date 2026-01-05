@@ -5,6 +5,7 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @State private var showFollowers = false
     @State private var showFollowing = false
+    @State private var showEditProfile = false
     
     private var userIdentifier: String {
         authManager.currentUser?.username ?? ""
@@ -40,7 +41,7 @@ struct ProfileView: View {
                                 }
                             },
                             onEdit: {
-                                // TODO: Open edit profile
+                                showEditProfile = true
                             },
                             onMessage: {
                                 // TODO: Open messages
@@ -54,6 +55,15 @@ struct ProfileView: View {
                         )
                         .padding(.horizontal, 8)
                         .padding(.top, 8)
+                        
+                        if isOwnProfile {
+                            CreatePostView(onPostCreated: {
+                                Task {
+                                    await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
+                                }
+                            })
+                            .padding(.horizontal, 8)
+                        }
                         
                         if viewModel.isLoadingPosts && viewModel.posts.isEmpty {
                             ProgressView()
@@ -110,6 +120,11 @@ struct ProfileView: View {
             .refreshable {
                 await viewModel.loadProfile(userIdentifier: userIdentifier)
                 await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
+            }
+        }
+        .sheet(isPresented: $showEditProfile) {
+            NavigationStack {
+                EditProfileView(viewModel: viewModel)
             }
         }
         .task(id: userIdentifier) {

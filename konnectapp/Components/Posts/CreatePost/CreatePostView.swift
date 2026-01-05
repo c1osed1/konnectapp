@@ -293,9 +293,9 @@ struct CreatePostView: View {
     }
     
     private func publishPost() async {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !images.isEmpty else {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !images.isEmpty || selectedTrack != nil else {
             await MainActor.run {
-                errorMessage = "Добавьте текст или изображение"
+                errorMessage = "Добавьте текст, изображение или музыку"
             }
             return
         }
@@ -313,12 +313,14 @@ struct CreatePostView: View {
             let _ = try await PostService.shared.createPost(
                 content: text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : text,
                 images: images,
-                isNsfw: isNsfw
+                isNsfw: isNsfw,
+                music: selectedTrack
             )
             
             await MainActor.run {
                 text = ""
                 images = []
+                selectedTrack = nil
                 isNsfw = false
                 errorMessage = nil
                 onPostCreated()

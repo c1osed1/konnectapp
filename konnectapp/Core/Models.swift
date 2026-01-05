@@ -101,12 +101,13 @@ struct Post: Codable, Identifiable {
     let last_comment: Comment?
     let is_nsfw: Bool?
     let music: [MusicTrack]?
+    let is_pinned: Bool?
     
     enum CodingKeys: String, CodingKey {
         case id, content, user, created_at, updated_at, timestamp
         case likes_count, comments_count, reposts_count, views_count
         case is_liked, is_reposted, is_repost, media, images, image
-        case type, original_post, fact, edited, last_comment, is_nsfw, music
+        case type, original_post, fact, edited, last_comment, is_nsfw, music, is_pinned
     }
 }
 
@@ -131,6 +132,10 @@ struct OriginalPost: Codable {
     let type: String?
     let fact: Fact?
     let edited: Bool?
+    let is_nsfw: Bool?
+    let music: [MusicTrack]?
+    let video: String?
+    let video_poster: String?
 }
 
 // MARK: - Post User Model
@@ -177,7 +182,7 @@ struct MusicTrack: Codable, Identifiable {
     let artist: String?
     let album: String?
     let cover_path: String?
-    let file_path: String
+    let file_path: String?
     let duration: Int
     let genre: String?
     let is_liked: Bool?

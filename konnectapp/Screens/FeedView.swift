@@ -149,7 +149,18 @@ struct FeedView: View {
         GlassEffectContainer(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
+                    if onlineUsersViewModel.onlineUsers.isEmpty {
+                        ForEach(0..<10, id: \.self) { _ in
+                            SkeletonCircle(size: 44)
+                                .overlay(
+                                    Circle()
+                                        .fill(Color(red: 0.3, green: 0.3, blue: 0.3))
+                                        .frame(width: 12, height: 12)
+                                        .offset(x: 16, y: 16)
+                                )
+                        }
+                    } else {
+                        ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
                         Button(action: {
                             navigationPath.append(user.username)
                         }) {
@@ -211,10 +222,12 @@ struct FeedView: View {
                                     .offset(x: 16, y: 16)
                             )
                         }
+                        }
                     }
                 }
                 .padding(.vertical, 8)
                 .padding(.leading, 15)
+                .padding(.trailing, 15)
             }
             .background(
                 ZStack {
@@ -234,7 +247,18 @@ struct FeedView: View {
     private var fallbackOnlineBlock: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
+                if onlineUsersViewModel.onlineUsers.isEmpty {
+                    ForEach(0..<10, id: \.self) { _ in
+                        SkeletonCircle(size: 44)
+                            .overlay(
+                                Circle()
+                                    .fill(Color(red: 0.3, green: 0.3, blue: 0.3))
+                                    .frame(width: 12, height: 12)
+                                    .offset(x: 16, y: 16)
+                            )
+                    }
+                } else {
+                    ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
                     Button(action: {
                         navigationPath.append(user.username)
                     }) {
@@ -296,10 +320,12 @@ struct FeedView: View {
                                 .offset(x: 16, y: 16)
                         )
                     }
+                    }
                 }
             }
             .padding(.vertical, 8)
-            .padding(.leading, 5)
+            .padding(.leading, 15)
+            .padding(.trailing, 15)
         }
         .background(
             ZStack {

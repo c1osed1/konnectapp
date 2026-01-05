@@ -92,7 +92,7 @@ struct ProfileCard: View {
     private var liquidGlassProfileCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             if isBannerBackground {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 6) {
@@ -124,10 +124,17 @@ struct ProfileCard: View {
                                 }
                             }
                             
-                            Text("@\(profile.username)")
-                                .font(.system(size: 15))
-                                .foregroundColor(Color.white.opacity(0.9))
-                                .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                            HStack(spacing: 4) {
+                                Text("@\(profile.username)")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(Color.white.opacity(0.9))
+                                    .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                
+                                if let subscription = profile.subscription, subscription.active {
+                                    SubscriptionIcon(subscriptionType: subscription.type, size: 16)
+                                        .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                }
+                            }
                             
                             if let statusText = profile.status_text {
                                 Text(cleanStatusText(statusText))
@@ -150,7 +157,7 @@ struct ProfileCard: View {
                         onFollowingTap: onFollowingTap
                     )
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 6)
                     
                     ProfileActions(
                         isFollowing: isFollowing,
@@ -160,7 +167,7 @@ struct ProfileCard: View {
                         onMessage: onMessage
                     )
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 8)
                     
                     if let about = profile.about, !about.isEmpty {
                         Text(about)
@@ -185,7 +192,7 @@ struct ProfileCard: View {
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))
                             .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                            .padding(.bottom, 8)
                     }
                 }
                 .frame(minHeight: 400)
@@ -267,7 +274,7 @@ struct ProfileCard: View {
                         .offset(x: 16, y: 55)
                     }
                 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 6) {
@@ -296,9 +303,15 @@ struct ProfileCard: View {
                                 }
                             }
                             
-                            Text("@\(profile.username)")
-                                .font(.system(size: 15))
-                                .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                            HStack(spacing: 4) {
+                                Text("@\(profile.username)")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                                
+                                if let subscription = profile.subscription, subscription.active {
+                                    SubscriptionIcon(subscriptionType: subscription.type, size: 16)
+                                }
+                            }
                             
                             if let statusText = profile.status_text {
                                 Text(cleanStatusText(statusText))
@@ -364,7 +377,7 @@ struct ProfileCard: View {
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))
                             .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                            .padding(.bottom, 8)
                     }
                 }
             }
@@ -392,7 +405,7 @@ struct ProfileCard: View {
     private var fallbackProfileCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             if isBannerBackground {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 6) {
@@ -424,10 +437,17 @@ struct ProfileCard: View {
                                 }
                             }
                             
-                            Text("@\(profile.username)")
-                                .font(.system(size: 15))
-                                .foregroundColor(Color.white.opacity(0.9))
-                                .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                            HStack(spacing: 4) {
+                                Text("@\(profile.username)")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(Color.white.opacity(0.9))
+                                    .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                
+                                if let subscription = profile.subscription, subscription.active {
+                                    SubscriptionIcon(subscriptionType: subscription.type, size: 16)
+                                        .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                }
+                            }
                             
                             if let statusText = profile.status_text {
                                 Text(cleanStatusText(statusText))
@@ -450,7 +470,7 @@ struct ProfileCard: View {
                         onFollowingTap: onFollowingTap
                     )
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 6)
                     
                     ProfileActions(
                         isFollowing: isFollowing,
@@ -460,7 +480,7 @@ struct ProfileCard: View {
                         onMessage: onMessage
                     )
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 8)
                     
                     if let about = profile.about, !about.isEmpty {
                         Text(about)
@@ -490,7 +510,7 @@ struct ProfileCard: View {
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))
                             .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                            .padding(.bottom, 8)
                     }
                 }
                 .frame(minHeight: 400)
@@ -572,7 +592,7 @@ struct ProfileCard: View {
                         .offset(x: 16, y: 55)
                     }
                 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 6) {
@@ -601,9 +621,15 @@ struct ProfileCard: View {
                                 }
                             }
                             
-                            Text("@\(profile.username)")
-                                .font(.system(size: 15))
-                                .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                            HStack(spacing: 4) {
+                                Text("@\(profile.username)")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                                
+                                if let subscription = profile.subscription, subscription.active {
+                                    SubscriptionIcon(subscriptionType: subscription.type, size: 16)
+                                }
+                            }
                             
                             if let statusText = profile.status_text {
                                 Text(cleanStatusText(statusText))
@@ -669,7 +695,7 @@ struct ProfileCard: View {
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))
                             .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                            .padding(.bottom, 8)
                     }
                 }
             }

@@ -20,7 +20,8 @@ class PostService {
         content: String? = nil,
         images: [UIImage] = [],
         video: Data? = nil,
-        isNsfw: Bool = false
+        isNsfw: Bool = false,
+        music: MusicTrack? = nil
     ) async throws -> Post {
         guard let token = try KeychainManager.getToken() else {
             throw PostError.notAuthenticated
@@ -63,6 +64,24 @@ class PostService {
         body.append("post".data(using: .utf8)!)
         body.append("\r\n".data(using: .utf8)!)
         
+        if let music = music {
+            do {
+                let musicArray = [music]
+                let encoder = JSONEncoder()
+                encoder.keyEncodingStrategy = .convertToSnakeCase
+                let musicJSON = try encoder.encode(musicArray)
+                
+                if let musicString = String(data: musicJSON, encoding: .utf8) {
+                    body.append("--\(boundary)\r\n".data(using: .utf8)!)
+                    body.append("Content-Disposition: form-data; name=\"music\"\r\n\r\n".data(using: .utf8)!)
+                    body.append(musicString.data(using: .utf8)!)
+                    body.append("\r\n".data(using: .utf8)!)
+                }
+            } catch {
+                print("❌ Error encoding music: \(error)")
+            }
+        }
+        
         for (index, image) in images.enumerated() {
             guard let imageData = image.jpegData(compressionQuality: 0.8) else { continue }
             
@@ -98,7 +117,7 @@ class PostService {
         if httpResponse.statusCode == 200 {
             do {
                 let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                decoder.keyDecodingStrategy = .useDefaultKeys
                 let createResponse = try decoder.decode(CreatePostResponse.self, from: data)
                 print("🟢 CREATE POST SUCCESS: post_id=\(createResponse.post.id)")
                 return createResponse.post

@@ -6,6 +6,7 @@ struct PostCard: View {
     @State private var isLiked: Bool
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
+    @State private var toastMessage: String?
     
     init(post: Post, navigationPath: Binding<NavigationPath>) {
         self.post = post
@@ -29,14 +30,25 @@ struct PostCard: View {
     }
     
     var body: some View {
-        Group {
-            if #available(iOS 26.0, *) {
-                liquidGlassPostCard
-            } else {
-                fallbackPostCard
+        ZStack {
+            Group {
+                if #available(iOS 26.0, *) {
+                    liquidGlassPostCard
+                } else {
+                    fallbackPostCard
+                }
+            }
+            .layoutPriority(1)
+            
+            if let message = toastMessage {
+                ToastView(message: message, isPresented: .constant(true))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            toastMessage = nil
+                        }
+                    }
             }
         }
-        .layoutPriority(1)
     }
     
     @available(iOS 26.0, *)
@@ -89,12 +101,20 @@ struct PostCard: View {
     private var postContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
-                if let user = post.user {
-                    PostHeader(
-                        user: user,
-                        timestamp: post.created_at ?? post.timestamp,
-                        navigationPath: $navigationPath
-                    )
+                HStack(spacing: 8) {
+                    if post.type == "repost" || post.original_post != nil {
+                        Image(systemName: "arrow.2.squarepath")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                    }
+                    
+                    if let user = post.user {
+                        PostHeader(
+                            user: user,
+                            timestamp: post.created_at ?? post.timestamp,
+                            navigationPath: $navigationPath
+                        )
+                    }
                 }
                 
                 if let content = post.content, !content.isEmpty {
@@ -103,14 +123,20 @@ struct PostCard: View {
             }
             .padding(16)
             
-            if !uniqueMedia.isEmpty {
-                PostMediaView(mediaURLs: uniqueMedia, isNsfw: post.is_nsfw ?? false)
-            }
-            
-            if let music = post.music, !music.isEmpty {
-                PostMusicView(tracks: music)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 8)
+            if let originalPost = post.original_post {
+                RepostedPostView(originalPost: originalPost, navigationPath: $navigationPath)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+            } else {
+                if !uniqueMedia.isEmpty {
+                    PostMediaView(mediaURLs: uniqueMedia, isNsfw: post.is_nsfw ?? false)
+                }
+                
+                if let music = post.music, !music.isEmpty {
+                    PostMusicView(tracks: music)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 8)
+                }
             }
         }
     }
@@ -127,7 +153,7 @@ struct PostCard: View {
             
             PostCommentBlock(lastComment: post.last_comment)
             
-            PostRepostButton()
+            PostMoreButton(post: post, toastMessage: $toastMessage)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)

@@ -1,0 +1,64 @@
+import SwiftUI
+
+struct SubscriptionIcon: View {
+    let subscriptionType: String?
+    let size: CGFloat
+    
+    init(subscriptionType: String?, size: CGFloat = 18) {
+        self.subscriptionType = subscriptionType
+        self.size = size
+    }
+    
+    var body: some View {
+        if let type = subscriptionType, let subscription = SubscriptionType(rawValue: type) {
+            Group {
+                switch subscription {
+                case .max:
+                    maxIcon
+                case .ultimate:
+                    ultimateIcon
+                case .premium:
+                    premiumIcon
+                case .pickMe:
+                    pickMeIcon
+                }
+            }
+            .frame(width: size, height: size)
+        }
+    }
+    
+    @ViewBuilder
+    private var maxIcon: some View {
+        SVGView(svgString: """
+        <svg width="45" height="42" viewBox="0 0 45 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M25.3126 0L28.125 2.1L26.0884 10.7173L42.1875 0.7L45 2.8L30.7865 32.3873C29.9557 34.1166 28.8357 35.6924 27.4743 37.0479L27.0947 37.4256C24.1446 40.3628 20.0742 42 15.91 42C7.28299 42 0.259725 35.1641 0.00709445 26.6364C-0.00146325 26.3502 -0.00234379 26.0613 0.00480586 25.7737C0.104386 21.7147 1.76674 17.8429 4.65651 14.9642L4.90834 14.7136C5.91263 13.7137 7.02734 12.8573 8.22141 12.1537L25.3126 0ZM15.4687 33.6C19.352 33.6 22.5 30.466 22.5 26.6C22.5 22.734 19.352 19.6 15.4687 19.6C11.5855 19.6 8.43749 22.734 8.43749 26.6C8.43749 30.466 11.5855 33.6 15.4687 33.6Z" fill="#FF4D50"/>
+        </svg>
+        """)
+    }
+    
+    @ViewBuilder
+    private var ultimateIcon: some View {
+        Image(systemName: "diamond.fill")
+            .foregroundColor(Color(red: 124/255, green: 77/255, blue: 255/255))
+    }
+    
+    @ViewBuilder
+    private var premiumIcon: some View {
+        Image(systemName: "crown.fill")
+            .foregroundColor(Color(red: 186/255, green: 104/255, blue: 200/255))
+    }
+    
+    @ViewBuilder
+    private var pickMeIcon: some View {
+        Image(systemName: "sparkles")
+            .foregroundColor(Color(red: 208/255, green: 188/255, blue: 255/255))
+    }
+}
+
+enum SubscriptionType: String {
+    case max = "max"
+    case ultimate = "ultimate"
+    case premium = "premium"
+    case pickMe = "pick-me"
+}
+
