@@ -2,12 +2,14 @@ import SwiftUI
 
 struct PostCard: View {
     let post: Post
+    @Binding var navigationPath: NavigationPath
     @State private var isLiked: Bool
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
     
-    init(post: Post) {
+    init(post: Post, navigationPath: Binding<NavigationPath>) {
         self.post = post
+        self._navigationPath = navigationPath
         _isLiked = State(initialValue: post.is_liked ?? false)
         _likesCount = State(initialValue: post.likes_count ?? 0)
     }
@@ -90,7 +92,8 @@ struct PostCard: View {
                 if let user = post.user {
                     PostHeader(
                         user: user,
-                        timestamp: post.created_at ?? post.timestamp
+                        timestamp: post.created_at ?? post.timestamp,
+                        navigationPath: $navigationPath
                     )
                 }
                 
@@ -161,4 +164,3 @@ struct PostCard: View {
         }
     }
 }
-

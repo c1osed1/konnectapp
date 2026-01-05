@@ -3,50 +3,59 @@ import SwiftUI
 struct PostHeader: View {
     let user: PostUser
     let timestamp: String?
+    @Binding var navigationPath: NavigationPath
     
     var body: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: URL(string: user.avatar_url ?? "")) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.82, green: 0.74, blue: 1.0),
-                                Color(red: 0.75, green: 0.65, blue: 0.95)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+            Button(action: {
+                navigationPath.append(user.username)
+            }) {
+                AsyncImage(url: URL(string: user.avatar_url ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
+                    .overlay(
+                        Text(String((user.name ?? user.username).prefix(1)))
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.black)
                     )
-                .overlay(
-                    Text(String((user.name ?? user.username).prefix(1)))
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.black)
-                )
-            }
-            .frame(width: 44, height: 44)
-            .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(user.name ?? user.username)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.white)
-                    
-                    if user.is_verified == true {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
-                    }
                 }
-                
-                Text("@\(user.username)")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                .frame(width: 44, height: 44)
+                .clipShape(Circle())
+            }
+            
+            Button(action: {
+                navigationPath.append(user.username)
+            }) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text(user.name ?? user.username)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        if user.is_verified == true {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                        }
+                    }
+                    
+                    Text("@\(user.username)")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                }
             }
             
             Spacer()
@@ -122,4 +131,3 @@ struct PostHeader: View {
         }
     }
 }
-

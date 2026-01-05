@@ -2,80 +2,139 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var authManager = AuthManager.shared
+    @StateObject private var viewModel = ProfileViewModel()
+    @State private var showFollowers = false
+    @State private var showFollowing = false
     
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                if let user = authManager.currentUser {
-                    VStack(spacing: 16) {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.82, green: 0.74, blue: 1.0),
-                                        Color(red: 0.75, green: 0.65, blue: 0.95)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 100, height: 100)
-                            .overlay(
-                                Text(String(user.name.prefix(1)))
-                                    .font(.system(size: 40, weight: .bold))
-                                    .foregroundColor(.black)
-                            )
-                        
-                        Text(user.name)
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.white)
-                        
-                        Text("@\(user.username)")
-                            .font(.system(size: 16))
-                            .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
-                    }
-                    .padding(.top, 40)
-                }
-                
-                VStack(spacing: 12) {
-                    ProfileRow(icon: "person.circle", title: "Редактировать профиль")
-                    ProfileRow(icon: "bell", title: "Уведомления")
-                    ProfileRow(icon: "lock", title: "Безопасность")
-                    ProfileRow(icon: "gear", title: "Настройки")
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-            }
-            .padding(.bottom, 100)
-        }
+    private var userIdentifier: String {
+        authManager.currentUser?.username ?? ""
     }
-}
-
-struct ProfileRow: View {
-    let icon: String
-    let title: String
+    
+    private var isOwnProfile: Bool {
+        true
+    }
     
     var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
-                .frame(width: 24)
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.06, green: 0.06, blue: 0.06),
+                    Color(red: 0.1, green: 0.1, blue: 0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
-            Text(title)
-                .font(.system(size: 16))
-                .foregroundColor(.white)
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
-                .font(.system(size: 14))
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    if let profile = viewModel.profile {
+                        ProfileCard(
+                            profile: profile.user,
+                            socials: profile.socials,
+                            isFollowing: profile.is_following ?? false,
+                            isOwnProfile: isOwnProfile,
+                            onFollowToggle: {
+                                Task {
+                                    await viewModel.toggleFollow()
+                                }
+                            },
+                            onEdit: {
+                                // TODO: Open edit profile
+                            },
+                            onMessage: {
+                                // TODO: Open messages
+                            },
+                            onFollowersTap: {
+                                showFollowers = true
+                            },
+                            onFollowingTap: {
+                                showFollowing = true
+                            }
+                        )
+                        .padding(.horizontal, 8)
+                        .padding(.top, 8)
+                        
+                        if viewModel.isLoadingPosts && viewModel.posts.isEmpty {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 20)
+                        } else if viewModel.posts.isEmpty && !viewModel.isLoadingPosts {
+                            VStack(spacing: 12) {
+                                Image(systemName: "tray")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                Text("Нет постов")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
+                            }
+                            .padding(.top, 40)
+                        } else {
+                            ForEach(viewModel.posts) { post in
+                                PostCard(post: post, navigationPath: .constant(NavigationPath()))
+                                    .padding(.horizontal, 8)
+                            }
+                            
+                            if viewModel.hasMore {
+                                Button(action: {
+                                    Task {
+                                        await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: viewModel.currentPage + 1)
+                                    }
+                                }) {
+                                    Text("Загрузить еще")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                        .padding()
+                                }
+                            }
+                        }
+                    } else if viewModel.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 100)
+                    } else if let errorMessage = viewModel.errorMessage {
+                        VStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 48))
+                                .foregroundColor(.red)
+                            Text(errorMessage)
+                                .font(.system(size: 16))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.top, 100)
+                    }
+                }
+                .padding(.bottom, 100)
+            }
+            .refreshable {
+                await viewModel.loadProfile(userIdentifier: userIdentifier)
+                await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
+            }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
-        )
+        .task(id: userIdentifier) {
+            print("🔵 ProfileView: task started")
+            print("🔵 ProfileView: userIdentifier: '\(userIdentifier)'")
+            print("🔵 ProfileView: authManager.currentUser: \(authManager.currentUser?.username ?? "nil")")
+            
+            guard !userIdentifier.isEmpty else {
+                print("❌ ProfileView: userIdentifier is empty, cannot load profile")
+                await MainActor.run {
+                    viewModel.errorMessage = "Не удалось определить пользователя"
+                }
+                return
+            }
+            
+            if viewModel.profile == nil {
+                print("🔵 ProfileView: Profile is nil, loading...")
+                await viewModel.loadProfile(userIdentifier: userIdentifier)
+                print("🔵 ProfileView: Profile loaded, now loading posts...")
+                await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
+                print("✅ ProfileView: All data loaded")
+            } else {
+                print("✅ ProfileView: Profile already exists")
+            }
+        }
     }
 }
 

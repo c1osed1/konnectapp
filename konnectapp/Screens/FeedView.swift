@@ -4,6 +4,7 @@ struct FeedView: View {
     @StateObject private var viewModel = FeedViewModel()
     @StateObject private var onlineUsersViewModel = OnlineUsersViewModel()
     @State private var selectedFeedType: FeedType = .all
+    @Binding var navigationPath: NavigationPath
     
     var body: some View {
         ZStack {
@@ -34,7 +35,7 @@ struct FeedView: View {
                             }
                     )
                     
-                    feedTypeTabs
+                    feedTypeTabsView
                     
                     if viewModel.isLoading && viewModel.posts.isEmpty {
                         ProgressView()
@@ -77,7 +78,7 @@ struct FeedView: View {
                         .padding(.top, 100)
                     } else {
                         ForEach(viewModel.posts) { post in
-                            PostCard(post: post)
+                            PostCard(post: post, navigationPath: $navigationPath)
                                 .onAppear {
                                     if post.id == viewModel.posts.last?.id {
                                         Task {
@@ -149,6 +150,94 @@ struct FeedView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
+                        Button(action: {
+                            navigationPath.append(user.username)
+                        }) {
+                            AsyncImage(url: URL(string: user.photo ?? user.avatar_url ?? "")) { phase in
+                                switch phase {
+                                case .empty:
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .overlay(
+                                            Text(String((user.name ?? user.username).prefix(1)))
+                                                .font(.system(size: 14, weight: .bold))
+                                                .foregroundColor(.black)
+                                        )
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                case .failure:
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .overlay(
+                                            Text(String((user.name ?? user.username).prefix(1)))
+                                                .font(.system(size: 14, weight: .bold))
+                                                .foregroundColor(.black)
+                                        )
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 12, height: 12)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.black.opacity(0.2), lineWidth: 2)
+                                            .frame(width: 12, height: 12)
+                                    )
+                                    .offset(x: 16, y: 16)
+                            )
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.leading, 15)
+            }
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                        )
+                }
+            )
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+        }
+    }
+    
+    @ViewBuilder
+    private var fallbackOnlineBlock: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
+                    Button(action: {
+                        navigationPath.append(user.username)
+                    }) {
                         AsyncImage(url: URL(string: user.photo ?? user.avatar_url ?? "")) { phase in
                             switch phase {
                             case .empty:
@@ -208,86 +297,6 @@ struct FeedView: View {
                         )
                     }
                 }
-                .padding(.vertical, 8)
-                .padding(.leading, 15)
-            }
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial.opacity(0.2))
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
-                        )
-                }
-            )
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
-        }
-    }
-    
-    @ViewBuilder
-    private var fallbackOnlineBlock: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
-                    AsyncImage(url: URL(string: user.photo ?? user.avatar_url ?? "")) { phase in
-                        switch phase {
-                        case .empty:
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color(red: 0.82, green: 0.74, blue: 1.0),
-                                            Color(red: 0.75, green: 0.65, blue: 0.95)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .overlay(
-                                    Text(String((user.name ?? user.username).prefix(1)))
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(.black)
-                                )
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        case .failure:
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color(red: 0.82, green: 0.74, blue: 1.0),
-                                            Color(red: 0.75, green: 0.65, blue: 0.95)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .overlay(
-                                    Text(String((user.name ?? user.username).prefix(1)))
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(.black)
-                                )
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                    .frame(width: 44, height: 44)
-                    .clipShape(Circle())
-                    .overlay(
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 12, height: 12)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.black.opacity(0.2), lineWidth: 2)
-                                    .frame(width: 12, height: 12)
-                            )
-                            .offset(x: 16, y: 16)
-                    )
-                }
             }
             .padding(.vertical, 8)
             .padding(.leading, 5)
@@ -310,19 +319,19 @@ struct FeedView: View {
         )
     }
     
-    private var feedTypeTabs: some View {
+    private var feedTypeTabsView: some View {
         Group {
             if #available(iOS 26.0, *) {
-                liquidGlassTabs
+                liquidGlassTabsView
             } else {
-                fallbackTabs
+                fallbackTabsView
             }
         }
     }
     
     @available(iOS 26.0, *)
     @ViewBuilder
-    private var liquidGlassTabs: some View {
+    private var liquidGlassTabsView: some View {
         GlassEffectContainer(spacing: 0) {
             HStack(spacing: 0) {
                 FeedTypeTab(title: "Все", type: .all, selected: $selectedFeedType)
@@ -345,7 +354,7 @@ struct FeedView: View {
     }
     
     @ViewBuilder
-    private var fallbackTabs: some View {
+    private var fallbackTabsView: some View {
         HStack(spacing: 0) {
             FeedTypeTab(title: "Все", type: .all, selected: $selectedFeedType)
             FeedTypeTab(title: "Подписки", type: .following, selected: $selectedFeedType)
@@ -402,4 +411,3 @@ struct FeedTypeTab: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
-
