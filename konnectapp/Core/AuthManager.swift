@@ -12,6 +12,9 @@ class AuthManager: ObservableObject {
     @Published var errorMessage: String?
     
     private init() {
+        if let _ = try? KeychainManager.getToken() {
+            isAuthenticated = true
+        }
         Task {
             await checkAuthStatus()
         }

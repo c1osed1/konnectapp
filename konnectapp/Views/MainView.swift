@@ -21,7 +21,7 @@ struct MainView: View {
                 
                 BottomNavigationView(selectedTab: $selectedTab)
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 12)
             }
         }
     }

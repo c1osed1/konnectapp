@@ -66,6 +66,16 @@ struct CheckAuthResponse: Codable {
     let message: String?
 }
 
+// MARK: - Comment Model
+struct Comment: Codable {
+    let id: Int64
+    let content: String?
+    let image: String?
+    let likes_count: Int?
+    let timestamp: String?
+    let user: PostUser?
+}
+
 // MARK: - Post Model
 struct Post: Codable, Identifiable {
     let id: Int64
@@ -88,12 +98,13 @@ struct Post: Codable, Identifiable {
     let original_post: OriginalPost?
     let fact: Fact?
     let edited: Bool?
+    let last_comment: Comment?
     
     enum CodingKeys: String, CodingKey {
         case id, content, user, created_at, updated_at, timestamp
         case likes_count, comments_count, reposts_count, views_count
         case is_liked, is_reposted, is_repost, media, images, image
-        case type, original_post, fact, edited
+        case type, original_post, fact, edited, last_comment
     }
 }
 
@@ -130,6 +141,8 @@ struct PostUser: Codable {
     let is_verified: Bool?
     let is_following: Bool?
     let account_type: String?
+    let last_active_utc: String?
+    let time_diff_seconds: Double?
 }
 
 // MARK: - Fact Model

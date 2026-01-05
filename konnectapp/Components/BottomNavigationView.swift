@@ -41,8 +41,8 @@ struct BottomNavigationView: View {
                             if selectedTab == tab {
                                 Capsule()
                                     .fill(Color(red: 0.2, green: 0.2, blue: 0.2).opacity(0.4))
-                                    .frame(height: 36)
-                                    .padding(.horizontal, 4)
+                                    .frame(height: 48)
+                                    .padding(.horizontal, 6)
                             }
                             
                             Image(systemName: tab.icon)
@@ -50,8 +50,8 @@ struct BottomNavigationView: View {
                                 .foregroundColor(selectedTab == tab ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.6, green: 0.6, blue: 0.6))
                                 .frame(width: 26, height: 26)
                         }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -76,13 +76,13 @@ struct BottomNavigationView: View {
                         if selectedTab == tab {
                             Capsule()
                                 .fill(Color(red: 0.2, green: 0.2, blue: 0.2).opacity(0.2))
-                                .frame(height: 36)
-                                .padding(.horizontal, 4)
+                                .frame(height: 48)
+                                .padding(.horizontal, 6)
                         }
                         
                         Image(systemName: tab.icon)
                             .font(.system(size: 22, weight: selectedTab == tab ? .semibold : .regular))
-                            .foregroundColor(selectedTab == tab ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(selectedTab == tab ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.4, green: 0.4, blue: 0.4))
                             .frame(width: 26, height: 26)
                     }
                     .frame(maxWidth: .infinity)
@@ -98,10 +98,10 @@ struct BottomNavigationView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 36)
-                    .fill(.ultraThinMaterial.opacity(0.15))
+                    .fill(.ultraThinMaterial.opacity(0.2))
                     .background(
                         RoundedRectangle(cornerRadius: 36)
-                            .fill(Color(red: 0.08, green: 0.08, blue: 0.08).opacity(0.9))
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
                     )
                 
                 RoundedRectangle(cornerRadius: 36)
