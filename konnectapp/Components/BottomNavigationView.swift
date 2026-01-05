@@ -98,11 +98,15 @@ struct BottomNavigationView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 36)
-                    .fill(.ultraThinMaterial.opacity(0.3))
+                    .fill(.ultraThinMaterial.opacity(0.15))
+                    .background(
+                        RoundedRectangle(cornerRadius: 36)
+                            .fill(Color(red: 0.08, green: 0.08, blue: 0.08).opacity(0.9))
+                    )
                 
                 RoundedRectangle(cornerRadius: 36)
                     .stroke(
-                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.2),
+                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
                         lineWidth: 0.5
                     )
             }

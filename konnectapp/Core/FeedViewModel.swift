@@ -22,6 +22,7 @@ class FeedViewModel: ObservableObject {
         }
         
         do {
+            print("📥 Loading feed: type=\(feedType.rawValue), page=1")
             let response = try await FeedService.shared.getFeed(
                 page: 1,
                 perPage: 20,
@@ -29,16 +30,24 @@ class FeedViewModel: ObservableObject {
                 includeAll: feedType == .all
             )
             
+            print("✅ Feed loaded: \(response.posts.count) posts")
+            
             await MainActor.run {
                 self.posts = response.posts
                 self.hasMore = response.has_next
                 self.currentPage = 2
                 self.isLoading = false
+                self.errorMessage = nil
             }
         } catch {
+            print("❌ Feed loading error: \(error.localizedDescription)")
             await MainActor.run {
                 self.isLoading = false
-                self.errorMessage = error.localizedDescription
+                if let authError = error as? AuthError {
+                    self.errorMessage = authError.errorDescription
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
             }
         }
     }

@@ -55,10 +55,23 @@ class FeedService {
             request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
         }
         
+        print("🔵 FEED REQUEST:")
+        print("URL: \(finalURL.absoluteString)")
+        print("Headers: \(request.allHTTPHeaderFields ?? [:])")
+        
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
+            print("❌ Invalid response type")
             throw AuthError.invalidResponse
+        }
+        
+        print("🟢 FEED RESPONSE:")
+        print("Status Code: \(httpResponse.statusCode)")
+        print("Data size: \(data.count) bytes")
+        
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("Body: \(responseString.prefix(500))")
         }
         
         guard (200...299).contains(httpResponse.statusCode) else {
@@ -66,12 +79,33 @@ class FeedService {
                 try? KeychainManager.deleteTokens()
                 throw AuthError.unauthorized
             }
+            print("❌ HTTP Error: \(httpResponse.statusCode)")
             throw AuthError.invalidResponse
         }
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(FeedResponse.self, from: data)
+        
+        do {
+            let feedResponse = try decoder.decode(FeedResponse.self, from: data)
+            print("✅ Decoded Feed Response:")
+            print("Posts count: \(feedResponse.posts.count)")
+            print("Has next: \(feedResponse.has_next)")
+            return feedResponse
+        } catch {
+            print("❌ Decoding error: \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .keyNotFound(let key, let context):
+                    print("Key '\(key.stringValue)' not found: \(context)")
+                case .typeMismatch(let type, let context):
+                    print("Type mismatch for type \(type): \(context)")
+                default:
+                    print("Decoding error: \(decodingError)")
+                }
+            }
+            throw error
+        }
     }
 }
 

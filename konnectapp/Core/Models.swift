@@ -69,30 +69,9 @@ struct CheckAuthResponse: Codable {
 // MARK: - Post Model
 struct Post: Codable, Identifiable {
     let id: Int64
-    let content: String
-    let user: PostUser
-    let created_at: String
-    let updated_at: String
-    let timestamp: String
-    let likes_count: Int
-    let comments_count: Int
-    let reposts_count: Int?
-    let views_count: Int?
-    let is_liked: Bool
-    let is_reposted: Bool?
-    let is_repost: Bool
-    let media: [String]?
-    let type: String?
-    let original_post: OriginalPost?
-    let fact: Fact?
-}
-
-// MARK: - Original Post Model (для репостов)
-struct OriginalPost: Codable {
-    let id: Int64
-    let content: String
-    let user: PostUser
-    let created_at: String
+    let content: String?
+    let user: PostUser?
+    let created_at: String?
     let updated_at: String?
     let timestamp: String?
     let likes_count: Int?
@@ -103,8 +82,42 @@ struct OriginalPost: Codable {
     let is_reposted: Bool?
     let is_repost: Bool?
     let media: [String]?
+    let images: [String]?
+    let image: String?
+    let type: String?
+    let original_post: OriginalPost?
+    let fact: Fact?
+    let edited: Bool?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, content, user, created_at, updated_at, timestamp
+        case likes_count, comments_count, reposts_count, views_count
+        case is_liked, is_reposted, is_repost, media, images, image
+        case type, original_post, fact, edited
+    }
+}
+
+// MARK: - Original Post Model (для репостов)
+struct OriginalPost: Codable {
+    let id: Int64
+    let content: String?
+    let user: PostUser?
+    let created_at: String?
+    let updated_at: String?
+    let timestamp: String?
+    let likes_count: Int?
+    let comments_count: Int?
+    let reposts_count: Int?
+    let views_count: Int?
+    let is_liked: Bool?
+    let is_reposted: Bool?
+    let is_repost: Bool?
+    let media: [String]?
+    let images: [String]?
+    let image: String?
     let type: String?
     let fact: Fact?
+    let edited: Bool?
 }
 
 // MARK: - Post User Model
