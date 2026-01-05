@@ -9,7 +9,7 @@ class KeyboardObserver: ObservableObject {
     init() {
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
             .sink { [weak self] _ in
-                withAnimation(.easeInOut(duration: 0.25)) {
+                DispatchQueue.main.async {
                     self?.isKeyboardVisible = true
                 }
             }
@@ -17,7 +17,7 @@ class KeyboardObserver: ObservableObject {
         
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
             .sink { [weak self] _ in
-                withAnimation(.easeInOut(duration: 0.25)) {
+                DispatchQueue.main.async {
                     self?.isKeyboardVisible = false
                 }
             }

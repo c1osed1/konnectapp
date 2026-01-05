@@ -19,11 +19,11 @@ struct MainView: View {
             
             TabContentView(selectedTab: $selectedTab)
                 .overlay(alignment: .bottom) {
-                    if !keyboardObserver.isKeyboardVisible {
-                        BottomNavigationView(selectedTab: $selectedTab)
-                            .padding(.horizontal, 10)
-                            .padding(.bottom, -20)
-                    }
+                    BottomNavigationView(selectedTab: $selectedTab)
+                        .padding(.horizontal, 10)
+                        .padding(.bottom, -20)
+                        .opacity(keyboardObserver.isKeyboardVisible ? 0 : 1)
+                        .animation(nil, value: keyboardObserver.isKeyboardVisible)
                 }
         }
     }
