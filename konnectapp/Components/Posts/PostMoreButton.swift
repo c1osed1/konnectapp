@@ -3,67 +3,68 @@ import SwiftUI
 struct PostMoreButton: View {
     let post: Post
     @Binding var toastMessage: String?
+    @State private var showRepostModal = false
+    @State private var showFactsModal = false
+    @State private var showReportModal = false
     
     var body: some View {
         Menu {
-            PostMoreMenuContent(post: post, toastMessage: $toastMessage)
+            PostMoreMenuContent(
+                post: post,
+                toastMessage: $toastMessage,
+                showRepostModal: $showRepostModal,
+                showFactsModal: $showFactsModal,
+                showReportModal: $showReportModal
+            )
         } label: {
-            if #available(iOS 26.0, *) {
+            HStack(spacing: 4) {
                 Image(systemName: "list.bullet")
                     .font(.system(size: 16))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-            } else {
-                Image(systemName: "list.bullet")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
+                    .frame(width: 16, height: 16)
+            }
+            .frame(minWidth: 44, minHeight: 32)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial.opacity(0.2))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(.ultraThinMaterial.opacity(0.2))
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(
-                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
-                                        lineWidth: 0.5
-                                    )
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                lineWidth: 0.5
                             )
                     )
-            }
+            )
         }
         .menuStyle(.borderlessButton)
-        .overlay(
-            Group {
-                if #available(iOS 26.0, *) {
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(
-                            Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
-                            lineWidth: 0.5
-                        )
-                        .allowsHitTesting(false)
-                } else {
-                    EmptyView()
-                }
-            }
-        )
+        .sheet(isPresented: $showRepostModal) {
+            RepostModalView(post: post, toastMessage: $toastMessage)
+        }
+        .sheet(isPresented: $showFactsModal) {
+            FactsModalView(post: post, toastMessage: $toastMessage)
+        }
+        .sheet(isPresented: $showReportModal) {
+            ReportModalView(post: post, toastMessage: $toastMessage)
+        }
     }
 }
 
 struct PostMoreMenuContent: View {
     let post: Post
     @Binding var toastMessage: String?
+    @Binding var showRepostModal: Bool
+    @Binding var showFactsModal: Bool
+    @Binding var showReportModal: Bool
     @StateObject private var authManager = AuthManager.shared
     @State private var isUserBlocked = false
     @State private var isLoadingBlockStatus = false
-    @State private var showRepostModal = false
-    @State private var showFactsModal = false
-    @State private var showReportModal = false
     
     private var isCurrentUserPost: Bool {
         guard let currentUserId = authManager.currentUser?.id,
@@ -104,15 +105,6 @@ struct PostMoreMenuContent: View {
             if !isCurrentUserPost {
                 await checkBlockStatus()
             }
-        }
-        .sheet(isPresented: $showRepostModal) {
-            RepostModalView(post: post, toastMessage: $toastMessage)
-        }
-        .sheet(isPresented: $showFactsModal) {
-            FactsModalView(post: post, toastMessage: $toastMessage)
-        }
-        .sheet(isPresented: $showReportModal) {
-            ReportModalView(post: post, toastMessage: $toastMessage)
         }
     }
     
@@ -189,7 +181,7 @@ struct PostMoreMenuContent: View {
     }
     
     private func checkBlockStatus() async {
-        guard let userId = post.user?.id else { return }
+        guard post.user?.id != nil else { return }
         isLoadingBlockStatus = true
         defer { isLoadingBlockStatus = false }
         

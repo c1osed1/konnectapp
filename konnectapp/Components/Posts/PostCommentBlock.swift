@@ -2,9 +2,19 @@ import SwiftUI
 
 struct PostCommentBlock: View {
     let lastComment: Comment?
+    let onTap: (() -> Void)?
+    
+    init(lastComment: Comment?, onTap: (() -> Void)? = nil) {
+        self.lastComment = lastComment
+        self.onTap = onTap
+    }
     
     var body: some View {
-        if #available(iOS 26.0, *) {
+        Button {
+            onTap?()
+        } label: {
+            Group {
+                if #available(iOS 26.0, *) {
             HStack(spacing: 8) {
                 Image(systemName: "bubble.right")
                     .font(.system(size: 14))
@@ -158,7 +168,10 @@ struct PostCommentBlock: View {
                             )
                     )
             )
+                }
+            }
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

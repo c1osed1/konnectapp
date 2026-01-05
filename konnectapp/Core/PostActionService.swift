@@ -225,17 +225,12 @@ class PostActionService {
         request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
         
         var body: [String: Any] = [
-            "target_type": "post",
-            "target_id": postId,
+            "post_id": postId,
             "reason": reason
         ]
         
         if let description = description, !description.isEmpty {
             body["description"] = description
-        }
-        
-        if let postContent = try? JSONEncoder().encode(postId) {
-            body["evidence"] = "Post ID: \(postId)"
         }
         
         request.httpBody = try JSONSerialization.data(withJSONObject: body)

@@ -7,6 +7,7 @@ struct PostCard: View {
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
     @State private var toastMessage: String?
+    @State private var showPostDetail: Bool = false
     
     init(post: Post, navigationPath: Binding<NavigationPath>) {
         self.post = post
@@ -30,24 +31,24 @@ struct PostCard: View {
     }
     
     var body: some View {
-        ZStack {
-            Group {
-                if #available(iOS 26.0, *) {
-                    liquidGlassPostCard
-                } else {
-                    fallbackPostCard
+        Group {
+            if #available(iOS 26.0, *) {
+                liquidGlassPostCard
+            } else {
+                fallbackPostCard
+            }
+        }
+        .layoutPriority(1)
+        .onChange(of: toastMessage) { oldValue, newValue in
+            if let message = newValue {
+                ToastHelper.showToast(message: message)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    toastMessage = nil
                 }
             }
-            .layoutPriority(1)
-            
-            if let message = toastMessage {
-                ToastView(message: message, isPresented: .constant(true))
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            toastMessage = nil
-                        }
-                    }
-            }
+        }
+        .sheet(isPresented: $showPostDetail) {
+            PostDetailView(post: post, navigationPath: $navigationPath)
         }
     }
     
@@ -151,7 +152,9 @@ struct PostCard: View {
                 onToggle: toggleLike
             )
             
-            PostCommentBlock(lastComment: post.last_comment)
+            PostCommentBlock(lastComment: post.last_comment) {
+                showPostDetail = true
+            }
             
             PostMoreButton(post: post, toastMessage: $toastMessage)
         }

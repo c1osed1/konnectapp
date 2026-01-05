@@ -67,13 +67,116 @@ struct CheckAuthResponse: Codable {
 }
 
 // MARK: - Comment Model
-struct Comment: Codable {
+struct Comment: Codable, Identifiable {
     let id: Int64
     let content: String?
     let image: String?
     let likes_count: Int?
     let timestamp: String?
     let user: PostUser?
+    let user_liked: Bool?
+    let replies_count: Int?
+    let replies: [Reply]?
+}
+
+// MARK: - Reply Model
+struct Reply: Codable, Identifiable {
+    let id: Int64
+    let content: String?
+    let image: String?
+    let timestamp: String?
+    let parent_reply_id: Int64?
+    let likes_count: Int?
+    let user_liked: Bool?
+    let user: PostUser?
+    
+    // Parent reply info (only basic info, not full Reply to avoid recursion)
+    let parent_reply_user: PostUser?
+    let parent_reply_content: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, content, image, timestamp, parent_reply_id
+        case likes_count, user_liked, user
+        case parent_reply
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int64.self, forKey: .id)
+        content = try container.decodeIfPresent(String.self, forKey: .content)
+        image = try container.decodeIfPresent(String.self, forKey: .image)
+        timestamp = try container.decodeIfPresent(String.self, forKey: .timestamp)
+        parent_reply_id = try container.decodeIfPresent(Int64.self, forKey: .parent_reply_id)
+        likes_count = try container.decodeIfPresent(Int.self, forKey: .likes_count)
+        user_liked = try container.decodeIfPresent(Bool.self, forKey: .user_liked)
+        user = try container.decodeIfPresent(PostUser.self, forKey: .user)
+        
+        // Handle parent_reply - extract only user and content to avoid recursion
+        if let parentReplyContainer = try? container.nestedContainer(keyedBy: DynamicCodingKeys.self, forKey: .parent_reply) {
+            parent_reply_user = try? parentReplyContainer.decodeIfPresent(PostUser.self, forKey: DynamicCodingKeys(stringValue: "user")!)
+            parent_reply_content = try? parentReplyContainer.decodeIfPresent(String.self, forKey: DynamicCodingKeys(stringValue: "content")!)
+        } else {
+            parent_reply_user = nil
+            parent_reply_content = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(content, forKey: .content)
+        try container.encodeIfPresent(image, forKey: .image)
+        try container.encodeIfPresent(timestamp, forKey: .timestamp)
+        try container.encodeIfPresent(parent_reply_id, forKey: .parent_reply_id)
+        try container.encodeIfPresent(likes_count, forKey: .likes_count)
+        try container.encodeIfPresent(user_liked, forKey: .user_liked)
+        try container.encodeIfPresent(user, forKey: .user)
+    }
+}
+
+// Helper for dynamic coding keys
+struct DynamicCodingKeys: CodingKey {
+    var stringValue: String
+    var intValue: Int?
+    
+    init?(stringValue: String) {
+        self.stringValue = stringValue
+    }
+    
+    init?(intValue: Int) {
+        return nil
+    }
+}
+
+// MARK: - Comments Response
+struct CommentsResponse: Codable {
+    let comments: [Comment]
+    let pagination: Pagination?
+}
+
+// MARK: - Pagination Model
+struct Pagination: Codable {
+    let page: Int
+    let limit: Int
+    let total: Int
+    let total_pages: Int
+    let has_next: Bool
+    let has_prev: Bool
+}
+
+// MARK: - Create Comment Response
+struct CreateCommentResponse: Codable {
+    let success: Bool?
+    let comment: Comment?
+    let error: String?
+}
+
+// MARK: - Post Detail Response
+struct PostDetailResponse: Codable {
+    let success: Bool?
+    let post: Post?
+    let comments: [Comment]?
+    let error: String?
 }
 
 // MARK: - Post Model

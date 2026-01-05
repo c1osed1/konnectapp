@@ -63,7 +63,7 @@ struct RepostModalView: View {
                     )
                     .padding(.horizontal, 16)
                     .padding(.bottom, 20)
-                    .disabled(isReposting || repostText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && repostText.isEmpty == false)
+                    .disabled(isReposting)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
