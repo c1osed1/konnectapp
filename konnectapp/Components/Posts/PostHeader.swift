@@ -26,24 +26,24 @@ struct PostHeader: View {
                     
                     if let avatarURLString = avatarURLString, let url = URL(string: avatarURLString) {
                         CachedAsyncImage(url: url, cacheType: .avatar)
-                            .aspectRatio(contentMode: .fill)
+                        .aspectRatio(contentMode: .fill)
                     } else {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.appAccent,
-                                        Color(red: 0.75, green: 0.65, blue: 0.95)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.appAccent,
+                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .overlay(
-                                Text(String((user.name ?? user.username).prefix(1)))
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.black)
-                            )
+                        )
+                    .overlay(
+                        Text(String((user.name ?? user.username).prefix(1)))
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.black)
+                    )
                     }
                 }
                 .frame(width: 44, height: 44)
