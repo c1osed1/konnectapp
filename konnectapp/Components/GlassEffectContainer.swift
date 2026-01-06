@@ -27,7 +27,6 @@ extension GlassEffectStyle {
 }
 
 extension View {
-    @available(iOS 26.0, *)
     @ViewBuilder
     func glassEffect(in shape: some Shape) -> some View {
         self.glassEffect(GlassEffectStyle.regular, in: shape)
@@ -36,15 +35,20 @@ extension View {
     @ViewBuilder
     func glassEffect(_ style: GlassEffectStyle, in shape: some Shape) -> some View {
         if #available(iOS 26.0, *) {
-            self.background(
-                shape.fill(.ultraThinMaterial)
-            )
+            self.modifier(NativeGlassEffectModifier(style: style, shape: shape))
         } else {
             self.background(
-                shape.fill(.ultraThinMaterial.opacity(0.1))
-                    .background(
-                        shape.fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                ZStack {
+                    shape.fill(.ultraThinMaterial.opacity(0.3))
+                        .background(
+                            shape.fill(Color.themeBlockBackground.opacity(0.9))
+                        )
+                    
+                    shape.stroke(
+                        Color.appAccent.opacity(0.15),
+                        lineWidth: 0.5
                     )
+                }
             )
         }
     }
@@ -53,5 +57,27 @@ extension View {
 extension GlassEffectStyle {
     func interactive() -> GlassEffectStyle {
         .regularInteractive
+    }
+}
+
+@available(iOS 26.0, *)
+struct NativeGlassEffectModifier<S: Shape>: ViewModifier {
+    let style: GlassEffectStyle
+    let shape: S
+    
+    func body(content: Content) -> some View {
+        content.background(
+            ZStack {
+                shape.fill(.ultraThinMaterial)
+                    .background(
+                        shape.fill(Color.themeBlockBackground.opacity(0.95))
+                    )
+                
+                shape.stroke(
+                    Color.appAccent.opacity(0.2),
+                    lineWidth: 0.5
+                )
+            }
+        )
     }
 }
