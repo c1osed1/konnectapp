@@ -1,0 +1,73 @@
+name: iOS Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'App version (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-release:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Select Xcode version
+      run: sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+        
+    # Для подписи приложения нужны сертификаты и профили
+    # Раскомментируйте и настройте, если у вас есть Apple Developer аккаунт
+    
+    # - name: Import Code Signing Certificate
+    #   uses: apple-actions/import-codesign-certs@v2
+    #   with:
+    #     p12-file-base64: ${{ secrets.CERTIFICATES_P12 }}
+    #     p12-password: ${{ secrets.CERTIFICATES_PASSWORD }}
+    #
+    # - name: Install Provisioning Profile
+    #   uses: apple-actions/download-provisioning-profiles@v1
+    #   with:
+    #     app-store-connect-api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+    #     app-store-connect-issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+    #     app-store-connect-api-key-content: ${{ secrets.APPSTORE_API_KEY_CONTENT }}
+    #     bundle-ids: 'ru.k-connect.konnectapp'  # Замените на ваш Bundle ID
+      
+    - name: Build iOS app (Release)
+      run: |
+        xcodebuild clean archive \
+          -project konnectapp.xcodeproj \
+          -scheme konnectapp \
+          -configuration Release \
+          -archivePath ./build/konnectapp.xcarchive \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+          
+    - name: Export IPA (без подписи - только для тестирования)
+      run: |
+        xcodebuild -exportArchive \
+          -archivePath ./build/konnectapp.xcarchive \
+          -exportPath ./build/ipa \
+          -exportOptionsPlist <(echo '<?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+              <key>method</key>
+              <string>development</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+            </dict>
+            </plist>') || echo "Export skipped (requires signing)"
+          
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: ios-release-build
+        path: build/
+        retention-days: 30
+
