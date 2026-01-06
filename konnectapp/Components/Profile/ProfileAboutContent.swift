@@ -483,12 +483,8 @@ struct ProfileAboutContent: View {
         // Создаем локализованный форматтер один раз
         let createDisplayFormatter: () -> DateFormatter = {
             let formatter = DateFormatter()
-            // Пробуем использовать русскую локаль, если доступна
-            if Locale.availableIdentifiers.contains("ru_RU") {
-                formatter.locale = Locale(identifier: "ru_RU")
-            } else {
-                formatter.locale = Locale.current
-            }
+            // Используем русскую локаль для форматирования даты
+            formatter.locale = Locale(identifier: "ru_RU")
             formatter.dateFormat = "d MMMM yyyy"
             return formatter
         }
