@@ -4,13 +4,14 @@ struct AppBackgroundView: View {
     let backgroundURL: String?
     
     var body: some View {
-        ZStack {
+        GeometryReader { geometry in
             Group {
                 if let backgroundURL = backgroundURL, !backgroundURL.isEmpty, let url = URL(string: backgroundURL) {
                     AsyncImage(url: url) { phase in
                         switch phase {
                         case .empty:
                             defaultGradient
+                                .frame(width: geometry.size.width, height: geometry.size.height)
                                 .onAppear {
                                     print("🟡 AppBackgroundView: Loading image from \(backgroundURL)")
                                 }
@@ -18,6 +19,7 @@ struct AppBackgroundView: View {
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
+                                .frame(width: geometry.size.width, height: geometry.size.height)
                                 .clipped()
                                 .overlay(
                                     // Затемнение для лучшей читаемости
@@ -35,11 +37,13 @@ struct AppBackgroundView: View {
                                 }
                         case .failure(let error):
                             defaultGradient
+                                .frame(width: geometry.size.width, height: geometry.size.height)
                                 .onAppear {
                                     print("❌ AppBackgroundView: Failed to load image from \(backgroundURL), error: \(error.localizedDescription)")
                                 }
                         @unknown default:
                             defaultGradient
+                                .frame(width: geometry.size.width, height: geometry.size.height)
                                 .onAppear {
                                     print("⚠️ AppBackgroundView: Unknown state for image loading")
                                 }
@@ -47,20 +51,24 @@ struct AppBackgroundView: View {
                     }
                 } else {
                     defaultGradient
+                        .frame(width: geometry.size.width, height: geometry.size.height)
                 }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            .onAppear {
+                if let backgroundURL = backgroundURL, !backgroundURL.isEmpty {
+                    print("🟡 AppBackgroundView: Initialized with backgroundURL: \(backgroundURL)")
+                } else {
+                    print("🔵 AppBackgroundView: Initialized without valid backgroundURL, received: \(backgroundURL ?? "nil")")
+                }
+            }
+            .onChange(of: backgroundURL) { oldValue, newValue in
+                print("🔄 AppBackgroundView: backgroundURL changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
             }
         }
         .ignoresSafeArea(.all)
-        .onAppear {
-            if let backgroundURL = backgroundURL, !backgroundURL.isEmpty {
-                print("🟡 AppBackgroundView: Initialized with backgroundURL: \(backgroundURL)")
-            } else {
-                print("🔵 AppBackgroundView: Initialized without valid backgroundURL, received: \(backgroundURL ?? "nil")")
-            }
-        }
-        .onChange(of: backgroundURL) { oldValue, newValue in
-            print("🔄 AppBackgroundView: backgroundURL changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
-        }
+        .allowsHitTesting(false) // Фон не должен перехватывать нажатия
     }
     
     private var defaultGradient: some View {
@@ -72,7 +80,6 @@ struct AppBackgroundView: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .ignoresSafeArea(.all)
     }
 }
 

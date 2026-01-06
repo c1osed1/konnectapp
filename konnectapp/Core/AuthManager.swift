@@ -65,6 +65,12 @@ class AuthManager: ObservableObject {
                     print("   - Username: \(user.username)")
                     print("   - profile_background_url: \(user.profile_background_url ?? "nil")")
                     print("   - avatar_url: \(user.avatar_url ?? "nil")")
+                    
+                    // Загружаем полный профиль для получения profile_background_url
+                    // так как /api/auth/check не возвращает это поле
+                    Task {
+                        await loadFullProfile(username: user.username)
+                    }
                 } else {
                     print("⚠️ AuthManager: response.user is nil")
                 }
@@ -89,5 +95,37 @@ class AuthManager: ObservableObject {
     
     func refreshUser() async {
         await checkAuthStatus()
+    }
+    
+    private func loadFullProfile(username: String) async {
+        do {
+            print("🟡 AuthManager: Loading full profile for \(username) to get profile_background_url...")
+            let profileResponse = try await ProfileService.shared.getProfile(userIdentifier: username)
+            let profileUser = profileResponse.user
+            
+            // Обновляем currentUser с полными данными из профиля
+            if let currentUser = self.currentUser, currentUser.id == profileUser.id {
+                let updatedUser = User(
+                    id: profileUser.id,
+                    name: profileUser.name,
+                    username: profileUser.username,
+                    photo: profileUser.photo,
+                    banner: profileUser.cover_photo,
+                    about: profileUser.about,
+                    avatar_url: profileUser.avatar_url,
+                    banner_url: profileUser.banner_url,
+                    profile_background_url: profileUser.profile_background_url,
+                    hasCredentials: currentUser.hasCredentials,
+                    account_type: profileUser.account_type,
+                    main_account_id: profileUser.main_account_id
+                )
+                await MainActor.run {
+                    self.currentUser = updatedUser
+                    print("🟢 AuthManager: Updated currentUser with profile_background_url: \(profileUser.profile_background_url ?? "nil")")
+                }
+            }
+        } catch {
+            print("⚠️ AuthManager: Failed to load full profile: \(error.localizedDescription)")
+        }
     }
 }

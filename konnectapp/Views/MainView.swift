@@ -9,6 +9,7 @@ struct MainView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack {
+                // Фон должен быть позади всего контента и не влиять на layout
                 AppBackgroundView(backgroundURL: authManager.currentUser?.profile_background_url)
                     .onAppear {
                         print("🟡 MainView: onAppear, currentUser: \(authManager.currentUser?.username ?? "nil")")
@@ -22,6 +23,7 @@ struct MainView: View {
                         print("🔄 MainView: backgroundURL changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
                     }
                 
+                // Контент поверх фона
                 TabContentView(selectedTab: $selectedTab, navigationPath: $navigationPath)
                     .overlay(alignment: .bottom) {
                         BottomNavigationView(selectedTab: $selectedTab)
