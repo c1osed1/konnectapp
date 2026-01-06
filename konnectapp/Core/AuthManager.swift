@@ -17,9 +17,16 @@ class AuthManager: ObservableObject {
     }
     
     private init() {
-        if let token = try? KeychainManager.getToken(), token.isEmpty == false {
-            isAuthenticated = true
+        // Безопасная проверка токена с обработкой ошибок
+        do {
+            if let token = try KeychainManager.getToken(), token.isEmpty == false {
+                isAuthenticated = true
+            }
+        } catch {
+            print("⚠️ Keychain access error (may be normal for unsigned builds): \(error.localizedDescription)")
+            isAuthenticated = false
         }
+        
         Task {
             await checkAuthStatus()
         }
