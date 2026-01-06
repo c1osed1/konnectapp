@@ -31,12 +31,20 @@ jobs:
           IPHONEOS_DEPLOYMENT_TARGET=18.0 \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          -derivedDataPath ./build
+          
+    - name: Find and archive build artifacts
+      run: |
+        find ./build -name "konnectapp.app" -type d | head -1 | xargs -I {} echo "Found app at: {}"
+        mkdir -p ./artifacts
+        find ./build -name "konnectapp.app" -type d | head -1 | xargs -I {} cp -R {} ./artifacts/konnectapp.app || echo "App not found, skipping artifact upload"
           
     - name: Archive build artifacts
       uses: actions/upload-artifact@v4
       if: success()
       with:
         name: ios-simulator-build
-        path: build/
+        path: artifacts/
         retention-days: 7
+        if-no-files-found: ignore
