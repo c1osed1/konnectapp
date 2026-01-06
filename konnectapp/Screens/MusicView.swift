@@ -133,7 +133,7 @@ struct MusicView: View {
                                 RoundedRectangle(cornerRadius: 24)
                                     .fill(Color.themeBlockBackground.opacity(0.6))
                             )
-                            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 24))
+                            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 24))
                     } else {
                         RoundedRectangle(cornerRadius: 24)
                             .fill(.ultraThinMaterial.opacity(0.3))
@@ -268,7 +268,7 @@ struct MusicView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                 } else {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(.ultraThinMaterial.opacity(0.1))
@@ -337,7 +337,7 @@ struct MusicView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                 } else {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(.ultraThinMaterial.opacity(0.1))
@@ -391,7 +391,7 @@ struct MusicView: View {
                                     RoundedRectangle(cornerRadius: 16)
                                         .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                                 )
-                                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                                .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                         } else {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(.ultraThinMaterial.opacity(0.2))
@@ -577,7 +577,7 @@ struct MusicView: View {
                         )
                 }
             )
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 24))
+            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 24))
             .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: -5)
         }
     }

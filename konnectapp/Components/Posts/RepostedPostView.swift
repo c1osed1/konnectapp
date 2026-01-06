@@ -68,7 +68,7 @@ struct RepostedPostView: View {
                     )
             }
         )
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
     }
     
     @ViewBuilder

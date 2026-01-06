@@ -85,7 +85,7 @@ struct CreateCommentView: View {
                                                 )
                                         )
                                 )
-                                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+                                .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
                                 .focused($isTextFieldFocused)
                                 .lineLimit(1...5)
                         }
@@ -153,7 +153,7 @@ struct CreateCommentView: View {
                                                     )
                                             )
                                     )
-                                    .glassEffect(.regular, in: Circle())
+                                    .glassEffect(GlassEffectStyle.regular, in: Circle())
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -223,7 +223,7 @@ struct CreateCommentView: View {
                                                         )
                                                 )
                                         )
-                                        .glassEffect(.regular, in: Circle())
+                                        .glassEffect(GlassEffectStyle.regular, in: Circle())
                                 }
                             }
                             .buttonStyle(PlainButtonStyle())

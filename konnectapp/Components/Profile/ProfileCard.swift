@@ -187,7 +187,7 @@ struct ProfileCard: View {
                                         )
                                 }
                             )
-                            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                     }
                     
                     if let socials = socials, !socials.isEmpty {
@@ -398,7 +398,7 @@ struct ProfileCard: View {
                     )
             }
         )
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
     }
     
     @ViewBuilder

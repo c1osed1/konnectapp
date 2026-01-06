@@ -14,6 +14,10 @@ enum GlassEffectStyle {
     case regular
 }
 
+extension GlassEffectStyle {
+    static var glass: GlassEffectStyle { .regular }
+}
+
 extension View {
     @ViewBuilder
     func glassEffect(_ style: GlassEffectStyle, in shape: some Shape) -> some View {

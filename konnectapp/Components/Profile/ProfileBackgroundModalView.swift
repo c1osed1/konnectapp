@@ -124,13 +124,13 @@ struct ProfileBackgroundModalView: View {
                                     VStack(spacing: 12) {
                                         Image(systemName: "photo.badge.plus")
                                             .font(.system(size: 40))
-                                            .foregroundColor(Color.appAccent)
+                                            .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
                                         Text("Выбрать изображение")
                                             .font(.system(size: 16, weight: .medium))
                                             .foregroundColor(.white)
                                         Text("PNG, JPG, JPEG, GIF до 10MB")
                                             .font(.system(size: 13))
-                                            .foregroundColor(Color.themeTextSecondary)
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                     }
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 200)
@@ -140,7 +140,7 @@ struct ProfileBackgroundModalView: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
                                             .stroke(
-                                                Color.appAccent.opacity(0.3),
+                                                Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3),
                                                 lineWidth: 2
                                             )
                                     )
@@ -169,7 +169,7 @@ struct ProfileBackgroundModalView: View {
                                         .frame(height: 56)
                                         .background(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color.appAccent.opacity(0.5))
+                                                .fill(Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.5))
                                         )
                                     } else {
                                         Text("Загрузить фон")
@@ -179,7 +179,7 @@ struct ProfileBackgroundModalView: View {
                                             .frame(height: 56)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 16)
-                                                    .fill(Color.appAccent)
+                                                    .fill(Color(red: 0.82, green: 0.74, blue: 1.0))
                                             )
                                     }
                                 }

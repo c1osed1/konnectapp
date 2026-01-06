@@ -125,7 +125,7 @@ struct CreatePostView: View {
                         )
                 }
             )
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
         }
         .contentShape(Rectangle())
         .onTapGesture {
@@ -141,7 +141,7 @@ struct CreatePostView: View {
             MusicSelectionModal(isPresented: $showMusicModal, selectedTrack: $selectedTrack)
         }
         .onChange(of: selectedItems) { oldValue, newValue in
-            Task {
+            Task { @MainActor in
                 await loadImages(from: newValue)
             }
         }
@@ -271,7 +271,7 @@ struct CreatePostView: View {
             MusicSelectionModal(isPresented: $showMusicModal, selectedTrack: $selectedTrack)
         }
         .onChange(of: selectedItems) { oldValue, newValue in
-            Task {
+            Task { @MainActor in
                 await loadImages(from: newValue)
             }
         }

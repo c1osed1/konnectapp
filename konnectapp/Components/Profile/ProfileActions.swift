@@ -39,7 +39,7 @@ struct ProfileActions: View {
                                     )
                             }
                         )
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+                        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
                 }
             } else {
                 Button(action: onFollowToggle) {
@@ -58,7 +58,7 @@ struct ProfileActions: View {
                                     )
                             }
                         )
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+                        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
                 }
                 
                 Button(action: onMessage) {
@@ -76,7 +76,7 @@ struct ProfileActions: View {
                                     )
                             }
                         )
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+                        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
                 }
             }
         }

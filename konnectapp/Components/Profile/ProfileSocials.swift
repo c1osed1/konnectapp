@@ -105,7 +105,7 @@ struct SocialButton: View {
                         )
                 }
             )
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
         }
     }
     

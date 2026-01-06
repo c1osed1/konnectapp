@@ -71,7 +71,7 @@ struct PostCard: View {
                         )
                 }
             )
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
         }
     }
     

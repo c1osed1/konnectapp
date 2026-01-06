@@ -218,7 +218,7 @@ struct FeedView: View {
                         )
                 }
             )
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
         }
     }
     
@@ -333,7 +333,7 @@ struct FeedView: View {
                         )
                 }
             )
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
         }
     }
     

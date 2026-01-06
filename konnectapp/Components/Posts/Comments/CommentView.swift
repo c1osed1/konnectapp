@@ -288,7 +288,7 @@ struct CommentView: View {
                                         lineWidth: 0.5
                                     )
                             )
-                            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                     } else {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(.ultraThinMaterial.opacity(0.1))

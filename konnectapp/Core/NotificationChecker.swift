@@ -24,7 +24,8 @@ class NotificationChecker: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
                 self?.isAppActive = true
                 self?.startChecking()
             }
@@ -35,7 +36,8 @@ class NotificationChecker: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
                 self?.isAppActive = false
                 self?.stopChecking()
             }

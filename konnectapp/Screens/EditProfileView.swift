@@ -159,7 +159,7 @@ struct EditProfileView: View {
                         .padding(.vertical, 10)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.appAccent)
+                                .fill(Color(red: 0.82, green: 0.74, blue: 1.0))
                         )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -339,7 +339,7 @@ struct EditProfileView: View {
                                 .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                 }
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
@@ -447,7 +447,7 @@ struct ProfileStyleButton: View {
                                         .fill(isSelected ? Color.appAccent.opacity(0.3) : Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
                                 )
                         }
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+                        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
                     } else {
                         ZStack {
                             RoundedRectangle(cornerRadius: 12)
