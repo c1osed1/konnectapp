@@ -79,7 +79,7 @@ struct LoginView: View {
                 }
             }
             .frame(maxWidth: 120, maxHeight: 120)
-            .shadow(color: Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3), radius: 20, x: 0, y: 10)
+            .shadow(color: Color.appAccent.opacity(0.3), radius: 20, x: 0, y: 10)
             
             Text("Коннект")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -117,7 +117,7 @@ struct LoginView: View {
     private var usernameField: some View {
         HStack {
             Image(systemName: "person.fill")
-                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                .foregroundColor(Color.appAccent)
                 .frame(width: 20)
             
             TextField("", text: $username, prompt: Text("Имя пользователя или email").foregroundColor(Color(red: 0.47, green: 0.47, blue: 0.47)))
@@ -136,14 +136,14 @@ struct LoginView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(focusedField == .username ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color.clear, lineWidth: 2)
+                .stroke(focusedField == .username ? Color.appAccent : Color.clear, lineWidth: 2)
         )
     }
     
     private var passwordField: some View {
         HStack {
             Image(systemName: "lock.fill")
-                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                .foregroundColor(Color.appAccent)
                 .frame(width: 20)
             
             if showPassword {
@@ -154,7 +154,7 @@ struct LoginView: View {
             
             Button(action: { showPassword.toggle() }) {
                 Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
-                    .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                    .foregroundColor(Color.appAccent)
             }
         }
         .padding(16)
@@ -164,7 +164,7 @@ struct LoginView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(focusedField == .password ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color.clear, lineWidth: 2)
+                .stroke(focusedField == .password ? Color.appAccent : Color.clear, lineWidth: 2)
         )
     }
     
@@ -205,7 +205,7 @@ struct LoginView: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color(red: 0.82, green: 0.74, blue: 1.0),
+                        Color.appAccent,
                         Color(red: 0.75, green: 0.65, blue: 0.95)
                     ],
                     startPoint: .leading,
@@ -214,7 +214,7 @@ struct LoginView: View {
             )
             .foregroundColor(.black)
             .cornerRadius(23)
-            .shadow(color: Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.4), radius: 15, x: 0, y: 8)
+            .shadow(color: Color.appAccent.opacity(0.4), radius: 15, x: 0, y: 8)
         }
         .disabled(authManager.isLoading || username.isEmpty || password.isEmpty)
         .opacity((authManager.isLoading || username.isEmpty || password.isEmpty) ? 0.6 : 1.0)

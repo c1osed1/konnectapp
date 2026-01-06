@@ -50,7 +50,7 @@ struct CreatePostActions: View {
                 }) {
                     Image(systemName: isNsfw ? "eye.slash.fill" : "eye.slash")
                         .font(.system(size: 18))
-                        .foregroundColor(isNsfw ? Color(red: 0.82, green: 0.74, blue: 1.0) : .white)
+                        .foregroundColor(isNsfw ? Color.appAccent : .white)
                         .frame(width: 40, height: 40)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
@@ -80,7 +80,7 @@ struct CreatePostActions: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                    Color.appAccent,
                                     Color(red: 0.7, green: 0.6, blue: 0.95)
                                 ],
                                 startPoint: .topLeading,

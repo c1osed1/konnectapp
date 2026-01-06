@@ -11,6 +11,11 @@ class AuthManager: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    /// Получает акцентный цвет из профиля текущего пользователя
+    var accentColor: Color {
+        return Color.accentColor(from: currentUser)
+    }
+    
     private init() {
         if let token = try? KeychainManager.getToken(), token.isEmpty == false {
             isAuthenticated = true
@@ -115,6 +120,7 @@ class AuthManager: ObservableObject {
                     avatar_url: profileUser.avatar_url,
                     banner_url: profileUser.banner_url,
                     profile_background_url: profileUser.profile_background_url,
+                    profile_color: profileUser.profile_color,
                     hasCredentials: currentUser.hasCredentials,
                     account_type: profileUser.account_type,
                     main_account_id: profileUser.main_account_id

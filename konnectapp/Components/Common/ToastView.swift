@@ -20,7 +20,7 @@ struct ToastView: View {
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3),
+                                        Color.appAccent.opacity(0.3),
                                         lineWidth: 0.5
                                     )
                             )

@@ -124,7 +124,7 @@ struct ProfileBackgroundModalView: View {
                                     VStack(spacing: 12) {
                                         Image(systemName: "photo.badge.plus")
                                             .font(.system(size: 40))
-                                            .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                            .foregroundColor(Color.appAccent)
                                         Text("Выбрать изображение")
                                             .font(.system(size: 16, weight: .medium))
                                             .foregroundColor(.white)
@@ -140,7 +140,7 @@ struct ProfileBackgroundModalView: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
                                             .stroke(
-                                                Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3),
+                                                Color.appAccent.opacity(0.3),
                                                 lineWidth: 2
                                             )
                                     )
@@ -169,7 +169,7 @@ struct ProfileBackgroundModalView: View {
                                         .frame(height: 56)
                                         .background(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.5))
+                                                .fill(Color.appAccent.opacity(0.5))
                                         )
                                     } else {
                                         Text("Загрузить фон")
@@ -179,7 +179,7 @@ struct ProfileBackgroundModalView: View {
                                             .frame(height: 56)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 16)
-                                                    .fill(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                                    .fill(Color.appAccent)
                                             )
                                     }
                                 }

@@ -12,7 +12,7 @@ struct MusicView: View {
                 ForEach(0..<10) { _ in
                     HStack {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3))
+                            .fill(Color.appAccent.opacity(0.3))
                             .frame(width: 60, height: 60)
                         
                         VStack(alignment: .leading, spacing: 4) {

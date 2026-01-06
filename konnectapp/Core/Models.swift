@@ -18,6 +18,7 @@ struct User: Codable, Equatable {
     let avatar_url: String?
     let banner_url: String?
     let profile_background_url: String?
+    let profile_color: String?
     let hasCredentials: Bool?
     let account_type: String?
     let main_account_id: Int64?

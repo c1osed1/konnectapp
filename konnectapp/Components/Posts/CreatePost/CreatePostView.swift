@@ -117,10 +117,10 @@ struct CreatePostView: View {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                 }
             )
@@ -247,15 +247,15 @@ struct CreatePostView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.2))
+                    .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                     )
                 
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(
-                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3),
+                        Color.appAccent.opacity(0.3),
                         lineWidth: 1
                     )
             }

@@ -158,7 +158,7 @@ struct EditProfileView: View {
                         .padding(.vertical, 10)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                .fill(Color.appAccent)
                         )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -210,7 +210,7 @@ struct EditProfileView: View {
                     .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(red: 0.82, green: 0.74, blue: 1.0))
+                            .fill(Color.appAccent)
                     )
             }
             .buttonStyle(PlainButtonStyle())
@@ -321,7 +321,7 @@ struct EditProfileView: View {
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(hasChanges && !isUploading ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.5, green: 0.5, blue: 0.5))
+                .fill(hasChanges && !isUploading ? Color.appAccent : Color(red: 0.5, green: 0.5, blue: 0.5))
         )
         .disabled(isUploading || !hasChanges)
     }
@@ -332,25 +332,25 @@ struct EditProfileView: View {
             if #available(iOS 26.0, *) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                 }
                 .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                     
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(
-                            Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                            Color.appAccent.opacity(0.15),
                             lineWidth: 0.5
                         )
                 }
@@ -440,25 +440,25 @@ struct ProfileStyleButton: View {
                     if #available(iOS 26.0, *) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(.ultraThinMaterial.opacity(0.2))
+                                .fill(.ultraThinMaterial.opacity(0.1))
                                 .background(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(isSelected ? Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3) : Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
+                                        .fill(isSelected ? Color.appAccent.opacity(0.3) : Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
                                 )
                         }
                         .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
                     } else {
                         ZStack {
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(.ultraThinMaterial.opacity(0.2))
+                                .fill(.ultraThinMaterial.opacity(0.1))
                                 .background(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(isSelected ? Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3) : Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
+                                        .fill(isSelected ? Color.appAccent.opacity(0.3) : Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
                                 )
                             
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(
-                                    isSelected ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                    isSelected ? Color.appAccent : Color.appAccent.opacity(0.15),
                                     lineWidth: isSelected ? 1.5 : 0.5
                                 )
                         }

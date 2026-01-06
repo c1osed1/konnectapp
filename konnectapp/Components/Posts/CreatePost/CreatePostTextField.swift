@@ -32,7 +32,7 @@ struct CreatePostTextField: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(
-                            Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.2),
+                            Color.appAccent.opacity(0.2),
                             lineWidth: 1
                         )
                 )

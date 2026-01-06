@@ -61,7 +61,7 @@ struct FeedView: View {
                                     .padding(.vertical, 12)
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                            .fill(Color.appAccent)
                                     )
                             }
                             .padding(.top, 16)
@@ -163,7 +163,7 @@ struct FeedView: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color.appAccent,
                                                     Color(red: 0.75, green: 0.65, blue: 0.95)
                                                 ],
                                                 startPoint: .topLeading,
@@ -184,7 +184,7 @@ struct FeedView: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color.appAccent,
                                                     Color(red: 0.75, green: 0.65, blue: 0.95)
                                                 ],
                                                 startPoint: .topLeading,
@@ -224,10 +224,10 @@ struct FeedView: View {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                 }
             )
@@ -261,7 +261,7 @@ struct FeedView: View {
                                     .fill(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                Color.appAccent,
                                                 Color(red: 0.75, green: 0.65, blue: 0.95)
                                             ],
                                             startPoint: .topLeading,
@@ -282,7 +282,7 @@ struct FeedView: View {
                                     .fill(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                Color.appAccent,
                                                 Color(red: 0.75, green: 0.65, blue: 0.95)
                                             ],
                                             startPoint: .topLeading,
@@ -322,15 +322,15 @@ struct FeedView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.2))
+                    .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                     )
                 
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(
-                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                        Color.appAccent.opacity(0.15),
                         lineWidth: 0.5
                     )
             }
@@ -360,10 +360,10 @@ struct FeedView: View {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                 }
             )
@@ -382,15 +382,15 @@ struct FeedView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.2))
+                    .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                     )
                 
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(
-                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                        Color.appAccent.opacity(0.15),
                         lineWidth: 0.5
                     )
             }
@@ -419,7 +419,7 @@ struct FeedTypeTab: View {
                 
                 Text(title)
                     .font(.system(size: 14, weight: selected == type ? .semibold : .regular))
-                    .foregroundColor(selected == type ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.6, green: 0.6, blue: 0.6))
+                    .foregroundColor(selected == type ? Color.appAccent : Color(red: 0.6, green: 0.6, blue: 0.6))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 8)
             }

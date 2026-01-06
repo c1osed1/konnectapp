@@ -29,7 +29,7 @@ struct PostCommentBlock: View {
                                     .fill(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                Color.appAccent,
                                                 Color(red: 0.75, green: 0.65, blue: 0.95)
                                             ],
                                             startPoint: .topLeading,
@@ -48,7 +48,7 @@ struct PostCommentBlock: View {
                                     .fill(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                Color.appAccent,
                                                 Color(red: 0.75, green: 0.65, blue: 0.95)
                                             ],
                                             startPoint: .topLeading,
@@ -78,15 +78,15 @@ struct PostCommentBlock: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.2))
+                    .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(
-                                Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                Color.appAccent.opacity(0.15),
                                 lineWidth: 0.5
                             )
                     )
@@ -106,7 +106,7 @@ struct PostCommentBlock: View {
                                     .fill(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                Color.appAccent,
                                                 Color(red: 0.75, green: 0.65, blue: 0.95)
                                             ],
                                             startPoint: .topLeading,
@@ -125,7 +125,7 @@ struct PostCommentBlock: View {
                                     .fill(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                Color.appAccent,
                                                 Color(red: 0.75, green: 0.65, blue: 0.95)
                                             ],
                                             startPoint: .topLeading,
@@ -155,15 +155,15 @@ struct PostCommentBlock: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.2))
+                    .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(
-                                Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                Color.appAccent.opacity(0.15),
                                 lineWidth: 0.5
                             )
                     )

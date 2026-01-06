@@ -59,9 +59,9 @@ struct SocialButton: View {
         } else if name.contains("telegram") {
             return Color(red: 0.2, green: 0.6, blue: 0.9)
         } else if name.contains("element") {
-            return Color(red: 0.82, green: 0.74, blue: 1.0)
+            return Color.accentColor(from: AuthManager.shared.currentUser)
         } else {
-            return Color(red: 0.82, green: 0.74, blue: 1.0)
+            return Color.accentColor(from: AuthManager.shared.currentUser)
         }
     }
     
@@ -98,10 +98,10 @@ struct SocialButton: View {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                 }
             )
@@ -131,15 +131,15 @@ struct SocialButton: View {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(.ultraThinMaterial.opacity(0.2))
+                        .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                         )
                     
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(
-                            Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                            Color.appAccent.opacity(0.15),
                             lineWidth: 0.5
                         )
                 }

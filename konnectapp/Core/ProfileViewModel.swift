@@ -52,6 +52,7 @@ class ProfileViewModel: ObservableObject {
                         avatar_url: profileUser.avatar_url,
                         banner_url: profileUser.banner_url,
                         profile_background_url: profileUser.profile_background_url,
+                        profile_color: profileUser.profile_color,
                         hasCredentials: AuthManager.shared.currentUser?.hasCredentials, // Сохраняем старое значение
                         account_type: profileUser.account_type,
                         main_account_id: profileUser.main_account_id

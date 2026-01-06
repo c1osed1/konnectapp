@@ -39,7 +39,7 @@ struct MusicSelectionModal: View {
                                 }) {
                                     Text("Загрузить еще")
                                         .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                        .foregroundColor(Color.appAccent)
                                         .padding(.vertical, 12)
                                 }
                             }
@@ -192,7 +192,7 @@ struct MusicTrackRow: View {
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                        .foregroundColor(Color.appAccent)
                         .font(.system(size: 20))
                 }
             }

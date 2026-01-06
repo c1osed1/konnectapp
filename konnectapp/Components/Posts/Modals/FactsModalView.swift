@@ -47,7 +47,7 @@ struct FactsModalView: View {
                             .padding(.vertical, 12)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                    .fill(Color.appAccent)
                             )
                     }
                     .padding(.horizontal, 16)

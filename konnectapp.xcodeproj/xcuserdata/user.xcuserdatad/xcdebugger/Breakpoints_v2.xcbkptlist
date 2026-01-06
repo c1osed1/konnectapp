@@ -18,6 +18,36 @@
             endingLineNumber = "715"
             landmarkName = "fallbackProfileCard"
             landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "81A157FA-8CB3-424D-96EC-797174E909A0 - 636f52df3deb5b4"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.View&gt;(_: &#x3c4;_1_0, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0, SwiftUI.StrokeShapeView&lt;SwiftUI.RoundedRectangle, SwiftUI.Color, SwiftUI.EmptyView&gt;)&gt; in konnectapp.ProfileCard.fallbackProfileCard.getter : some"
+                  moduleName = "konnectapp.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/user/Documents/konnectapp/konnectapp/konnectapp/Components/Profile/ProfileCard.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "717"
+                  endingLineNumber = "717">
+               </Location>
+               <Location
+                  uuid = "81A157FA-8CB3-424D-96EC-797174E909A0 - 636f52df3deb595"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.View&gt;(_: &#x3c4;_1_0, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0, SwiftUI.StrokeShapeView&lt;SwiftUI.RoundedRectangle, SwiftUI.Color, SwiftUI.EmptyView&gt;)&gt; in konnectapp.ProfileCard.fallbackProfileCard.getter : some"
+                  moduleName = "konnectapp.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/user/Documents/konnectapp/konnectapp/konnectapp/Components/Profile/ProfileCard.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "716"
+                  endingLineNumber = "716">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

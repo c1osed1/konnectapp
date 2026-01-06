@@ -47,7 +47,7 @@ struct BottomNavigationView: View {
                             
                             Image(systemName: tab.icon)
                                 .font(.system(size: 22, weight: selectedTab == tab ? .semibold : .regular))
-                                .foregroundColor(selectedTab == tab ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(selectedTab == tab ? Color.appAccent : Color(red: 0.6, green: 0.6, blue: 0.6))
                                 .frame(width: 26, height: 26)
                         }
                     .frame(maxWidth: .infinity)
@@ -82,7 +82,7 @@ struct BottomNavigationView: View {
                         
                         Image(systemName: tab.icon)
                             .font(.system(size: 22, weight: selectedTab == tab ? .semibold : .regular))
-                            .foregroundColor(selectedTab == tab ? Color(red: 0.82, green: 0.74, blue: 1.0) : Color(red: 0.4, green: 0.4, blue: 0.4))
+                            .foregroundColor(selectedTab == tab ? Color.appAccent : Color(red: 0.4, green: 0.4, blue: 0.4))
                             .frame(width: 26, height: 26)
                     }
                     .frame(maxWidth: .infinity)
@@ -98,15 +98,15 @@ struct BottomNavigationView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 36)
-                    .fill(.ultraThinMaterial.opacity(0.2))
+                    .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 36)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                     )
                 
                 RoundedRectangle(cornerRadius: 36)
                     .stroke(
-                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                        Color.appAccent.opacity(0.15),
                         lineWidth: 0.5
                     )
             }

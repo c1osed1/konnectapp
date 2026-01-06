@@ -33,18 +33,18 @@ struct CreateCommentView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "arrowshape.turn.up.left")
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                            .foregroundColor(Color.appAccent)
                         if let username = replyingTo.user?.username {
                             Text("Ответ @\(username)")
                                 .font(.system(size: 13))
-                                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                .foregroundColor(Color.appAccent)
                         }
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.2))
+                            .fill(Color.appAccent.opacity(0.2))
                     )
                     
                     Spacer()
@@ -71,7 +71,7 @@ struct CreateCommentView: View {
                                 .padding(.vertical, 10)
                                 .background(
                                     RoundedRectangle(cornerRadius: 20)
-                                        .fill(.ultraThinMaterial.opacity(0.2))
+                                        .fill(.ultraThinMaterial.opacity(0.1))
                                         .background(
                                             RoundedRectangle(cornerRadius: 20)
                                                 .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
@@ -79,7 +79,7 @@ struct CreateCommentView: View {
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 20)
                                                 .stroke(
-                                                    Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                                    Color.appAccent.opacity(0.15),
                                                     lineWidth: 0.5
                                                 )
                                         )
@@ -96,7 +96,7 @@ struct CreateCommentView: View {
                             .padding(.vertical, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .fill(.ultraThinMaterial.opacity(0.2))
+                                    .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 20)
                                             .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
@@ -104,7 +104,7 @@ struct CreateCommentView: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
                                             .stroke(
-                                                Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                                Color.appAccent.opacity(0.15),
                                                 lineWidth: 0.5
                                             )
                                     )
@@ -135,11 +135,11 @@ struct CreateCommentView: View {
                             ) {
                                 Image(systemName: "photo")
                                     .font(.system(size: 16))
-                                    .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                    .foregroundColor(Color.appAccent)
                                     .frame(width: 32, height: 32)
                                     .background(
                                         Circle()
-                                            .fill(.ultraThinMaterial.opacity(0.2))
+                                            .fill(.ultraThinMaterial.opacity(0.1))
                                             .background(
                                                 Circle()
                                                     .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
@@ -147,7 +147,7 @@ struct CreateCommentView: View {
                                             .overlay(
                                                 Circle()
                                                     .stroke(
-                                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                                        Color.appAccent.opacity(0.15),
                                                         lineWidth: 0.5
                                                     )
                                             )
@@ -164,11 +164,11 @@ struct CreateCommentView: View {
                         ) {
                             Image(systemName: "photo")
                                 .font(.system(size: 16))
-                                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                .foregroundColor(Color.appAccent)
                                 .frame(width: 32, height: 32)
                                 .background(
                                     Circle()
-                                        .fill(.ultraThinMaterial.opacity(0.2))
+                                        .fill(.ultraThinMaterial.opacity(0.1))
                                         .background(
                                             Circle()
                                                 .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
@@ -176,7 +176,7 @@ struct CreateCommentView: View {
                                         .overlay(
                                             Circle()
                                                 .stroke(
-                                                    Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                                    Color.appAccent.opacity(0.15),
                                                     lineWidth: 0.5
                                                 )
                                         )
@@ -204,12 +204,12 @@ struct CreateCommentView: View {
                                         .foregroundColor(
                                             (commentText.isEmpty && selectedImage == nil) ?
                                             Color(red: 0.4, green: 0.4, blue: 0.4) :
-                                            Color(red: 0.82, green: 0.74, blue: 1.0)
+                                            Color.appAccent
                                         )
                                         .frame(width: 32, height: 32)
                                         .background(
                                             Circle()
-                                                .fill(.ultraThinMaterial.opacity(0.2))
+                                                .fill(.ultraThinMaterial.opacity(0.1))
                                                 .background(
                                                     Circle()
                                                         .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
@@ -217,7 +217,7 @@ struct CreateCommentView: View {
                                                 .overlay(
                                                     Circle()
                                                         .stroke(
-                                                            Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                                            Color.appAccent.opacity(0.15),
                                                             lineWidth: 0.5
                                                         )
                                                 )
@@ -244,12 +244,12 @@ struct CreateCommentView: View {
                                     .foregroundColor(
                                         (commentText.isEmpty && selectedImage == nil) ?
                                         Color(red: 0.4, green: 0.4, blue: 0.4) :
-                                        Color(red: 0.82, green: 0.74, blue: 1.0)
+                                        Color.appAccent
                                     )
                                     .frame(width: 32, height: 32)
                                     .background(
                                         Circle()
-                                            .fill(.ultraThinMaterial.opacity(0.2))
+                                            .fill(.ultraThinMaterial.opacity(0.1))
                                             .background(
                                                 Circle()
                                                     .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
@@ -257,7 +257,7 @@ struct CreateCommentView: View {
                                             .overlay(
                                                 Circle()
                                                     .stroke(
-                                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                                        Color.appAccent.opacity(0.15),
                                                         lineWidth: 0.5
                                                     )
                                             )

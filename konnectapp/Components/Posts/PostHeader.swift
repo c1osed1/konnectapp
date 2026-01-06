@@ -19,7 +19,7 @@ struct PostHeader: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                    Color.appAccent,
                                     Color(red: 0.75, green: 0.65, blue: 0.95)
                                 ],
                                 startPoint: .topLeading,
@@ -48,7 +48,7 @@ struct PostHeader: View {
                         if user.is_verified == true {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 12))
-                                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                .foregroundColor(Color.appAccent)
                         }
                     }
                     

@@ -12,7 +12,7 @@ struct ContentView: View {
                     AppBackgroundView(backgroundURL: authManager.currentUser?.profile_background_url)
                     
                     ProgressView()
-                        .tint(Color(red: 0.82, green: 0.74, blue: 1.0))
+                        .tint(Color.appAccent)
                 }
             } else {
                 LoginView()

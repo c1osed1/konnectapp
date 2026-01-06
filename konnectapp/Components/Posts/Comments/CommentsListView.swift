@@ -74,7 +74,7 @@ struct CommentsListView: View {
                             } else {
                                 Text("Загрузить еще")
                                     .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                    .foregroundColor(Color.appAccent)
                                     .padding()
                             }
                         }

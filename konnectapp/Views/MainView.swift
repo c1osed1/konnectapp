@@ -28,7 +28,7 @@ struct MainView: View {
                     .overlay(alignment: .bottom) {
                         BottomNavigationView(selectedTab: $selectedTab)
                             .padding(.horizontal, 10)
-                            .padding(.bottom, 5)
+                            .padding(.bottom, -5)
                             .opacity(keyboardObserver.isKeyboardVisible ? 0 : 1)
                             .animation(nil, value: keyboardObserver.isKeyboardVisible)
                     }

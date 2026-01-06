@@ -31,7 +31,7 @@ struct ProfileActions: View {
                         .background(
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.2))
+                                    .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
                                             .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
@@ -50,10 +50,10 @@ struct ProfileActions: View {
                         .background(
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.2))
+                                    .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(isFollowing ? Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6) : Color(red: 0.82, green: 0.74, blue: 1.0))
+                                            .fill(isFollowing ? Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6) : Color.appAccent)
                                     )
                             }
                         )
@@ -68,7 +68,7 @@ struct ProfileActions: View {
                         .background(
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.2))
+                                    .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
                                             .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
@@ -94,7 +94,7 @@ struct ProfileActions: View {
                         .background(
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.2))
+                                    .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
                                             .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
@@ -102,7 +102,7 @@ struct ProfileActions: View {
                                 
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                        Color.appAccent.opacity(0.15),
                                         lineWidth: 0.5
                                     )
                             }
@@ -118,15 +118,15 @@ struct ProfileActions: View {
                         .background(
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.2))
+                                    .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(isFollowing ? Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6) : Color(red: 0.82, green: 0.74, blue: 1.0))
+                                            .fill(isFollowing ? Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6) : Color.appAccent)
                                     )
                                 
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                        Color.appAccent.opacity(0.15),
                                         lineWidth: 0.5
                                     )
                             }
@@ -141,7 +141,7 @@ struct ProfileActions: View {
                         .background(
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.2))
+                                    .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
                                             .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
@@ -149,7 +149,7 @@ struct ProfileActions: View {
                                 
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                        Color.appAccent.opacity(0.15),
                                         lineWidth: 0.5
                                     )
                             }

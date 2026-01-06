@@ -73,7 +73,7 @@ struct MoreRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                .foregroundColor(Color.appAccent)
                 .frame(width: 24)
             
             Text(title)

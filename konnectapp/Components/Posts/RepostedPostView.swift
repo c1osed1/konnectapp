@@ -109,7 +109,7 @@ struct RepostedPostView: View {
                 
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(
-                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.1),
+                        Color.appAccent.opacity(0.1),
                         lineWidth: 0.5
                     )
             }

@@ -76,7 +76,7 @@ struct CommentView: View {
                     }
                     .padding(.horizontal, 20)
                     .frame(maxHeight: .infinity)
-                    .background(Color(red: 0.82, green: 0.74, blue: 1.0))
+                    .background(Color.appAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -98,7 +98,7 @@ struct CommentView: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color.appAccent,
                                                     Color(red: 0.75, green: 0.65, blue: 0.95)
                                                 ],
                                                 startPoint: .topLeading,
@@ -122,7 +122,7 @@ struct CommentView: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color.appAccent,
                                                     Color(red: 0.75, green: 0.65, blue: 0.95)
                                                 ],
                                                 startPoint: .topLeading,
@@ -275,30 +275,30 @@ struct CommentView: View {
                 Group {
                     if #available(iOS 26.0, *) {
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(.ultraThinMaterial.opacity(0.2))
+                            .fill(.ultraThinMaterial.opacity(0.1))
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
                                     .stroke(
-                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                        Color.appAccent.opacity(0.15),
                                         lineWidth: 0.5
                                     )
                             )
                             .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
                     } else {
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(.ultraThinMaterial.opacity(0.2))
+                            .fill(.ultraThinMaterial.opacity(0.1))
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
                                     .stroke(
-                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                        Color.appAccent.opacity(0.15),
                                         lineWidth: 0.5
                                     )
                             )
@@ -433,7 +433,7 @@ struct ReplyView: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            Color(red: 0.82, green: 0.74, blue: 1.0),
+                                            Color.appAccent,
                                             Color(red: 0.75, green: 0.65, blue: 0.95)
                                         ],
                                         startPoint: .topLeading,
@@ -457,7 +457,7 @@ struct ReplyView: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            Color(red: 0.82, green: 0.74, blue: 1.0),
+                                            Color.appAccent,
                                             Color(red: 0.75, green: 0.65, blue: 0.95)
                                         ],
                                         startPoint: .topLeading,

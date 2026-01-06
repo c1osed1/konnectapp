@@ -55,13 +55,13 @@ struct ReportModalView: View {
                                     
                                     if selectedReason == reason.0 {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                            .foregroundColor(Color.appAccent)
                                     }
                                 }
                                 .padding(12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(selectedReason == reason.0 ? Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.2) : Color(red: 0.15, green: 0.15, blue: 0.15))
+                                        .fill(selectedReason == reason.0 ? Color.appAccent.opacity(0.2) : Color(red: 0.15, green: 0.15, blue: 0.15))
                                 )
                             }
                         }
