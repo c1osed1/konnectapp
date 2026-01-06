@@ -16,6 +16,15 @@ class ChatViewModel: ObservableObject {
     @Published var typingUsers: [Int64: String] = [:] // [userId: username]
     @Published var hasMoreMessages: Bool = true
     
+    // Check if there's a reply to any of my messages (means they read my messages)
+    var hasReplyToMyMessages: Bool {
+        guard let currentUserId = AuthManager.shared.currentUser?.id else { return false }
+        return messages.contains { message in
+            message.reply_to_id != nil && 
+            messages.contains { $0.id == message.reply_to_id && $0.sender_id == currentUserId }
+        }
+    }
+    
     let chatId: Int64
     private var currentPage: Int = 1
     private var oldestMessageId: Int64?
@@ -35,6 +44,10 @@ class ChatViewModel: ObservableObject {
     }
     
     func loadMessages(forceRefresh: Bool = false) {
+        loadMoreMessages(beforeId: forceRefresh ? nil : oldestMessageId, forceRefresh: forceRefresh)
+    }
+    
+    func loadMoreMessages(beforeId: Int64? = nil, forceRefresh: Bool = false) {
         Task {
             await MainActor.run {
                 if messages.isEmpty {
@@ -47,26 +60,53 @@ class ChatViewModel: ObservableObject {
             
             // Try REST API first
             do {
-                let beforeId = forceRefresh ? nil : oldestMessageId
                 let loadedMessages = try await messengerService.getMessages(
                     chatId: chatId,
-                    limit: 50,
+                    limit: 30,
                     beforeId: beforeId,
                     forceRefresh: forceRefresh
                 )
                 
                 await MainActor.run {
+                    let newMessages = loadedMessages.reversed()
                     if forceRefresh || self.messages.isEmpty {
-                        self.messages = loadedMessages.reversed()
+                        // Remove duplicates
+                        var uniqueMessages: [Message] = []
+                        var seenIds: Set<Int64> = []
+                        for message in newMessages {
+                            if !seenIds.contains(message.id) {
+                                seenIds.insert(message.id)
+                                uniqueMessages.append(message)
+                            }
+                        }
+                        self.messages = uniqueMessages
                     } else {
-                        self.messages.insert(contentsOf: loadedMessages.reversed(), at: 0)
+                        // Store the first message ID before inserting to maintain scroll position
+                        let _ = self.messages.first?.id
+                        
+                        // Remove duplicates before inserting
+                        var seenIds = Set(self.messages.map { $0.id })
+                        let uniqueNewMessages = newMessages.filter { message in
+                            if seenIds.contains(message.id) {
+                                return false
+                            }
+                            seenIds.insert(message.id)
+                            return true
+                        }
+                        
+                        // Insert new messages at the beginning
+                        self.messages.insert(contentsOf: uniqueNewMessages, at: 0)
+                        
+                        // Notify that scroll position should be maintained
+                        // The scroll position will be maintained automatically because
+                        // we're inserting at index 0, so the first visible message ID stays the same
                     }
                     
                     if let oldest = loadedMessages.first {
                         self.oldestMessageId = oldest.id
                     }
                     
-                    self.hasMoreMessages = loadedMessages.count >= 50
+                    self.hasMoreMessages = loadedMessages.count >= 30
                     self.isLoading = false
                     self.isLoadingMore = false
                 }
@@ -128,11 +168,15 @@ class ChatViewModel: ObservableObject {
             video_url: nil,
             audio_url: nil,
             file_size: nil,
-            mime_type: nil
+            mime_type: nil,
+            avatar_url: nil
         )
         
         Task { @MainActor in
-            messages.append(tempMessage)
+            // Don't add duplicate messages
+            if !messages.contains(where: { $0.id == tempMessage.id }) {
+                messages.append(tempMessage)
+            }
         }
         
         // Send via WebSocket
@@ -272,7 +316,16 @@ class ChatViewModel: ObservableObject {
         webSocketService.onMessagesReceived = { [weak self] receivedChatId, receivedMessages in
             guard receivedChatId == self?.chatId else { return }
             Task { @MainActor in
-                self?.messages = receivedMessages.reversed()
+                // Remove duplicates by keeping only unique IDs
+                var uniqueMessages: [Message] = []
+                var seenIds: Set<Int64> = []
+                for message in receivedMessages.reversed() {
+                    if !seenIds.contains(message.id) {
+                        seenIds.insert(message.id)
+                        uniqueMessages.append(message)
+                    }
+                }
+                self?.messages = uniqueMessages
                 self?.isLoading = false
             }
         }
@@ -291,7 +344,7 @@ class ChatViewModel: ObservableObject {
         
         webSocketService.onMessageSent = { [weak self] receivedChatId, messageId, clientMessageId in
             guard receivedChatId == self?.chatId else { return }
-            // Message was sent successfully, could update UI if needed
+
         }
         
         webSocketService.onTypingIndicator = { [weak self] receivedChatId, userId, username, isTyping in
@@ -309,7 +362,7 @@ class ChatViewModel: ObservableObject {
             guard receivedChatId == self?.chatId else { return }
             Task { @MainActor in
                 if let index = self?.messages.firstIndex(where: { $0.id == messageId }) {
-                    var message = self!.messages[index]
+                    let message = self!.messages[index]
                     let updatedMessage = Message(
                         id: message.id,
                         chat_id: message.chat_id,
@@ -333,7 +386,8 @@ class ChatViewModel: ObservableObject {
                         video_url: message.video_url,
                         audio_url: message.audio_url,
                         file_size: message.file_size,
-                        mime_type: message.mime_type
+                        mime_type: message.mime_type,
+                        avatar_url: message.avatar_url
                     )
                     self!.messages[index] = updatedMessage
                 }

@@ -98,6 +98,7 @@ struct Message: Codable, Identifiable, Equatable {
     let audio_url: String?
     let file_size: Int64?
     let mime_type: String?
+    let avatar_url: String? // Avatar URL from message
     
     // Computed properties for full URLs
     var fullPhotoURL: String? {
@@ -387,12 +388,17 @@ struct CacheInfo: Codable {
 
 struct WebSocketNewMessageResponse: Codable {
     let type: String
-    let chatId: Int64
+    let chat_id: Int64
     let message: Message
     let origin_device_id: String?
     let client_message_id: String?
     let temp_id: String?
     let requires_delivery_confirmation: Bool?
+    
+    // Computed property for convenience
+    var chatId: Int64 {
+        return chat_id
+    }
 }
 
 struct WebSocketMessageSentResponse: Codable {
@@ -433,7 +439,7 @@ struct ChatResponse: Codable {
 }
 
 struct MessagesResponse: Codable {
-    let success: Bool
+    let success: Bool?
     let messages: [Message]
     let timezone: String?
     let has_moderator_messages: Bool?

@@ -160,11 +160,27 @@ class MessengerService {
         }
         
         guard httpResponse.statusCode == 200 else {
+            if let errorString = String(data: data, encoding: .utf8) {
+                print("❌ Error response body: \(errorString)")
+            }
             throw MessengerError.invalidResponse
         }
         
-        let messagesResponse = try JSONDecoder().decode(MessagesResponse.self, from: data)
-        return messagesResponse.messages
+        do {
+            let messagesResponse = try JSONDecoder().decode(MessagesResponse.self, from: data)
+            return messagesResponse.messages
+        } catch {
+            // Try to decode as direct array if wrapped response fails
+            if let messagesArray = try? JSONDecoder().decode([Message].self, from: data) {
+                print("✅ Decoded \(messagesArray.count) messages from REST API (direct array)")
+                return messagesArray
+            }
+            print("❌ Error decoding messages: \(error)")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📄 Raw JSON (first 500 chars): \(String(jsonString.prefix(500)))")
+            }
+            throw error
+        }
     }
     
     func sendMessage(chatId: Int64, text: String, replyToId: Int64? = nil) async throws -> Message {

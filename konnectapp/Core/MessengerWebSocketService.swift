@@ -109,7 +109,7 @@ class MessengerWebSocketService: NSObject, ObservableObject {
             device_id: deviceId,
             client_info: ClientInfo(
                 platform: "iOS",
-                version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
+                version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.1.0",
                 device: UIDevice.current.model
             )
         )
@@ -256,6 +256,12 @@ class MessengerWebSocketService: NSObject, ObservableObject {
                 handleUnreadCounts(data: data)
             case "user_status":
                 // User status updates (online/offline) - can be ignored for now
+                break
+            case "delivery_confirmation_ack":
+                // Delivery confirmation acknowledgment - can be ignored
+                break
+            case "read_receipt_response":
+                // Read receipt response - can be ignored
                 break
             default:
                 print("⚠️ Unknown message type: \(type)")

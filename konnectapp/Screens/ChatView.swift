@@ -12,11 +12,18 @@ struct ChatView: View {
     let chat: Chat
     @StateObject private var viewModel: ChatViewModel
     @StateObject private var themeManager = ThemeManager.shared
+    @StateObject private var keyboardObserver = KeyboardObserver()
     @State private var messageText: String = ""
     @State private var selectedImage: UIImage?
     @State private var selectedImageItem: PhotosPickerItem?
     @State private var replyingToMessage: Message?
     @FocusState private var isTextFieldFocused: Bool
+    @State private var scrollToMessageId: Int64?
+    
+    // No bottom padding - input area is separate and handles its own spacing
+    private var bottomPadding: CGFloat {
+        0
+    }
     
     init(chat: Chat) {
         self.chat = chat
@@ -31,7 +38,7 @@ struct ChatView: View {
                 // Messages list
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        LazyVStack(spacing: 0) {
                             if viewModel.isLoading {
                                 ProgressView()
                                     .tint(Color.appAccent)
@@ -53,11 +60,39 @@ struct ChatView: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .padding()
                             } else {
-                                ForEach(viewModel.messages) { message in
+                                // Load more indicator at top
+                                if viewModel.isLoadingMore {
+                                    HStack {
+                                        Spacer()
+                                        ProgressView()
+                                            .padding()
+                                        Spacer()
+                                    }
+                                }
+                                
+                                ForEach(Array(viewModel.messages.enumerated()), id: \.element.id) { index, message in
+                                    let previousMessage = index > 0 ? viewModel.messages[index - 1] : nil
+                                    let nextMessage = index < viewModel.messages.count - 1 ? viewModel.messages[index + 1] : nil
+                                    
+                                    // Determine spacing: smaller if messages are from same user
+                                    let spacing: CGFloat = {
+                                        if let previous = previousMessage, previous.sender_id == message.sender_id {
+                                            // Same user - smaller spacing (close together)
+                                            return 2
+                                        }
+                                        // Different user or first message - normal spacing
+                                        return 12
+                                    }()
+                                    
                                     MessageBubbleView(
                                         chatId: chat.id,
                                         message: message,
                                         isOwnMessage: message.sender_id == AuthManager.shared.currentUser?.id,
+                                        hasReplyToMyMessages: viewModel.hasReplyToMyMessages,
+                                        isGroupChat: chat.is_group,
+                                        previousMessage: previousMessage,
+                                        nextMessage: nextMessage,
+                                        chatMembers: chat.members ?? [],
                                         onReply: {
                                             replyingToMessage = message
                                         },
@@ -66,6 +101,15 @@ struct ChatView: View {
                                         }
                                     )
                                     .id(message.id)
+                                    .padding(.top, spacing)
+                                    .onAppear {
+                                        // Load more messages when scrolling to the top
+                                        if message.id == viewModel.messages.first?.id && viewModel.hasMoreMessages && !viewModel.isLoadingMore {
+                                            // Store the first message ID to restore scroll position
+                                            scrollToMessageId = message.id
+                                            viewModel.loadMoreMessages(beforeId: message.id)
+                                        }
+                                    }
                                 }
                                 
                                 // Typing indicator
@@ -75,7 +119,8 @@ struct ChatView: View {
                             }
                         }
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.top, 12)
+                        .padding(.bottom, bottomPadding)
                     }
                     .simultaneousGesture(
                         TapGesture().onEnded {
@@ -84,9 +129,76 @@ struct ChatView: View {
                         }
                     )
                     .onChange(of: viewModel.messages.count) { oldValue, newValue in
-                        if let lastMessage = viewModel.messages.last {
-                            withAnimation {
-                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        if newValue > oldValue {
+                            // Don't scroll if we're loading more (scrolling up)
+                            if scrollToMessageId != nil {
+                                // Skip auto-scroll when loading more messages
+                                return
+                            }
+                            
+                            // Scroll to bottom when new message is added (only if not loading more)
+                            if let lastMessage = viewModel.messages.last, !viewModel.isLoadingMore {
+                                // Use multiple attempts with increasing delays
+                                let scrollToBottom = {
+                                    withAnimation(.easeOut(duration: 0.15)) {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: scrollToBottom)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: scrollToBottom)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: scrollToBottom)
+                            }
+                        }
+                    }
+                    .onChange(of: viewModel.isLoadingMore) { oldValue, newValue in
+                        // When loading more finishes, restore scroll position
+                        if oldValue == true && newValue == false, let scrollToId = scrollToMessageId {
+                            // Wait a bit longer for UI to update
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                withAnimation(.easeOut(duration: 0.1)) {
+                                    proxy.scrollTo(scrollToId, anchor: .top)
+                                }
+                                // Clear after restoring
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    scrollToMessageId = nil
+                                }
+                            }
+                        }
+                    }
+                    .onChange(of: messageText) { oldValue, newValue in
+                        // Scroll to bottom when sending message (text cleared = message sent)
+                        if !oldValue.isEmpty && newValue.isEmpty {
+                            // Wait for message to be added and try multiple times
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                if let lastMessage = viewModel.messages.last {
+                                    withAnimation(.easeOut(duration: 0.15)) {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
+                                }
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                if let lastMessage = viewModel.messages.last {
+                                    withAnimation(.easeOut(duration: 0.15)) {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
+                                }
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                if let lastMessage = viewModel.messages.last {
+                                    withAnimation(.easeOut(duration: 0.15)) {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .onChange(of: keyboardObserver.keyboardHeight) { oldValue, newValue in
+                        // Scroll to bottom when keyboard appears
+                        if newValue > oldValue, let lastMessage = viewModel.messages.last {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                withAnimation(.easeOut(duration: 0.15)) {
+                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
                             }
                         }
                     }
@@ -151,10 +263,12 @@ struct ChatView: View {
     private func sendMessage() {
         guard !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
-        viewModel.sendMessage(text: messageText, replyToId: replyingToMessage?.id)
+        let textToSend = messageText
         messageText = ""
         replyingToMessage = nil
-        isTextFieldFocused = false
+        // Don't hide keyboard - keep it open like in Telegram
+        
+        viewModel.sendMessage(text: textToSend, replyToId: replyingToMessage?.id)
     }
     
     private func sendPhoto(image: UIImage) {
@@ -284,18 +398,161 @@ struct MessageBubbleView: View {
     let chatId: Int64
     let message: Message
     let isOwnMessage: Bool
+    let hasReplyToMyMessages: Bool
+    let isGroupChat: Bool
+    let previousMessage: Message?
+    let nextMessage: Message?
+    let chatMembers: [ChatMember]
     let onReply: () -> Void
     let onDelete: () -> Void
     @StateObject private var themeManager = ThemeManager.shared
     @State private var showImageFullscreen = false
     
+    // Determine if we should show avatar and name (for group chats)
+    private var shouldShowAvatarAndName: Bool {
+        guard isGroupChat && !isOwnMessage else { return false }
+        
+        // Show if no previous message
+        guard let previous = previousMessage else { return true }
+        
+        // Show if previous message is from different user
+        if previous.sender_id != message.sender_id {
+            return true
+        }
+        
+        // Show if time difference is more than 5 minutes
+        if let timeDiff = timeDifferenceInMinutes(previous.created_at, message.created_at), timeDiff > 5 {
+            return true
+        }
+        
+        return false
+    }
+    
+    // Determine if we should show avatar (only for last message in a group)
+    private var shouldShowAvatar: Bool {
+        guard isGroupChat && !isOwnMessage else { return false }
+        
+        // Show avatar if this is the last message in a consecutive group
+        // (next message is from different user, doesn't exist, or time difference > 5 minutes)
+        if let next = nextMessage {
+            // If next message is from different user, show avatar
+            if next.sender_id != message.sender_id {
+                return true
+            }
+            // If time difference > 5 minutes, show avatar
+            if let timeDiff = timeDifferenceInMinutes(message.created_at, next.created_at), timeDiff > 5 {
+                return true
+            }
+            // Otherwise, don't show (it's not the last in group)
+            return false
+        }
+        // No next message - this is the last message, show avatar
+        return true
+    }
+    
+    // Get avatar URL for a user - prefer avatar_url from message, fallback to chat members
+    private func getAvatarURL(for userId: Int64) -> String? {
+        // First, try to use avatar_url from message (if available)
+        if let avatarURL = message.avatar_url, !avatarURL.isEmpty {
+            return avatarURL
+        }
+        
+        // Fallback to chat members
+        if let member = chatMembers.first(where: { $0.user_id == userId }) {
+            return member.avatar
+        }
+        return nil
+    }
+    
+    private func timeDifferenceInMinutes(_ date1: String, _ date2: String) -> Int? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        var date1Parsed: Date?
+        var date2Parsed: Date?
+        
+        if let d1 = formatter.date(from: date1) {
+            date1Parsed = d1
+        } else {
+            formatter.formatOptions = [.withInternetDateTime]
+            date1Parsed = formatter.date(from: date1)
+        }
+        
+        if let d2 = formatter.date(from: date2) {
+            date2Parsed = d2
+        } else {
+            formatter.formatOptions = [.withInternetDateTime]
+            date2Parsed = formatter.date(from: date2)
+        }
+        
+        // Try custom format
+        if date1Parsed == nil {
+            let customFormatter = DateFormatter()
+            customFormatter.dateFormat = "yyyy-MM-dd HH:mm:ssZ"
+            customFormatter.locale = Locale(identifier: "en_US_POSIX")
+            customFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            date1Parsed = customFormatter.date(from: date1)
+        }
+        
+        if date2Parsed == nil {
+            let customFormatter = DateFormatter()
+            customFormatter.dateFormat = "yyyy-MM-dd HH:mm:ssZ"
+            customFormatter.locale = Locale(identifier: "en_US_POSIX")
+            customFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            date2Parsed = customFormatter.date(from: date2)
+        }
+        
+        guard let d1 = date1Parsed, let d2 = date2Parsed else { return nil }
+        return Int(abs(d2.timeIntervalSince(d1)) / 60)
+    }
+    
     var body: some View {
-        HStack {
+        HStack(alignment: .bottom, spacing: 8) {
+            // Avatar for group chats (left side, only for other users, only on last message in group)
+            if shouldShowAvatar {
+                // Get avatar URL from chat members
+                let avatarURL = getAvatarURL(for: message.sender_id)
+                AsyncImage(url: URL(string: avatarURL ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.appAccent, Color(red: 0.75, green: 0.65, blue: 0.95)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            Text(message.sender_name.prefix(1).uppercased())
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                        )
+                }
+                .frame(width: 32, height: 32)
+                .clipShape(Circle())
+            } else if isGroupChat && !isOwnMessage {
+                // Spacer to align messages when avatar is not shown
+                Spacer()
+                    .frame(width: 32)
+            }
+            
             if isOwnMessage {
                 Spacer(minLength: 60)
             }
             
             VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 4) {
+                // Sender name for group chats (only for other users, only in first message of group)
+                if isGroupChat && !isOwnMessage && shouldShowAvatarAndName {
+                    Text(message.sender_name)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color.appAccent)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 4)
+                }
+                
                 // Reply indicator
                 if message.reply_to_id != nil {
                     // Would need to fetch replied message, simplified for now
@@ -309,24 +566,37 @@ struct MessageBubbleView: View {
                             .font(.system(size: 16))
                             .foregroundColor(isOwnMessage ? .white : Color.themeTextPrimary)
                         
-                        // Time and read status inside bubble
-                        HStack(spacing: 3) {
+                        // Time and read status inside bubble (Telegram style)
+                        HStack(spacing: 4) {
                             Text(formatTime(message.created_at))
-                                .font(.system(size: 12))
-                                .foregroundColor(isOwnMessage ? .white.opacity(0.8) : Color.themeTextSecondary)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(isOwnMessage ? .white.opacity(0.9) : Color.themeTextSecondary)
                             
                             if isOwnMessage {
-                                if let isRead = message.is_read, isRead > 0 {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.8))
+                                // Check if message is read or if there's a reply to any of my messages (means they read it)
+                                let isRead = (message.read_count ?? 0) > 0
+                                
+                                if isRead || hasReplyToMyMessages {
+                                    // Two checkmarks for read messages (Telegram style) - overlapped
+                                    ZStack(alignment: .leading) {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(.white.opacity(0.9))
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(.white.opacity(0.9))
+                                            .offset(x: 4)
+                                    }
+                                    .frame(width: 16, height: 12)
                                 } else {
-                                    Image(systemName: "checkmark.circle")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.8))
+                                    // Single checkmark for sent messages
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.9))
                                 }
                             }
                         }
+                        .padding(.leading, 6)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -345,59 +615,57 @@ struct MessageBubbleView: View {
                     
                 case "photo":
                     if let url = MessengerService.shared.getFileURL(chatId: chatId, filePath: message.content) {
-                        ZStack(alignment: .bottomTrailing) {
-                            AsyncImage(url: url) { phase in
-                                switch phase {
-                                case .empty:
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.themeBlockBackground)
-                                        .frame(width: 200, height: 200)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(maxWidth: 250, maxHeight: 300)
-                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                        .onTapGesture {
-                                            showImageFullscreen = true
-                                        }
-                                case .failure:
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.themeBlockBackground)
-                                        .frame(width: 200, height: 200)
-                                @unknown default:
-                                    EmptyView()
-                                }
+                        VStack(alignment: .leading, spacing: 4) {
+                            // Sender name for group chats (only for other users, only in first message of group)
+                            if isGroupChat && !isOwnMessage && shouldShowAvatarAndName {
+                                Text(message.sender_name)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Color.appAccent)
+                                    .padding(.horizontal, 8)
+                                    .padding(.top, 4)
                             }
                             
-                            // Time and read status overlay
-                            HStack(spacing: 3) {
-                                Text(formatTime(message.created_at))
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.white)
-                                    .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-                                
-                                if isOwnMessage {
-                                    if let isRead = message.is_read, isRead > 0 {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.white)
-                                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-                                    } else {
-                                        Image(systemName: "checkmark.circle")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.white)
-                                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                            ZStack(alignment: .bottomTrailing) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(Color.themeBlockBackground)
+                                            .frame(width: 200, height: 200)
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(maxWidth: 250, maxHeight: 300)
+                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                            .onTapGesture {
+                                                showImageFullscreen = true
+                                            }
+                                    case .failure:
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(Color.themeBlockBackground)
+                                            .frame(width: 200, height: 200)
+                                    @unknown default:
+                                        EmptyView()
                                     }
                                 }
+                                
+                                // Time overlay (Telegram style) - no read status for photos
+                                HStack(spacing: 4) {
+                                    Text(formatTime(message.created_at))
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 1)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(.black.opacity(0.4))
+                                        .background(.ultraThinMaterial.opacity(0.4))
+                                )
+                                .padding(8)
                             }
-                            .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.black.opacity(0.3))
-                                    .background(.ultraThinMaterial.opacity(0.3))
-                            )
-                            .padding(8)
                         }
                     }
                     
@@ -426,24 +694,37 @@ struct MessageBubbleView: View {
                             .font(.system(size: 16))
                             .foregroundColor(isOwnMessage ? .white : Color.themeTextPrimary)
                         
-                        // Time and read status inside bubble
-                        HStack(spacing: 3) {
+                        // Time and read status inside bubble (Telegram style)
+                        HStack(spacing: 4) {
                             Text(formatTime(message.created_at))
-                                .font(.system(size: 12))
-                                .foregroundColor(isOwnMessage ? .white.opacity(0.8) : Color.themeTextSecondary)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(isOwnMessage ? .white.opacity(0.9) : Color.themeTextSecondary)
                             
                             if isOwnMessage {
-                                if let isRead = message.is_read, isRead > 0 {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.8))
+                                // Check if message is read or if there's a reply to any of my messages (means they read it)
+                                let isRead = (message.read_count ?? 0) > 0
+                                
+                                if isRead || hasReplyToMyMessages {
+                                    // Two checkmarks for read messages (Telegram style) - overlapped
+                                    ZStack(alignment: .leading) {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(.white.opacity(0.9))
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(.white.opacity(0.9))
+                                            .offset(x: 4)
+                                    }
+                                    .frame(width: 16, height: 12)
                                 } else {
-                                    Image(systemName: "checkmark.circle")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.8))
+                                    // Single checkmark for sent messages
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.9))
                                 }
                             }
                         }
+                        .padding(.leading, 6)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -486,17 +767,42 @@ struct MessageBubbleView: View {
             }
         }
     }
-    
-    private func formatTime(_ dateString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+}
+
+// MARK: - Helper Functions
+
+extension MessageBubbleView {
+    func formatTime(_ dateString: String) -> String {
+        var date: Date?
         
-        guard let date = formatter.date(from: dateString) else {
+        // Try ISO8601 with fractional seconds first
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let parsedDate = isoFormatter.date(from: dateString) {
+            date = parsedDate
+        } else {
+            // Try without fractional seconds
+            isoFormatter.formatOptions = [.withInternetDateTime]
+            if let parsedDate = isoFormatter.date(from: dateString) {
+                date = parsedDate
+            } else {
+                // Try custom format: "2026-01-06 17:53:18Z"
+                let customFormatter = DateFormatter()
+                customFormatter.dateFormat = "yyyy-MM-dd HH:mm:ssZ"
+                customFormatter.locale = Locale(identifier: "en_US_POSIX")
+                customFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+                date = customFormatter.date(from: dateString)
+            }
+        }
+        
+        guard let date = date else {
             return ""
         }
         
+        // Telegram-style time format: always show HH:mm
         let timeFormatter = DateFormatter()
-        timeFormatter.timeStyle = .short
+        timeFormatter.dateFormat = "HH:mm"
+        timeFormatter.locale = Locale(identifier: "ru_RU")
         return timeFormatter.string(from: date)
     }
 }
