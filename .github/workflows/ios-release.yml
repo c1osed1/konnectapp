@@ -112,19 +112,32 @@ jobs:
             exit 1
           fi
           
-          # Финальная проверка Info.plist перед упаковкой
-          echo "Final Info.plist check before packaging..."
+          # КРИТИЧНО: Проверяем и копируем Info.plist явно, если его нет
+          echo "Checking Info.plist in .app bundle..."
           if [ ! -f "$APP_PATH/Info.plist" ]; then
-            echo "❌ CRITICAL: Info.plist missing before packaging!"
-            exit 1
+            echo "⚠️ WARNING: Info.plist not found in .app bundle!"
+            echo "Attempting to copy Info.plist manually..."
+            if [ -f "konnectapp/Info.plist" ]; then
+              cp "konnectapp/Info.plist" "$APP_PATH/Info.plist"
+              echo "✅ Copied Info.plist to .app bundle"
+            else
+              echo "❌ CRITICAL: Source Info.plist not found at konnectapp/Info.plist!"
+              find . -name "Info.plist" -type f
+              exit 1
+            fi
           fi
           
           # Проверяем содержимое
+          echo "Validating Info.plist contents..."
           if grep -q "\$(" "$APP_PATH/Info.plist" 2>/dev/null; then
-            echo "❌ CRITICAL: Info.plist still contains variables!"
+            echo "❌ CRITICAL: Info.plist contains unresolved variables!"
             grep "\$(" "$APP_PATH/Info.plist"
             exit 1
           fi
+          
+          # Показываем первые строки для проверки
+          echo "Info.plist preview:"
+          plutil -p "$APP_PATH/Info.plist" | head -10
           
           mkdir -p ./artifacts/Payload
           cp -R "$APP_PATH" ./artifacts/Payload/konnectapp.app
