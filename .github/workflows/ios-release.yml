@@ -158,7 +158,7 @@ jobs:
           
           # Финальная проверка Info.plist в .ipa
           echo "Verifying Info.plist in .ipa..."
-          unzip -q -o konnectapp-release.ipa -d /tmp/ipa_check
+          unzip -q -o ./artifacts/konnectapp-release.ipa -d /tmp/ipa_check
           if [ -f "/tmp/ipa_check/Payload/konnectapp.app/Info.plist" ]; then
             echo "✅ Info.plist found in .ipa"
             plutil -p /tmp/ipa_check/Payload/konnectapp.app/Info.plist | head -10
