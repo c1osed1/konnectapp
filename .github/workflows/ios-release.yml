@@ -38,37 +38,48 @@ jobs:
       
     - name: Build iOS app (Release)
       run: |
-        xcodebuild clean archive \
+        xcodebuild clean build \
           -project konnectapp.xcodeproj \
           -scheme konnectapp \
           -configuration Release \
-          -archivePath ./build/konnectapp.xcarchive \
+          -sdk iphoneos \
           IPHONEOS_DEPLOYMENT_TARGET=18.0 \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          -derivedDataPath ./build
           
-    - name: Export IPA (без подписи - только для тестирования)
+    - name: Create IPA from Release build
       run: |
-        xcodebuild -exportArchive \
-          -archivePath ./build/konnectapp.xcarchive \
-          -exportPath ./build/ipa \
-          -exportOptionsPlist <(echo '<?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-              <key>method</key>
-              <string>development</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-            </dict>
-            </plist>') || echo "Export skipped (requires signing)"
+        APP_PATH=$(find ./build -name "konnectapp.app" -type d | head -1)
+        if [ -z "$APP_PATH" ]; then
+          echo "App not found in build/, searching in DerivedData..."
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "konnectapp.app" -type d 2>/dev/null | head -1)
+        fi
+        
+        if [ -n "$APP_PATH" ]; then
+          echo "Found app at: $APP_PATH"
+          mkdir -p ./artifacts/Payload
+          cp -R "$APP_PATH" ./artifacts/Payload/konnectapp.app
           
-    - name: Upload build artifacts
+          # Создаем .ipa файл
+          echo "Creating .ipa file..."
+          cd ./artifacts
+          zip -r konnectapp-release.ipa Payload
+          cd ..
+          echo "✅ Created konnectapp-release.ipa"
+          ls -lh ./artifacts/
+        else
+          echo "❌ App not found"
+          exit 1
+        fi
+          
+    - name: Upload Release IPA
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: ios-release-build
-        path: build/
+        name: konnectapp-release-ipa
+        path: artifacts/konnectapp-release.ipa
         retention-days: 30
+        if-no-files-found: error
 

@@ -359,7 +359,7 @@ struct MusicView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // Поисковая строка (кастомный стиль)
-                HStack {
+                    HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                     
@@ -517,7 +517,7 @@ struct MusicView: View {
                                     .frame(width: 56, height: 56)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 12)
                                             .stroke(Color.appAccent.opacity(0.3), lineWidth: 1)
                                     )
                             @unknown default:
@@ -644,8 +644,8 @@ struct MusicView: View {
                                 )
                         @unknown default:
                             EmptyView()
-                        }
-                    }
+        }
+    }
                     .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
                     
                     // Информация о треке

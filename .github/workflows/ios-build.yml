@@ -34,17 +34,36 @@ jobs:
           CODE_SIGNING_ALLOWED=NO \
           -derivedDataPath ./build
           
-    - name: Find and archive build artifacts
+    - name: Find app and create IPA
       run: |
-        find ./build -name "konnectapp.app" -type d | head -1 | xargs -I {} echo "Found app at: {}"
-        mkdir -p ./artifacts
-        find ./build -name "konnectapp.app" -type d | head -1 | xargs -I {} cp -R {} ./artifacts/konnectapp.app || echo "App not found, skipping artifact upload"
+        APP_PATH=$(find ./build -name "konnectapp.app" -type d | head -1)
+        if [ -z "$APP_PATH" ]; then
+          echo "App not found in build/, searching in DerivedData..."
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "konnectapp.app" -type d 2>/dev/null | head -1)
+        fi
+        
+        if [ -n "$APP_PATH" ]; then
+          echo "Found app at: $APP_PATH"
+          mkdir -p ./artifacts/Payload
+          cp -R "$APP_PATH" ./artifacts/Payload/konnectapp.app
           
-    - name: Archive build artifacts
+          # Создаем .ipa файл
+          echo "Creating .ipa file..."
+          cd ./artifacts
+          zip -r konnectapp.ipa Payload
+          cd ..
+          echo "✅ Created konnectapp.ipa"
+          ls -lh ./artifacts/
+        else
+          echo "❌ App not found, skipping artifact upload"
+          exit 1
+        fi
+          
+    - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: ios-simulator-build
-        path: artifacts/
-        retention-days: 7
-        if-no-files-found: ignore
+        name: konnectapp-ipa
+        path: artifacts/konnectapp.ipa
+        retention-days: 30
+        if-no-files-found: error

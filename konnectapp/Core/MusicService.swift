@@ -210,8 +210,8 @@ class MusicService {
         guard (200...299).contains(httpResponse.statusCode) else {
             if httpResponse.statusCode == 401 {
                 try? KeychainManager.deleteTokens()
-                throw AuthError.unauthorized
-            }
+            throw AuthError.unauthorized
+        }
             throw AuthError.invalidResponse
         }
         

@@ -15,18 +15,18 @@ struct PostMusicView: View {
                 HStack(spacing: 10) {
                     if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
                         CachedAsyncImage(url: coverURL, cacheType: .post)
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 48, height: 48)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 48, height: 48)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                     } else {
-                        RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 10)
                             .fill(Color.themeBlockBackground)
-                            .frame(width: 48, height: 48)
-                            .overlay(
-                                Image(systemName: "music.note")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.white.opacity(0.6))
-                            )
+                                .frame(width: 48, height: 48)
+                                .overlay(
+                                    Image(systemName: "music.note")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.white.opacity(0.6))
+                                )
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -46,8 +46,8 @@ struct PostMusicView: View {
                     Spacer()
                     
                     Image(systemName: player.currentTrack?.id == track.id && player.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
