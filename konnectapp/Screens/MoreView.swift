@@ -2,20 +2,37 @@ import SwiftUI
 
 struct MoreView: View {
     @StateObject private var authManager = AuthManager.shared
+    @State private var showBackgroundModal = false
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
+        ZStack {
+            AppBackgroundView(backgroundURL: authManager.currentUser?.profile_background_url)
+            
+            ScrollView {
+                VStack(spacing: 20) {
                 Text("Еще")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.top, 20)
                 
+                // Настройки
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Настройки")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                    
+                    Button {
+                        showBackgroundModal = true
+                    } label: {
+                        MoreRow(icon: "photo.fill", title: "Фон профиля")
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .padding(.horizontal, 16)
+                
                 VStack(spacing: 12) {
-                    MoreRow(icon: "questionmark.circle", title: "Помощь")
                     MoreRow(icon: "info.circle", title: "О приложении")
-                    MoreRow(icon: "doc.text", title: "Условия использования")
-                    MoreRow(icon: "hand.raised", title: "Политика конфиденциальности")
                 }
                 .padding(.horizontal, 16)
                 
@@ -39,8 +56,12 @@ struct MoreView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 20)
+                }
+                .padding(.bottom, 100)
             }
-            .padding(.bottom, 100)
+        }
+        .sheet(isPresented: $showBackgroundModal) {
+            ProfileBackgroundModalView()
         }
     }
 }

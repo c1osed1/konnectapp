@@ -33,6 +33,34 @@ class ProfileViewModel: ObservableObject {
             await MainActor.run {
                 self.profile = profileResponse
                 print("✅ ProfileViewModel: Profile set in view model")
+                
+                // Обновляем currentUser в AuthManager с полными данными из профиля
+                // Это нужно для получения profile_background_url, которого нет в /api/auth/check
+                let profileUser = profileResponse.user
+                // Проверяем, что это профиль текущего пользователя
+                let isCurrentUser = AuthManager.shared.currentUser?.id == profileUser.id
+                
+                if isCurrentUser {
+                    // Создаем обновленного User с данными из ProfileUser
+                    let updatedUser = User(
+                        id: profileUser.id,
+                        name: profileUser.name,
+                        username: profileUser.username,
+                        photo: profileUser.photo,
+                        banner: profileUser.cover_photo, // cover_photo в ProfileUser = banner в User
+                        about: profileUser.about,
+                        avatar_url: profileUser.avatar_url,
+                        banner_url: profileUser.banner_url,
+                        profile_background_url: profileUser.profile_background_url,
+                        hasCredentials: AuthManager.shared.currentUser?.hasCredentials, // Сохраняем старое значение
+                        account_type: profileUser.account_type,
+                        main_account_id: profileUser.main_account_id
+                    )
+                    AuthManager.shared.currentUser = updatedUser
+                    print("🟢 ProfileViewModel: Updated currentUser with profile_background_url: \(profileUser.profile_background_url ?? "nil")")
+                } else {
+                    print("🔵 ProfileViewModel: Loaded profile for different user (\(profileUser.username)), not updating currentUser")
+                }
             }
         } catch {
             let nsError = error as NSError

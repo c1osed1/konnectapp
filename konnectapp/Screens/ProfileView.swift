@@ -17,15 +17,8 @@ struct ProfileView: View {
     
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.06, green: 0.06, blue: 0.06),
-                    Color(red: 0.1, green: 0.1, blue: 0.1)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Используем profile_background_url из загруженного профиля, если он есть
+            AppBackgroundView(backgroundURL: viewModel.profile?.user.profile_background_url ?? authManager.currentUser?.profile_background_url)
             
             ScrollView {
                 LazyVStack(spacing: 8) {

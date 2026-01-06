@@ -249,6 +249,105 @@ class ProfileUpdateService {
             throw ProfileUpdateError.serverError(httpResponse.statusCode)
         }
     }
+    
+    func uploadBackground(_ image: UIImage) async throws -> String {
+        guard let token = try KeychainManager.getToken() else {
+            throw ProfileUpdateError.notAuthenticated
+        }
+        
+        guard let sessionKey = try KeychainManager.getSessionKey() else {
+            throw ProfileUpdateError.notAuthenticated
+        }
+        
+        guard let url = URL(string: "\(baseURL)/api/profile/background") else {
+            throw ProfileUpdateError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
+        request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw ProfileUpdateError.invalidImage
+        }
+        
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"background\"; filename=\"background.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ProfileUpdateError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 200 {
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .useDefaultKeys
+            let uploadResponse = try decoder.decode(BackgroundUploadResponse.self, from: data)
+            return uploadResponse.profile_background_url ?? ""
+        } else {
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("❌ Background upload error response: \(jsonString)")
+            }
+            if httpResponse.statusCode == 403 {
+                throw ProfileUpdateError.noSubscription
+            }
+            throw ProfileUpdateError.serverError(httpResponse.statusCode)
+        }
+    }
+    
+    func deleteBackground() async throws -> Bool {
+        guard let token = try KeychainManager.getToken() else {
+            throw ProfileUpdateError.notAuthenticated
+        }
+        
+        guard let sessionKey = try KeychainManager.getSessionKey() else {
+            throw ProfileUpdateError.notAuthenticated
+        }
+        
+        guard let url = URL(string: "\(baseURL)/api/profile/background") else {
+            throw ProfileUpdateError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
+        request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ProfileUpdateError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 200 {
+            return true
+        } else {
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("❌ Background delete error response: \(jsonString)")
+            }
+            if httpResponse.statusCode == 403 {
+                throw ProfileUpdateError.noSubscription
+            }
+            throw ProfileUpdateError.serverError(httpResponse.statusCode)
+        }
+    }
 }
 
 struct UploadResponse: Codable {
@@ -259,7 +358,15 @@ struct UploadResponse: Codable {
     let error: String?
 }
 
+struct BackgroundUploadResponse: Codable {
+    let success: Bool
+    let message: String?
+    let profile_background_url: String?
+    let error: String?
+}
+
 enum ProfileUpdateError: Error {
+    case noSubscription
     case notAuthenticated
     case invalidURL
     case invalidResponse
@@ -268,6 +375,8 @@ enum ProfileUpdateError: Error {
     
     var localizedDescription: String {
         switch self {
+        case .noSubscription:
+            return "Фоновая картинка доступна только для Ultimate, MAX и Pick-Me"
         case .notAuthenticated:
             return "Не авторизован"
         case .invalidURL:

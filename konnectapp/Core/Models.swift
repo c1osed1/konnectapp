@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - User Model
-struct User: Codable {
+struct User: Codable, Equatable {
     let id: Int64
     let name: String
     let username: String
@@ -17,9 +17,15 @@ struct User: Codable {
     let about: String?
     let avatar_url: String?
     let banner_url: String?
+    let profile_background_url: String?
     let hasCredentials: Bool?
     let account_type: String?
     let main_account_id: Int64?
+    
+    static func == (lhs: User, rhs: User) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.profile_background_url == rhs.profile_background_url
+    }
 }
 
 // MARK: - BanInfo Model
@@ -159,15 +165,29 @@ struct Pagination: Codable {
     let page: Int
     let limit: Int
     let total: Int
-    let total_pages: Int
-    let has_next: Bool
-    let has_prev: Bool
+    let totalPages: Int?
+    let hasNext: Bool
+    let hasPrev: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case page, limit, total
+        case totalPages = "total_pages"
+        case hasNext = "has_next"
+        case hasPrev = "has_prev"
+    }
 }
 
 // MARK: - Create Comment Response
 struct CreateCommentResponse: Codable {
     let success: Bool?
     let comment: Comment?
+    let error: String?
+}
+
+// MARK: - Create Reply Response
+struct CreateReplyResponse: Codable {
+    let success: Bool?
+    let reply: Reply?
     let error: String?
 }
 

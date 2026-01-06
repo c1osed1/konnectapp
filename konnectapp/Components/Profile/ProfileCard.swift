@@ -348,31 +348,30 @@ struct ProfileCard: View {
                     )
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
-                    
-                    if let about = profile.about, !about.isEmpty {
-                        Text(about)
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.8, green: 0.8, blue: 0.8))
-                            .lineSpacing(4)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(.ultraThinMaterial.opacity(0.2))
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
-                                        )
-                                    
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(
-                                            Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
-                                            lineWidth: 0.5
-                                        )
-                                }
-                            )
-                    }
+                    // if let about = profile.about, !about.isEmpty {
+                    //     Text(about)
+                    //         .font(.system(size: 14))
+                    //         .foregroundColor(Color(red: 0.8, green: 0.8, blue: 0.8))
+                    //         .lineSpacing(4)
+                    //         .padding(.horizontal, 16)
+                    //         .padding(.vertical, 12)
+                    //         .background(
+                    //             ZStack {
+                    //                 RoundedRectangle(cornerRadius: 16)
+                    //                     .fill(.ultraThinMaterial.opacity(0.2))
+                    //                     .background(
+                    //                         RoundedRectangle(cornerRadius: 16)
+                    //                             .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                    //                     )
+                    //                 
+                    //                 RoundedRectangle(cornerRadius: 16)
+                    //                     .stroke(
+                    //                         Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                    //                         lineWidth: 0.5
+                    //                     )
+                    //             }
+                    //         )
+                    // }
                     
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))

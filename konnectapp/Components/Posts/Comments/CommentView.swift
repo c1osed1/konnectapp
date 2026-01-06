@@ -3,161 +3,354 @@ import SwiftUI
 struct CommentView: View {
     let comment: Comment
     @Binding var navigationPath: NavigationPath
+    @StateObject private var authManager = AuthManager.shared
     @State private var isLiked: Bool
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
     @State private var showReplies: Bool = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDeleting: Bool = false
+    var onReply: ((Comment) -> Void)?
+    var onReplyToReply: ((Reply, Int64) -> Void)?
+    var onDelete: (() -> Void)?
     
-    init(comment: Comment, navigationPath: Binding<NavigationPath>) {
+    private var isMyComment: Bool {
+        guard let currentUserId = authManager.currentUser?.id,
+              let commentUserId = comment.user?.id else { return false }
+        return commentUserId == currentUserId
+    }
+    
+    init(comment: Comment, navigationPath: Binding<NavigationPath>, onReply: ((Comment) -> Void)? = nil, onReplyToReply: ((Reply, Int64) -> Void)? = nil, onDelete: (() -> Void)? = nil) {
         self.comment = comment
         self._navigationPath = navigationPath
+        self.onReply = onReply
+        self.onReplyToReply = onReplyToReply
+        self.onDelete = onDelete
         _isLiked = State(initialValue: comment.user_liked ?? false)
         _likesCount = State(initialValue: comment.likes_count ?? 0)
+        // Автоматически показываем replies, если они есть
+        _showReplies = State(initialValue: (comment.replies != nil && !comment.replies!.isEmpty))
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                if let user = comment.user {
+        ZStack(alignment: .leading) {
+            // Delete action background (left swipe - показываем справа)
+            if isMyComment {
+                HStack {
+                    Spacer()
                     Button {
-                        navigationPath.append(user.username)
-                    } label: {
-                        AsyncImage(url: URL(string: user.avatar_url ?? "")) { phase in
-                            switch phase {
-                            case .empty:
-                                Circle()
-                                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                    .frame(width: 40, height: 40)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 40, height: 40)
-                                    .clipShape(Circle())
-                            case .failure:
-                                Circle()
-                                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                    .frame(width: 40, height: 40)
-                            @unknown default:
-                                Circle()
-                                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                    .frame(width: 40, height: 40)
-                            }
+                        Task {
+                            await deleteComment()
                         }
+                    } label: {
+                        HStack {
+                            Image(systemName: "trash")
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                            Text("Удалить")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 20)
+                        .frame(maxHeight: .infinity)
+                        .background(Color.red)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    if let user = comment.user {
-                        HStack(spacing: 6) {
-                            Button {
-                                navigationPath.append(user.username)
-                            } label: {
-                                Text(user.name ?? user.username)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Text("@\(user.username)")
-                                .font(.system(size: 13))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
-                            
-                            if let timestamp = comment.timestamp {
-                                Text(formatRelativeTime(timestamp))
-                                    .font(.system(size: 12))
-                                    .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
-                            }
-                        }
-                    }
-                    
-                    if let content = comment.content, !content.isEmpty {
-                        Text(content)
-                            .font(.system(size: 15))
+                .opacity(dragOffset < 0 ? min(abs(dragOffset) / 100, 1.0) : 0)
+            }
+            
+            // Reply action background (right swipe - показываем слева)
+            HStack {
+                Button {
+                    onReply?(comment)
+                } label: {
+                    HStack {
+                        Image(systemName: "arrowshape.turn.up.left")
+                            .font(.system(size: 18))
                             .foregroundColor(.white)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Text("Ответить")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
                     }
-                    
-                    if let image = comment.image, let imageURL = URL(string: image) {
-                        AsyncImage(url: imageURL) { phase in
-                            switch phase {
-                            case .empty:
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                    .frame(height: 200)
-                            case .success(let img):
-                                img
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(maxHeight: 300)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                            case .failure:
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                    .frame(height: 200)
-                            @unknown default:
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                    .frame(height: 200)
-                            }
-                        }
-                        .padding(.top, 4)
-                    }
-                    
-                    HStack(spacing: 16) {
+                    .padding(.horizontal, 20)
+                    .frame(maxHeight: .infinity)
+                    .background(Color(red: 0.82, green: 0.74, blue: 1.0))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(PlainButtonStyle())
+                Spacer()
+            }
+            .opacity(dragOffset > 0 ? min(dragOffset / 100, 1.0) : 0)
+        
+        // Comment content
+        VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    if let user = comment.user {
                         Button {
-                            Task {
-                                await toggleLike()
-                            }
+                            navigationPath.append(user.username)
                         } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: isLiked ? "heart.fill" : "heart")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(isLiked ? .red : Color(red: 0.6, green: 0.6, blue: 0.6))
-                                
-                                if likesCount > 0 {
-                                    Text("\(likesCount)")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            AsyncImage(url: URL(string: user.avatar_url ?? (user.photo?.hasPrefix("http") == true ? user.photo! : "https://s3.k-connect.ru/static/uploads/avatar/\(user.id)/\(user.photo ?? "")"))) { phase in
+                                switch phase {
+                                case .empty:
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .overlay(
+                                            Text(String((user.name ?? user.username).prefix(1)))
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundColor(.black)
+                                        )
+                                        .frame(width: 40, height: 40)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 40, height: 40)
+                                        .clipShape(Circle())
+                                case .failure:
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.82, green: 0.74, blue: 1.0),
+                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .overlay(
+                                            Text(String((user.name ?? user.username).prefix(1)))
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundColor(.black)
+                                        )
+                                        .frame(width: 40, height: 40)
+                                @unknown default:
+                                    Circle()
+                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .frame(width: 40, height: 40)
                                 }
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .disabled(isLiking)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let user = comment.user {
+                            HStack(spacing: 6) {
+                                Button {
+                                    navigationPath.append(user.username)
+                                } label: {
+                                    Text(user.name ?? user.username)
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Text("@\(user.username)")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                
+                                if let timestamp = comment.timestamp {
+                                    Text(DateFormatterHelper.formatRelativeTime(timestamp))
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
+                                }
+                            }
+                        }
                         
-                        if let repliesCount = comment.replies_count, repliesCount > 0 {
+                        if let content = comment.content, !content.isEmpty {
+                            Text(content)
+                                .font(.system(size: 15))
+                                .foregroundColor(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        
+                        if let image = comment.image, let imageURL = URL(string: image) {
+                            AsyncImage(url: imageURL) { phase in
+                                switch phase {
+                                case .empty:
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .frame(height: 200)
+                                case .success(let img):
+                                    img
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxHeight: 300)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                case .failure:
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .frame(height: 200)
+                                @unknown default:
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .frame(height: 200)
+                                }
+                            }
+                            .padding(.top, 4)
+                        }
+                        
+                        HStack(spacing: 16) {
                             Button {
-                                showReplies.toggle()
+                                Task {
+                                    await toggleLike()
+                                }
                             } label: {
                                 HStack(spacing: 4) {
-                                    Image(systemName: "arrowshape.turn.up.right")
+                                    Image(systemName: isLiked ? "heart.fill" : "heart")
                                         .font(.system(size: 14))
-                                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                        .foregroundColor(isLiked ? .red : Color(red: 0.6, green: 0.6, blue: 0.6))
                                     
-                                    Text("\(repliesCount) ответ\(repliesCount == 1 ? "" : repliesCount < 5 ? "а" : "ов")")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                    if likesCount > 0 {
+                                        Text("\(likesCount)")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                    }
                                 }
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .disabled(isLiking)
+                            
+                            if let repliesCount = comment.replies_count, repliesCount > 0 {
+                                Button {
+                                    showReplies.toggle()
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "arrowshape.turn.up.right")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                        
+                                        Text("\(repliesCount) ответ\(repliesCount == 1 ? "" : repliesCount < 5 ? "а" : "ов")")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+                }
+                
+                if showReplies {
+                    if let replies = comment.replies, !replies.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            ForEach(replies) { reply in
+                                ReplyView(
+                                    reply: reply,
+                                    navigationPath: $navigationPath,
+                                    onReply: {
+                                        onReplyToReply?(reply, comment.id)
+                                    }
+                                )
+                                .padding(.leading, 52)
+                            }
+                        }
+                        .padding(.top, 8)
+                    } else {
+                        // Если replies пустой, но replies_count > 0, возможно нужно загрузить
+                        Text("Загрузка ответов...")
+                            .font(.system(size: 13))
+                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .padding(.leading, 52)
+                            .padding(.top, 8)
+                    }
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                Group {
+                    if #available(iOS 26.0, *) {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial.opacity(0.2))
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(
+                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                        lineWidth: 0.5
+                                    )
+                            )
+                            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                    } else {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial.opacity(0.2))
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(
+                                        Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.15),
+                                        lineWidth: 0.5
+                                    )
+                            )
+                    }
+                }
+            )
+            .offset(x: dragOffset)
+            .gesture(
+                DragGesture(minimumDistance: 10)
+                    .onChanged { value in
+                        // Проверяем, что движение горизонтальное (не скролл)
+                        let horizontalMovement = abs(value.translation.width)
+                        let verticalMovement = abs(value.translation.height)
+                        
+                        // Свайп срабатывает только если горизонтальное движение больше вертикального
+                        if horizontalMovement > verticalMovement {
+                            if isMyComment {
+                                // Allow both left and right swipe
+                                dragOffset = value.translation.width
+                            } else {
+                                // Only right swipe for reply
+                                dragOffset = max(value.translation.width, 0)
+                            }
                         }
                     }
-                    .padding(.top, 4)
-                }
-            }
-            
-            if showReplies, let replies = comment.replies, !replies.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(replies) { reply in
-                        ReplyView(reply: reply, navigationPath: $navigationPath)
-                            .padding(.leading, 52)
+                    .onEnded { value in
+                        let horizontalMovement = abs(value.translation.width)
+                        let verticalMovement = abs(value.translation.height)
+                        
+                        // Проверяем, что это был горизонтальный свайп
+                        if horizontalMovement > verticalMovement {
+                            let threshold: CGFloat = 80
+                            if abs(value.translation.width) > threshold {
+                                if value.translation.width < -threshold && isMyComment {
+                                    // Left swipe - delete
+                                    Task {
+                                        await deleteComment()
+                                    }
+                                } else if value.translation.width > threshold {
+                                    // Right swipe - reply
+                                    onReply?(comment)
+                                }
+                            }
+                        }
+                        
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            dragOffset = 0
+                        }
                     }
-                }
-                .padding(.top, 8)
-            }
+            )
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 2)
     }
     
     private func toggleLike() async {
@@ -191,45 +384,38 @@ struct CommentView: View {
         }
     }
     
-    private func formatRelativeTime(_ timestamp: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        guard let date = formatter.date(from: timestamp) else {
-            return timestamp
+    private func deleteComment() async {
+        guard !isDeleting else { return }
+        isDeleting = true
+        
+        do {
+            try await CommentService.shared.deleteComment(commentId: comment.id)
+            await MainActor.run {
+                onDelete?()
+            }
+        } catch {
+            await MainActor.run {
+                ToastHelper.showToast(message: "Ошибка удаления: \(error.localizedDescription)")
+            }
+            print("❌ Delete comment error: \(error.localizedDescription)")
         }
         
-        let now = Date()
-        let timeInterval = now.timeIntervalSince(date)
-        
-        if timeInterval < 60 {
-            return "только что"
-        } else if timeInterval < 3600 {
-            let minutes = Int(timeInterval / 60)
-            return "\(minutes) мин. назад"
-        } else if timeInterval < 86400 {
-            let hours = Int(timeInterval / 3600)
-            return "\(hours) \(hours == 1 ? "час" : hours < 5 ? "часа" : "часов") назад"
-        } else if timeInterval < 604800 {
-            let days = Int(timeInterval / 86400)
-            return "\(days) \(days == 1 ? "день" : days < 5 ? "дня" : "дней") назад"
-        } else {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "d MMM"
-            dateFormatter.locale = Locale(identifier: "ru_RU")
-            return dateFormatter.string(from: date)
-        }
+        isDeleting = false
     }
 }
 
 struct ReplyView: View {
     let reply: Reply
     @Binding var navigationPath: NavigationPath
+    var onReply: (() -> Void)?
     @State private var isLiked: Bool
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
     
-    init(reply: Reply, navigationPath: Binding<NavigationPath>) {
+    init(reply: Reply, navigationPath: Binding<NavigationPath>, onReply: (() -> Void)? = nil) {
         self.reply = reply
         self._navigationPath = navigationPath
+        self.onReply = onReply
         _isLiked = State(initialValue: reply.user_liked ?? false)
         _likesCount = State(initialValue: reply.likes_count ?? 0)
     }
@@ -240,11 +426,25 @@ struct ReplyView: View {
                 Button {
                     navigationPath.append(user.username)
                 } label: {
-                    AsyncImage(url: URL(string: user.avatar_url ?? "")) { phase in
+                    AsyncImage(url: URL(string: user.avatar_url ?? (user.photo?.hasPrefix("http") == true ? user.photo! : "https://s3.k-connect.ru/static/uploads/avatar/\(user.id)/\(user.photo ?? "")"))) { phase in
                         switch phase {
                         case .empty:
                             Circle()
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(red: 0.82, green: 0.74, blue: 1.0),
+                                            Color(red: 0.75, green: 0.65, blue: 0.95)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .overlay(
+                                    Text(String((user.name ?? user.username).prefix(1)))
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.black)
+                                )
                                 .frame(width: 32, height: 32)
                         case .success(let image):
                             image
@@ -254,7 +454,21 @@ struct ReplyView: View {
                                 .clipShape(Circle())
                         case .failure:
                             Circle()
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(red: 0.82, green: 0.74, blue: 1.0),
+                                            Color(red: 0.75, green: 0.65, blue: 0.95)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .overlay(
+                                    Text(String((user.name ?? user.username).prefix(1)))
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.black)
+                                )
                                 .frame(width: 32, height: 32)
                         @unknown default:
                             Circle()
@@ -283,7 +497,7 @@ struct ReplyView: View {
                             .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                         
                         if let timestamp = reply.timestamp {
-                            Text(formatRelativeTime(timestamp))
+                            Text(DateFormatterHelper.formatRelativeTime(timestamp))
                                 .font(.system(size: 11))
                                 .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
                         }
@@ -323,25 +537,43 @@ struct ReplyView: View {
                     .padding(.top, 4)
                 }
                 
-                Button {
-                    Task {
-                        await toggleLike()
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: isLiked ? "heart.fill" : "heart")
-                            .font(.system(size: 13))
-                            .foregroundColor(isLiked ? .red : Color(red: 0.6, green: 0.6, blue: 0.6))
-                        
-                        if likesCount > 0 {
-                            Text("\(likesCount)")
-                                .font(.system(size: 12))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                HStack(spacing: 16) {
+                    Button {
+                        Task {
+                            await toggleLike()
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: isLiked ? "heart.fill" : "heart")
+                                .font(.system(size: 13))
+                                .foregroundColor(isLiked ? .red : Color(red: 0.6, green: 0.6, blue: 0.6))
+                            
+                            if likesCount > 0 {
+                                Text("\(likesCount)")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            }
                         }
                     }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(isLiking)
+                    
+                    if let onReply = onReply {
+                        Button {
+                            onReply()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrowshape.turn.up.left")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                Text("Ответить")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
-                .buttonStyle(PlainButtonStyle())
-                .disabled(isLiking)
                 .padding(.top, 4)
             }
         }
@@ -378,33 +610,4 @@ struct ReplyView: View {
             print("❌ Reply like error: \(error.localizedDescription)")
         }
     }
-    
-    private func formatRelativeTime(_ timestamp: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        guard let date = formatter.date(from: timestamp) else {
-            return timestamp
-        }
-        
-        let now = Date()
-        let timeInterval = now.timeIntervalSince(date)
-        
-        if timeInterval < 60 {
-            return "только что"
-        } else if timeInterval < 3600 {
-            let minutes = Int(timeInterval / 60)
-            return "\(minutes) мин. назад"
-        } else if timeInterval < 86400 {
-            let hours = Int(timeInterval / 3600)
-            return "\(hours) \(hours == 1 ? "час" : hours < 5 ? "часа" : "часов") назад"
-        } else if timeInterval < 604800 {
-            let days = Int(timeInterval / 86400)
-            return "\(days) \(days == 1 ? "день" : days < 5 ? "дня" : "дней") назад"
-        } else {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "d MMM"
-            dateFormatter.locale = Locale(identifier: "ru_RU")
-            return dateFormatter.string(from: date)
-        }
-    }
 }
-

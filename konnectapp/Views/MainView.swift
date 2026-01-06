@@ -9,21 +9,24 @@ struct MainView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack {
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.06, green: 0.06, blue: 0.06),
-                        Color(red: 0.1, green: 0.1, blue: 0.1)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                AppBackgroundView(backgroundURL: authManager.currentUser?.profile_background_url)
+                    .onAppear {
+                        print("🟡 MainView: onAppear, currentUser: \(authManager.currentUser?.username ?? "nil")")
+                        if let url = authManager.currentUser?.profile_background_url {
+                            print("🟡 MainView: Using background URL: \(url)")
+                        } else {
+                            print("🔵 MainView: No background URL in currentUser")
+                        }
+                    }
+                    .onChange(of: authManager.currentUser?.profile_background_url) { oldValue, newValue in
+                        print("🔄 MainView: backgroundURL changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
+                    }
                 
                 TabContentView(selectedTab: $selectedTab, navigationPath: $navigationPath)
                     .overlay(alignment: .bottom) {
                         BottomNavigationView(selectedTab: $selectedTab)
                             .padding(.horizontal, 10)
-                            .padding(.bottom, -20)
+                            .padding(.bottom, 5)
                             .opacity(keyboardObserver.isKeyboardVisible ? 0 : 1)
                             .animation(nil, value: keyboardObserver.isKeyboardVisible)
                     }

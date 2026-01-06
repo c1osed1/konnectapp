@@ -192,8 +192,47 @@ class AuthService {
             throw AuthError.banned
         }
         
-        let authResponse = try JSONDecoder().decode(CheckAuthResponse.self, from: data)
-        return authResponse
+        // Логируем ответ для отладки
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("🟡 AuthService checkAuth response (first 1000 chars):")
+            print(responseString.prefix(1000))
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .useDefaultKeys
+        
+        do {
+            let authResponse = try decoder.decode(CheckAuthResponse.self, from: data)
+            
+            if let user = authResponse.user {
+                print("🟢 AuthService: Decoded user successfully")
+                print("   - Username: \(user.username)")
+                print("   - profile_background_url: \(user.profile_background_url ?? "nil")")
+                print("   - avatar_url: \(user.avatar_url ?? "nil")")
+            } else {
+                print("⚠️ AuthService: User is nil in response")
+            }
+            
+            return authResponse
+        } catch let decodingError as DecodingError {
+            print("❌ AuthService: Decoding error:")
+            switch decodingError {
+            case .keyNotFound(let key, let context):
+                print("   Key '\(key.stringValue)' not found: \(context.debugDescription)")
+            case .typeMismatch(let type, let context):
+                print("   Type mismatch for \(type): \(context.debugDescription)")
+            case .valueNotFound(let type, let context):
+                print("   Value not found for \(type): \(context.debugDescription)")
+            case .dataCorrupted(let context):
+                print("   Data corrupted: \(context.debugDescription)")
+            @unknown default:
+                print("   Unknown error: \(decodingError)")
+            }
+            throw decodingError
+        } catch {
+            print("❌ AuthService: Unexpected error: \(error)")
+            throw error
+        }
     }
     
     func logout() async throws {

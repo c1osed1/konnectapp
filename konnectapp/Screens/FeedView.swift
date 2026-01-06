@@ -8,15 +8,7 @@ struct FeedView: View {
     
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.06, green: 0.06, blue: 0.06),
-                    Color(red: 0.1, green: 0.1, blue: 0.1)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            AppBackgroundView(backgroundURL: AuthManager.shared.currentUser?.profile_background_url)
             
             ScrollView {
                 LazyVStack(spacing: 8) {

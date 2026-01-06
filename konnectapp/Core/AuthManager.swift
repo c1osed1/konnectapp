@@ -53,16 +53,29 @@ class AuthManager: ObservableObject {
         defer { isLoading = false }
         
         do {
+            print("🟡 AuthManager: Starting checkAuthStatus...")
             let response = try await AuthService.shared.checkAuth()
+            print("🟡 AuthManager: checkAuth completed, isAuthenticated: \(response.isAuthenticated)")
+            
             if response.isAuthenticated {
                 self.isAuthenticated = true
-            self.currentUser = response.user
+                self.currentUser = response.user
+                if let user = response.user {
+                    print("🟢 AuthManager: User loaded successfully")
+                    print("   - Username: \(user.username)")
+                    print("   - profile_background_url: \(user.profile_background_url ?? "nil")")
+                    print("   - avatar_url: \(user.avatar_url ?? "nil")")
+                } else {
+                    print("⚠️ AuthManager: response.user is nil")
+                }
             } else {
+                print("🔵 AuthManager: Not authenticated, clearing tokens")
                 try? KeychainManager.deleteTokens()
                 self.isAuthenticated = false
                 self.currentUser = nil
             }
         } catch {
+            print("❌ AuthManager: Error in checkAuthStatus: \(error)")
             if case AuthError.unauthorized = error {
                 try? KeychainManager.deleteTokens()
             }
@@ -72,5 +85,9 @@ class AuthManager: ObservableObject {
             self.isAuthenticated = false
             self.currentUser = nil
         }
+    }
+    
+    func refreshUser() async {
+        await checkAuthStatus()
     }
 }
