@@ -29,6 +29,7 @@ jobs:
           -sdk iphonesimulator \
           -destination 'generic/platform=iOS Simulator' \
           IPHONEOS_DEPLOYMENT_TARGET=18.0 \
+          GENERATE_INFOPLIST_FILE=NO \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO \
@@ -44,6 +45,20 @@ jobs:
         
         if [ -n "$APP_PATH" ]; then
           echo "Found app at: $APP_PATH"
+          
+          # Проверяем Info.plist
+          if [ ! -f "$APP_PATH/Info.plist" ]; then
+            echo "⚠️ WARNING: Info.plist not found in .app bundle!"
+            echo "Attempting to copy Info.plist manually..."
+            if [ -f "konnectapp/Info.plist" ]; then
+              cp "konnectapp/Info.plist" "$APP_PATH/Info.plist"
+              echo "✅ Copied Info.plist to .app bundle"
+            else
+              echo "❌ CRITICAL: Source Info.plist not found!"
+              exit 1
+            fi
+          fi
+          
           mkdir -p ./artifacts/Payload
           cp -R "$APP_PATH" ./artifacts/Payload/konnectapp.app
           
