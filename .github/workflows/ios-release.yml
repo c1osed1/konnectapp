@@ -39,6 +39,7 @@ jobs:
     - name: Build iOS app (Release for Device)
       run: |
         # Собираем для реального устройства (arm64)
+        # ВАЖНО: GENERATE_INFOPLIST_FILE=NO чтобы использовать наш Info.plist
         xcodebuild clean build \
           -project konnectapp.xcodeproj \
           -scheme konnectapp \
@@ -48,12 +49,13 @@ jobs:
           IPHONEOS_DEPLOYMENT_TARGET=18.0 \
           ARCHS=arm64 \
           ONLY_ACTIVE_ARCH=NO \
+          GENERATE_INFOPLIST_FILE=NO \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO \
           -derivedDataPath ./build
           
-    - name: Verify build architecture
+    - name: Verify build architecture and Info.plist
       run: |
         APP_PATH=$(find ./build -name "konnectapp.app" -type d | head -1)
         if [ -z "$APP_PATH" ]; then
@@ -62,10 +64,33 @@ jobs:
         
         if [ -n "$APP_PATH" ]; then
           echo "Found app at: $APP_PATH"
+          
+          # Проверяем архитектуру
           echo "Checking architecture..."
           lipo -info "$APP_PATH/konnectapp" || file "$APP_PATH/konnectapp"
-          echo "Checking SDK..."
-          otool -l "$APP_PATH/konnectapp" | grep -A 5 "LC_VERSION_MIN" || echo "SDK info not found"
+          
+          # КРИТИЧНО: Проверяем Info.plist
+          echo "Checking Info.plist..."
+          if [ -f "$APP_PATH/Info.plist" ]; then
+            echo "✅ Info.plist exists"
+            echo "Info.plist contents:"
+            plutil -p "$APP_PATH/Info.plist" | head -15
+          else
+            echo "❌ ERROR: Info.plist NOT FOUND in .app bundle!"
+            exit 1
+          fi
+          
+          # Проверяем, что нет переменных в Info.plist
+          if grep -q "\$(" "$APP_PATH/Info.plist" 2>/dev/null; then
+            echo "❌ ERROR: Info.plist contains unresolved variables!"
+            grep "\$(" "$APP_PATH/Info.plist"
+            exit 1
+          else
+            echo "✅ Info.plist contains real values (no variables)"
+          fi
+        else
+          echo "❌ App not found"
+          exit 1
         fi
         
     - name: Create IPA from Release build
@@ -87,8 +112,28 @@ jobs:
             exit 1
           fi
           
+          # Финальная проверка Info.plist перед упаковкой
+          echo "Final Info.plist check before packaging..."
+          if [ ! -f "$APP_PATH/Info.plist" ]; then
+            echo "❌ CRITICAL: Info.plist missing before packaging!"
+            exit 1
+          fi
+          
+          # Проверяем содержимое
+          if grep -q "\$(" "$APP_PATH/Info.plist" 2>/dev/null; then
+            echo "❌ CRITICAL: Info.plist still contains variables!"
+            grep "\$(" "$APP_PATH/Info.plist"
+            exit 1
+          fi
+          
           mkdir -p ./artifacts/Payload
           cp -R "$APP_PATH" ./artifacts/Payload/konnectapp.app
+          
+          # Проверяем, что Info.plist скопировался
+          if [ ! -f "./artifacts/Payload/konnectapp.app/Info.plist" ]; then
+            echo "❌ CRITICAL: Info.plist not copied to Payload!"
+            exit 1
+          fi
           
           # Создаем .ipa файл
           echo "Creating .ipa file..."
@@ -97,6 +142,17 @@ jobs:
           cd ..
           echo "✅ Created konnectapp-release.ipa"
           ls -lh ./artifacts/
+          
+          # Финальная проверка Info.plist в .ipa
+          echo "Verifying Info.plist in .ipa..."
+          unzip -q -o konnectapp-release.ipa -d /tmp/ipa_check
+          if [ -f "/tmp/ipa_check/Payload/konnectapp.app/Info.plist" ]; then
+            echo "✅ Info.plist found in .ipa"
+            plutil -p /tmp/ipa_check/Payload/konnectapp.app/Info.plist | head -10
+          else
+            echo "❌ CRITICAL: Info.plist NOT in .ipa file!"
+            exit 1
+          fi
         else
           echo "❌ App not found"
           exit 1
