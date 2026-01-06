@@ -19,6 +19,7 @@ extension Color {
         return defaultAccentColor
     }
     
+    @MainActor
     static var appAccent: Color {
         if let currentUser = AuthManager.shared.currentUser {
             return accentColor(from: currentUser)
@@ -26,30 +27,37 @@ extension Color {
         return defaultAccentColor
     }
     
+    @MainActor
     static var themeBackgroundStart: Color {
         return ThemeManager.shared.currentTheme.colors.backgroundStart
     }
     
+    @MainActor
     static var themeBackgroundEnd: Color {
         return ThemeManager.shared.currentTheme.colors.backgroundEnd
     }
     
+    @MainActor
     static var themeBlockBackground: Color {
         return ThemeManager.shared.currentTheme.colors.blockBackground
     }
     
+    @MainActor
     static var themeBlockBackgroundSecondary: Color {
         return ThemeManager.shared.currentTheme.colors.blockBackgroundSecondary
     }
     
+    @MainActor
     static var themeTextPrimary: Color {
         return ThemeManager.shared.currentTheme.colors.textPrimary
     }
     
+    @MainActor
     static var themeTextSecondary: Color {
         return ThemeManager.shared.currentTheme.colors.textSecondary
     }
     
+    @MainActor
     static var themeBorder: Color {
         return ThemeManager.shared.currentTheme.colors.border
     }

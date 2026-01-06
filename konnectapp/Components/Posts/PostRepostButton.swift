@@ -10,7 +10,7 @@ struct PostRepostButton: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
             }
-            .buttonStyle(.glass)
+            .buttonStyle(PlainButtonStyle())
             .buttonBorderShape(.roundedRectangle(radius: 20))
             .overlay(
                 RoundedRectangle(cornerRadius: 20)

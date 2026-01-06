@@ -10,3 +10,22 @@ struct GlassEffectContainer<Content: View>: View {
     }
 }
 
+enum GlassEffectStyle {
+    case regular
+}
+
+extension View {
+    @ViewBuilder
+    func glassEffect(_ style: GlassEffectStyle, in shape: some Shape) -> some View {
+        if #available(iOS 26.0, *) {
+            self.background(shape.fill(.ultraThinMaterial.opacity(0.1)))
+        } else {
+            self.background(
+                shape.fill(.ultraThinMaterial.opacity(0.1))
+                    .background(
+                        shape.fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                    )
+            )
+        }
+    }
+}
