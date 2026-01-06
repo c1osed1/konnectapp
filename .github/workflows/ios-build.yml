@@ -15,11 +15,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Select Xcode version
-      run: sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
-        
-    - name: Show Xcode version
-      run: xcodebuild -version
+    - name: Setup Xcode
+      run: |
+        # Найти доступную версию Xcode
+        if [ -d "/Applications/Xcode.app" ]; then
+          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+        else
+          # Попробовать найти любую установленную версию
+          XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | head -1)
+          if [ -n "$XCODE_PATH" ]; then
+            sudo xcode-select -switch "$XCODE_PATH/Contents/Developer"
+          else
+            echo "Xcode not found, using default"
+          fi
+        fi
+        xcodebuild -version
       
     - name: List available simulators
       run: xcrun simctl list devices available
