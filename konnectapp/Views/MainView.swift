@@ -23,41 +23,38 @@ struct MainView: View {
                         print("🔄 MainView: backgroundURL changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
                     }
                 
-                // Контент поверх фона
-                TabContentView(selectedTab: $selectedTab, navigationPath: $navigationPath)
-                    .overlay(alignment: .bottom) {
-                        BottomNavigationView(selectedTab: $selectedTab)
-                            .padding(.horizontal, 10)
-                            .padding(.bottom, -5)
-                            .opacity(keyboardObserver.isKeyboardVisible ? 0 : 1)
-                            .animation(nil, value: keyboardObserver.isKeyboardVisible)
-                    }
+                // Базовый TabView из SwiftUI
+                TabView(selection: $selectedTab) {
+                    FeedView(navigationPath: $navigationPath)
+                        .tag(TabItem.feed)
+                        .tabItem {
+                            Label("Лента", systemImage: "house.fill")
+                        }
+                    
+                    MusicView()
+                        .tag(TabItem.music)
+                        .tabItem {
+                            Label("Музыка", systemImage: "music.note")
+                        }
+                    
+                    ProfileView()
+                        .tag(TabItem.profile)
+                        .tabItem {
+                            Label("Профиль", systemImage: "person.fill")
+                        }
+                    
+                    MoreView()
+                        .tag(TabItem.more)
+                        .tabItem {
+                            Label("Еще", systemImage: "ellipsis")
+                        }
+                }
+                .accentColor(Color.appAccent)
             }
             .navigationDestination(for: String.self) { username in
                 UserProfileView(username: username)
             }
         }
-    }
-}
-
-struct TabContentView: View {
-    @Binding var selectedTab: TabItem
-    @Binding var navigationPath: NavigationPath
-    
-    var body: some View {
-        Group {
-            switch selectedTab {
-            case .feed:
-                FeedView(navigationPath: $navigationPath)
-            case .music:
-                MusicView()
-            case .profile:
-                ProfileView()
-            case .more:
-                MoreView()
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
