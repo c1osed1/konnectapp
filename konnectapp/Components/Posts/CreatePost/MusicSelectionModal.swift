@@ -108,11 +108,11 @@ struct MusicSelectionModal: View {
         defer { isLoading = false }
         
         do {
-            let response = try await MusicService.shared.getMusic(page: 1, perPage: 50)
+            let response = try await MusicService.shared.getTracks(type: .all, offset: 0, limit: 50, sort: "newest")
             await MainActor.run {
                 tracks = response.tracks
-                hasMore = response.current_page < response.pages
-                currentPage = response.current_page
+                hasMore = response.has_more ?? false
+                currentPage = 1
             }
         } catch {
             print("❌ Error loading tracks: \(error)")
@@ -127,11 +127,12 @@ struct MusicSelectionModal: View {
             defer { isLoading = false }
             
             do {
-                let response = try await MusicService.shared.getMusic(page: currentPage + 1, perPage: 50)
+                let offset = tracks.count
+                let response = try await MusicService.shared.getTracks(type: .all, offset: offset, limit: 50, sort: "newest")
                 await MainActor.run {
                     tracks.append(contentsOf: response.tracks)
-                    hasMore = response.current_page < response.pages
-                    currentPage = response.current_page
+                    hasMore = response.has_more ?? false
+                    currentPage += 1
                 }
             } catch {
                 print("❌ Error loading more tracks: \(error)")

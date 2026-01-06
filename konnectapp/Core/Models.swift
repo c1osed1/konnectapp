@@ -319,6 +319,18 @@ struct MusicTrack: Codable, Identifiable {
     let created_at: String?
     let description: String?
     let artist_id: Int64?
+    let trend: String?
+    let trend_data: TrendData?
+}
+
+// MARK: - Trend Data Model
+struct TrendData: Codable {
+    let trend: String
+    let change_percent: Double?
+    let position_change: Int?
+    let current_plays: Int?
+    let previous_chart_position: Int?
+    let chart_position: Int?
 }
 
 // MARK: - Music Response
@@ -328,6 +340,51 @@ struct MusicResponse: Codable {
     let success: Bool?
     let total: Int
     let tracks: [MusicTrack]
+}
+
+// MARK: - My Vibe Response
+struct MyVibeResponse: Codable {
+    let success: Bool
+    let tracks: [MusicTrack]
+    let message: String?
+}
+
+// MARK: - Charts Response
+struct ChartsResponse: Codable {
+    let success: Bool
+    let charts: ChartsData
+}
+
+struct ChartsData: Codable {
+    let popular: [MusicTrack]?
+    let most_played: [MusicTrack]?
+    let most_liked: [MusicTrack]?
+    let new_releases: [MusicTrack]?
+}
+
+// MARK: - Tracks Response
+struct TracksResponse: Codable {
+    let success: Bool
+    let tracks: [MusicTrack]
+    let total: Int?
+    let offset: Int?
+    let limit: Int?
+    let has_more: Bool?
+}
+
+// MARK: - Play Response
+struct PlayResponse: Codable {
+    let success: Bool
+    let message: String
+    let plays_count: Int
+    let cooldown: Bool?
+}
+
+// MARK: - Like Response
+struct LikeResponse: Codable {
+    let success: Bool
+    let message: String
+    let likes_count: Int
 }
 
 // MARK: - Profile Models

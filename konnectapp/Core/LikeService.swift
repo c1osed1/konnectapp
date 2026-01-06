@@ -15,7 +15,7 @@ class LikeService {
         return "KConnect-iOS/1.0 (iPhone; iOS \(UIDevice.current.systemVersion); Scale/3.0)"
     }
     
-    func toggleLike(postId: Int) async throws -> LikeResponse {
+    func toggleLike(postId: Int) async throws -> PostLikeResponse {
         guard let token = try KeychainManager.getToken() else {
             throw LikeError.notAuthenticated
         }
@@ -50,7 +50,7 @@ class LikeService {
             do {
                 let decoder = JSONDecoder()
                 decoder.keyDecodingStrategy = .convertFromSnakeCase
-                let likeResponse = try decoder.decode(LikeResponse.self, from: data)
+                let likeResponse = try decoder.decode(PostLikeResponse.self, from: data)
                 print("🟢 LIKE SUCCESS: liked=\(likeResponse.liked), likes_count=\(likeResponse.likesCount)")
                 return likeResponse
             } catch {
@@ -70,7 +70,7 @@ class LikeService {
     }
 }
 
-struct LikeResponse: Codable {
+struct PostLikeResponse: Codable {
     let liked: Bool
     let likesCount: Int
     let success: Bool

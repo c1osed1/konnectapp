@@ -429,7 +429,7 @@ class CommentService {
         }
     }
     
-    func likeComment(commentId: Int64) async throws -> LikeResponse {
+    func likeComment(commentId: Int64) async throws -> PostLikeResponse {
         guard let token = try KeychainManager.getToken() else {
             throw CommentError.notAuthenticated
         }
@@ -473,7 +473,7 @@ class CommentService {
         
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(LikeResponse.self, from: data)
+        return try decoder.decode(PostLikeResponse.self, from: data)
     }
     
     func deleteComment(commentId: Int64) async throws {

@@ -40,6 +40,15 @@ class FeedViewModel: ObservableObject {
                 self.errorMessage = nil
             }
         } catch {
+            // Игнорируем ошибки отмены (cancellation) - это нормально при pull-to-refresh
+            if error is CancellationError {
+                print("ℹ️ Feed loading cancelled (normal for pull-to-refresh)")
+                await MainActor.run {
+                    self.isLoading = false
+                }
+                return
+            }
+            
             print("❌ Feed loading error: \(error.localizedDescription)")
             await MainActor.run {
                 self.isLoading = false

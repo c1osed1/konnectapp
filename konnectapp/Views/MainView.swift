@@ -1,5 +1,12 @@
 import SwiftUI
 
+enum TabItem: String {
+    case feed
+    case music
+    case profile
+    case more
+}
+
 struct MainView: View {
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var keyboardObserver = KeyboardObserver()

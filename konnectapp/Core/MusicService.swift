@@ -19,23 +19,9 @@ class MusicService {
     
     private init() {}
     
-    func getMusic(page: Int = 1, perPage: Int = 50) async throws -> MusicResponse {
-        guard let url = URL(string: "\(baseURL)/api/music") else {
-            throw AuthError.invalidResponse
-        }
-        
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        components.queryItems = [
-            URLQueryItem(name: "page", value: "\(page)"),
-            URLQueryItem(name: "per_page", value: "\(perPage)")
-        ]
-        
-        guard let finalURL = components.url else {
-            throw AuthError.invalidResponse
-        }
-        
-        var request = URLRequest(url: finalURL)
-        request.httpMethod = "GET"
+    private func makeRequest(url: URL, method: String = "GET") throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
         
@@ -48,48 +34,130 @@ class MusicService {
             request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
         }
         
-        print("🔵 MUSIC REQUEST:")
-        print("URL: \(finalURL.absoluteString)")
-        print("Headers: \(request.allHTTPHeaderFields ?? [:])")
+        if method == "POST" {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        
+        return request
+    }
+    
+    // MARK: - Мой Вайб
+    func getMyVibe() async throws -> MyVibeResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/my-vibe") else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: url)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            print("❌ Invalid response type")
             throw AuthError.invalidResponse
         }
-        
-        print("🟢 MUSIC RESPONSE:")
-        print("Status Code: \(httpResponse.statusCode)")
-        print("Data size: \(data.count) bytes")
         
         guard (200...299).contains(httpResponse.statusCode) else {
             if httpResponse.statusCode == 401 {
                 try? KeychainManager.deleteTokens()
                 throw AuthError.unauthorized
             }
-            print("❌ HTTP Error: \(httpResponse.statusCode)")
             throw AuthError.invalidResponse
         }
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
-        do {
-            let musicResponse = try decoder.decode(MusicResponse.self, from: data)
-            print("✅ Decoded Music Response:")
-            print("Tracks count: \(musicResponse.tracks.count)")
-            return musicResponse
-        } catch {
-            print("❌ Decoding error: \(error)")
-            if let responseString = String(data: data, encoding: .utf8) {
-                print("Response body: \(responseString.prefix(500))")
-            }
-            throw error
-        }
+        return try decoder.decode(MyVibeResponse.self, from: data)
     }
     
+    // MARK: - Чарты
+    func getCharts(type: ChartType = .popular, limit: Int = 50) async throws -> ChartsResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/charts") else {
+            throw AuthError.invalidResponse
+        }
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+        components.queryItems = [
+            URLQueryItem(name: "type", value: type.rawValue),
+            URLQueryItem(name: "limit", value: "\(limit)")
+        ]
+        
+        guard let finalURL = components.url else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: finalURL)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            throw AuthError.invalidResponse
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode(ChartsResponse.self, from: data)
+    }
+    
+    // MARK: - Последние треки
+    func getTracks(type: TrackListType = .all, offset: Int = 0, limit: Int = 10, sort: String? = nil) async throws -> TracksResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/tracks") else {
+            throw AuthError.invalidResponse
+        }
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+        var queryItems = [
+            URLQueryItem(name: "type", value: type.rawValue),
+            URLQueryItem(name: "offset", value: "\(offset)"),
+            URLQueryItem(name: "limit", value: "\(limit)")
+        ]
+        
+        if let sort = sort {
+            queryItems.append(URLQueryItem(name: "sort", value: sort))
+        }
+        
+        components.queryItems = queryItems
+        
+        guard let finalURL = components.url else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: finalURL)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            throw AuthError.invalidResponse
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode(TracksResponse.self, from: data)
+    }
+    
+    // MARK: - Поиск
     func searchMusic(query: String) async throws -> [MusicTrack] {
+        guard query.count >= 2 else {
+            return []
+        }
+        
         guard let url = URL(string: "\(baseURL)/api/music/search") else {
             throw AuthError.invalidResponse
         }
@@ -103,60 +171,95 @@ class MusicService {
             throw AuthError.invalidResponse
         }
         
-        var request = URLRequest(url: finalURL)
-        request.httpMethod = "GET"
-        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
-        
-        guard let token = try? KeychainManager.getToken() else {
-            throw AuthError.unauthorized
-        }
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        if let sessionKey = try? KeychainManager.getSessionKey() {
-            request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
-        }
-        
-        print("🔵 MUSIC SEARCH REQUEST:")
-        print("URL: \(finalURL.absoluteString)")
-        print("Query: \(query)")
-        print("Headers: \(request.allHTTPHeaderFields ?? [:])")
+        let request = try makeRequest(url: finalURL)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            print("❌ Invalid response type")
             throw AuthError.invalidResponse
         }
-        
-        print("🟢 MUSIC SEARCH RESPONSE:")
-        print("Status Code: \(httpResponse.statusCode)")
-        print("Data size: \(data.count) bytes")
         
         guard (200...299).contains(httpResponse.statusCode) else {
             if httpResponse.statusCode == 401 {
                 try? KeychainManager.deleteTokens()
                 throw AuthError.unauthorized
             }
-            print("❌ HTTP Error: \(httpResponse.statusCode)")
             throw AuthError.invalidResponse
         }
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
-        do {
-            let tracks = try decoder.decode([MusicTrack].self, from: data)
-            print("✅ Decoded Music Search Response:")
-            print("Tracks count: \(tracks.count)")
-            return tracks
-        } catch {
-            print("❌ Decoding error: \(error)")
-            if let responseString = String(data: data, encoding: .utf8) {
-                print("Response body: \(responseString.prefix(500))")
-            }
-            throw error
-        }
+        return try decoder.decode([MusicTrack].self, from: data)
     }
+    
+    // MARK: - Воспроизведение
+    func playTrack(trackId: Int64) async throws -> PlayResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/\(trackId)/play") else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: url, method: "POST")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            throw AuthError.invalidResponse
+        }
+        
+        let decoder = JSONDecoder()
+        return try decoder.decode(PlayResponse.self, from: data)
+    }
+    
+    // MARK: - Лайк/Дизлайк
+    func toggleLike(trackId: Int64) async throws -> LikeResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/\(trackId)/like") else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: url, method: "POST")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            throw AuthError.invalidResponse
+        }
+        
+        let decoder = JSONDecoder()
+        return try decoder.decode(LikeResponse.self, from: data)
+    }
+}
+
+// MARK: - Enums
+enum ChartType: String {
+    case popular = "popular"
+    case plays = "plays"
+    case likes = "likes"
+    case new = "new"
+    case combined = "combined"
+}
+
+enum TrackListType: String {
+    case all = "all"
+    case liked = "liked"
+    case popular = "popular"
+    case new = "new"
+    case random = "random"
 }
 

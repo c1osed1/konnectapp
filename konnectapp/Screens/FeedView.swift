@@ -97,8 +97,15 @@ struct FeedView: View {
                 .padding(.bottom, 100)
             }
             .refreshable {
-                await viewModel.loadInitialFeed()
-                await onlineUsersViewModel.loadOnlineUsers()
+                // Запускаем обе задачи параллельно
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        await viewModel.loadInitialFeed()
+                    }
+                    group.addTask {
+                        await onlineUsersViewModel.loadOnlineUsers()
+                    }
+                }
             }
             .onTapGesture {
                 hideKeyboard()

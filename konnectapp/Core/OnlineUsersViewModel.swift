@@ -35,6 +35,15 @@ class OnlineUsersViewModel: ObservableObject {
                 self.isLoading = false
             }
         } catch {
+            // Игнорируем ошибки отмены (cancellation) - это нормально при pull-to-refresh
+            if error is CancellationError {
+                print("ℹ️ Online users loading cancelled (normal for pull-to-refresh)")
+                await MainActor.run {
+                    self.isLoading = false
+                }
+                return
+            }
+            
             print("❌ Error loading online users: \(error.localizedDescription)")
             await MainActor.run {
                 self.isLoading = false
