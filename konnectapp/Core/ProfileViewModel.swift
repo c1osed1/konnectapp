@@ -1,13 +1,24 @@
 import Foundation
 import Combine
 
+enum ProfileTabType: Hashable {
+    case posts
+    case wall
+    case about
+}
+
 class ProfileViewModel: ObservableObject {
     @Published var profile: ProfileResponse?
     @Published var posts: [Post] = []
+    @Published var wallPosts: [Post] = []
+    @Published var selectedTab: ProfileTabType = .posts
     @Published var isLoading: Bool = false
     @Published var isLoadingPosts: Bool = false
+    @Published var isLoadingWall: Bool = false
     @Published var hasMore: Bool = true
+    @Published var hasMoreWall: Bool = true
     @Published var currentPage: Int = 1
+    @Published var currentWallPage: Int = 1
     @Published var errorMessage: String?
     
     private var cancellables = Set<AnyCancellable>()
@@ -66,7 +77,9 @@ class ProfileViewModel: ObservableObject {
         } catch {
             let nsError = error as NSError
             if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
-                print("⚠️ ProfileViewModel: Request was cancelled, ignoring...")
+                print("⚠️ ProfileViewModel: Request was cancelled, but continuing to allow refresh...")
+                // Не возвращаемся, чтобы позволить pull-to-refresh работать
+                // Просто не устанавливаем ошибку
                 return
             }
             
@@ -153,6 +166,88 @@ class ProfileViewModel: ObservableObject {
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    func loadProfileWall(userIdentifier: String, page: Int = 1) async {
+        await MainActor.run {
+            isLoadingWall = true
+        }
+        
+        defer {
+            Task { @MainActor in
+                isLoadingWall = false
+            }
+        }
+        
+        do {
+            let feedResponse = try await ProfileService.shared.getProfileWall(
+                userIdentifier: userIdentifier,
+                page: page,
+                perPage: 10
+            )
+            
+            await MainActor.run {
+                if page == 1 {
+                    self.wallPosts = feedResponse.posts
+                } else {
+                    let existingIds = Set(self.wallPosts.map { $0.id })
+                    let newPosts = feedResponse.posts.filter { !existingIds.contains($0.id) }
+                    self.wallPosts.append(contentsOf: newPosts)
+                }
+                self.hasMoreWall = feedResponse.has_next
+                self.currentWallPage = feedResponse.page
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    func addWallPost(_ post: Post) {
+        Task { @MainActor in
+            // Добавляем пост в начало списка, если его еще нет
+            if !wallPosts.contains(where: { $0.id == post.id }) {
+                wallPosts.insert(post, at: 0)
+            }
+        }
+    }
+    
+    func addPost(_ post: Post) {
+        Task { @MainActor in
+            // Добавляем пост в начало списка, если его еще нет
+            if !posts.contains(where: { $0.id == post.id }) {
+                posts.insert(post, at: 0)
+            }
+        }
+    }
+    
+    func removePost(postId: Int64) {
+        Task { @MainActor in
+            posts.removeAll { $0.id == postId }
+            wallPosts.removeAll { $0.id == postId }
+            // Обновляем счетчик постов в профиле
+            if let currentProfile = profile {
+                let currentPostsCount = currentProfile.posts_count ?? 0
+                self.profile = ProfileResponse(
+                    user: currentProfile.user,
+                    is_following: currentProfile.is_following,
+                    is_friend: currentProfile.is_friend,
+                    notifications_enabled: currentProfile.notifications_enabled,
+                    socials: currentProfile.socials ?? [],
+                    verification: currentProfile.verification,
+                    achievement: currentProfile.achievement,
+                    followers_count: currentProfile.followers_count,
+                    following_count: currentProfile.following_count,
+                    friends_count: currentProfile.friends_count,
+                    posts_count: max(0, currentPostsCount - 1),
+                    ban: currentProfile.ban,
+                    current_user_is_moderator: currentProfile.current_user_is_moderator,
+                    is_private: currentProfile.is_private,
+                    message: currentProfile.message
+                )
             }
         }
     }

@@ -17,23 +17,19 @@ struct PostMoreButton: View {
                 showReportModal: $showReportModal
             )
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "list.bullet")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .frame(width: 16, height: 16)
-            }
-            .frame(minWidth: 44, minHeight: 32)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .contentShape(Rectangle())
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.1))
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                    )
+            Group {
+                if #available(iOS 26.0, *) {
+                    Button {} label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "list.bullet")
+                                .font(.system(size: 16))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                    }
+                    .buttonStyle(.glass)
+                    .buttonBorderShape(.roundedRectangle(radius: 20))
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(
@@ -41,7 +37,32 @@ struct PostMoreButton: View {
                                 lineWidth: 0.5
                             )
                     )
-            )
+                    .allowsHitTesting(false)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "list.bullet")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(.ultraThinMaterial.opacity(0.1))
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(
+                                        Color.appAccent.opacity(0.15),
+                                        lineWidth: 0.5
+                                    )
+                            )
+                    )
+                }
+            }
         }
         .menuStyle(.borderlessButton)
         .sheet(isPresented: $showRepostModal) {
@@ -198,6 +219,7 @@ struct PostMoreMenuContent: View {
             let _ = try await PostActionService.shared.deletePost(postId: post.id)
             await MainActor.run {
                 toastMessage = "Пост удален"
+                NotificationCenter.default.post(name: NSNotification.Name("PostDeleted"), object: nil, userInfo: ["postId": post.id])
             }
         } catch {
             await MainActor.run {
@@ -234,4 +256,5 @@ struct PostMoreMenuContent: View {
         }
     }
 }
+
 

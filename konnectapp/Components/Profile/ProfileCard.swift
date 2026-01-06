@@ -170,25 +170,25 @@ struct ProfileCard: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                     
-                    if let about = profile.about, !about.isEmpty {
-                        Text(about)
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.themeTextPrimary)
-                            .lineSpacing(4)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(.ultraThinMaterial.opacity(0.1))
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color.themeBlockBackground.opacity(0.5))
-                                        )
-                                }
-                            )
-                            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
-                    }
+                    // if let about = profile.about, !about.isEmpty {
+                    //     Text(about)
+                    //         .font(.system(size: 14))
+                    //         .foregroundColor(Color.themeTextPrimary)
+                    //         .lineSpacing(4)
+                    //         .padding(.horizontal, 16)
+                    //         .padding(.vertical, 12)
+                    //         .background(
+                    //             ZStack {
+                    //                 RoundedRectangle(cornerRadius: 16)
+                    //                     .fill(.ultraThinMaterial.opacity(0.1))
+                    //                     .background(
+                    //                         RoundedRectangle(cornerRadius: 16)
+                    //                             .fill(Color.themeBlockBackground.opacity(0.5))
+                    //                     )
+                    //             }
+                    //         )
+                    //         .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
+                    // }
                     
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))
@@ -482,30 +482,30 @@ struct ProfileCard: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                     
-                    if let about = profile.about, !about.isEmpty {
-                        Text(about)
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.themeTextPrimary)
-                            .lineSpacing(4)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(.ultraThinMaterial.opacity(0.1))
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color.themeBlockBackground.opacity(0.5))
-                                        )
+                    // if let about = profile.about, !about.isEmpty {
+                    //     Text(about)
+                    //         .font(.system(size: 14))
+                    //         .foregroundColor(Color.themeTextPrimary)
+                    //         .lineSpacing(4)
+                    //         .padding(.horizontal, 16)
+                    //         .padding(.vertical, 12)
+                    //         .background(
+                    //             ZStack {
+                    //                 RoundedRectangle(cornerRadius: 16)
+                    //                     .fill(.ultraThinMaterial.opacity(0.1))
+                    //                     .background(
+                    //                         RoundedRectangle(cornerRadius: 16)
+                    //                             .fill(Color.themeBlockBackground.opacity(0.5))
+                    //                     )
                                     
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(
-                                            Color.appAccent.opacity(0.15),
-                                            lineWidth: 0.5
-                                        )
-                                }
-                            )
-                    }
+                    //                 RoundedRectangle(cornerRadius: 16)
+                    //                     .stroke(
+                    //                         Color.appAccent.opacity(0.15),
+                    //                         lineWidth: 0.5
+                    //                     )
+                    //             }
+                    //         )
+                    // }
                     
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))
@@ -667,30 +667,30 @@ struct ProfileCard: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
                     
-                    if let about = profile.about, !about.isEmpty {
-                        Text(about)
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.themeTextPrimary)
-                            .lineSpacing(4)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(.ultraThinMaterial.opacity(0.1))
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color.themeBlockBackground.opacity(0.5))
-                                        )
+                    // if let about = profile.about, !about.isEmpty {
+                    //     Text(about)
+                    //         .font(.system(size: 14))
+                    //         .foregroundColor(Color.themeTextPrimary)
+                    //         .lineSpacing(4)
+                    //         .padding(.horizontal, 16)
+                    //         .padding(.vertical, 12)
+                    //         .background(
+                    //             ZStack {
+                    //                 RoundedRectangle(cornerRadius: 16)
+                    //                     .fill(.ultraThinMaterial.opacity(0.1))
+                    //                     .background(
+                    //                         RoundedRectangle(cornerRadius: 16)
+                    //                             .fill(Color.themeBlockBackground.opacity(0.5))
+                    //                     )
                                     
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(
-                                            Color.appAccent.opacity(0.15),
-                                            lineWidth: 0.5
-                                        )
-                                }
-                            )
-                    }
+                    //                 RoundedRectangle(cornerRadius: 16)
+                    //                     .stroke(
+                    //                         Color.appAccent.opacity(0.15),
+                    //                         lineWidth: 0.5
+                    //                     )
+                    //             }
+                    //         )
+                    // }
                     
                     if let socials = socials, !socials.isEmpty {
                         ProfileSocials(socials: Array(socials.prefix(2)))

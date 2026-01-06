@@ -21,7 +21,9 @@ class PostService {
         images: [UIImage] = [],
         video: Data? = nil,
         isNsfw: Bool = false,
-        music: MusicTrack? = nil
+        music: MusicTrack? = nil,
+        postType: String? = nil,
+        recipientId: Int64? = nil
     ) async throws -> Post {
         guard let token = try KeychainManager.getToken() else {
             throw PostError.notAuthenticated
@@ -61,8 +63,15 @@ class PostService {
         
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"type\"\r\n\r\n".data(using: .utf8)!)
-        body.append("post".data(using: .utf8)!)
+        body.append((postType ?? "post").data(using: .utf8)!)
         body.append("\r\n".data(using: .utf8)!)
+        
+        if let recipientId = recipientId {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"recipient_id\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(recipientId)".data(using: .utf8)!)
+            body.append("\r\n".data(using: .utf8)!)
+        }
         
         if let music = music {
             do {

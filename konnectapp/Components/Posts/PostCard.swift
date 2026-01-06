@@ -33,7 +33,7 @@ struct PostCard: View {
     
     var body: some View {
         Group {
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
                 liquidGlassPostCard
             } else {
                 fallbackPostCard
@@ -56,23 +56,11 @@ struct PostCard: View {
     @available(iOS 26.0, *)
     @ViewBuilder
     private var liquidGlassPostCard: some View {
-        GlassEffectContainer(spacing: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                postContent
-                postActions
-            }
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial.opacity(0.1))
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.themeBlockBackground.opacity(0.5))
-                        )
-                }
-            )
-            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
+        VStack(alignment: .leading, spacing: 0) {
+            postContent
+            postActions
         }
+        .glassEffect(in: RoundedRectangle(cornerRadius: 20))
     }
     
     @ViewBuilder
@@ -84,10 +72,10 @@ struct PostCard: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.1))
+                    .fill(.ultraThinMaterial.opacity(0.3))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                            .fill(Color.themeBlockBackground.opacity(0.9))
                     )
                 
                 RoundedRectangle(cornerRadius: 20)

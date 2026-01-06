@@ -108,6 +108,12 @@ class ThemeManager: ObservableObject {
         }
     }
     
+    @Published var isGlassEffectEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isGlassEffectEnabled, forKey: "glassEffectEnabled")
+        }
+    }
+    
     private init() {
         if let savedTheme = UserDefaults.standard.string(forKey: "selectedTheme"),
            let theme = AppTheme(rawValue: savedTheme) {
@@ -115,6 +121,9 @@ class ThemeManager: ObservableObject {
         } else {
             self.currentTheme = .purple
         }
+        
+        // По умолчанию glass эффект включен
+        self.isGlassEffectEnabled = UserDefaults.standard.object(forKey: "glassEffectEnabled") as? Bool ?? true
     }
 }
 

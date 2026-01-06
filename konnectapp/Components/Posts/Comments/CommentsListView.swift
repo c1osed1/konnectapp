@@ -24,66 +24,78 @@ struct CommentsListView: View {
     }
     
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                if comments.isEmpty && isLoading {
+        List {
+            if comments.isEmpty && isLoading {
+                HStack {
+                    Spacer()
                     ProgressView()
                         .padding()
-                } else if comments.isEmpty && !isLoading {
-                    VStack(spacing: 8) {
-                        Image(systemName: "bubble.right")
-                            .font(.system(size: 40))
-                            .foregroundColor(Color.themeTextSecondary)
-                        Text("Нет комментариев")
-                            .font(.system(size: 16))
-                            .foregroundColor(Color.themeTextSecondary)
-                    }
-                    .padding(.vertical, 40)
-                } else {
-                    ForEach(comments) { comment in
-                        CommentView(
-                            comment: comment,
-                            navigationPath: $navigationPath,
-                            onReply: { comment in
-                                replyingToComment = comment
-                                replyingToReply = nil
-                                replyingToReplyCommentId = nil
-                            },
-                            onReplyToReply: { reply, commentId in
-                                replyingToReply = reply
-                                replyingToReplyCommentId = commentId
-                                replyingToComment = nil
-                            },
-                            onDelete: {
-                                comments.removeAll { $0.id == comment.id }
-                            }
-                        )
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 1)
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    if hasNext {
-                        Button {
-                            Task {
-                                await loadMoreComments()
-                            }
-                        } label: {
-                            if isLoading {
-                                ProgressView()
-                                    .padding()
-                            } else {
-                                Text("Загрузить еще")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(Color.appAccent)
-                                    .padding()
-                            }
+                    Spacer()
+                }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            } else if comments.isEmpty && !isLoading {
+                VStack(spacing: 8) {
+                    Image(systemName: "bubble.right")
+                        .font(.system(size: 40))
+                        .foregroundColor(Color.themeTextSecondary)
+                    Text("Нет комментариев")
+                        .font(.system(size: 16))
+                        .foregroundColor(Color.themeTextSecondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            } else {
+                ForEach(comments) { comment in
+                    CommentView(
+                        comment: comment,
+                        navigationPath: $navigationPath,
+                        onReply: { comment in
+                            replyingToComment = comment
+                            replyingToReply = nil
+                            replyingToReplyCommentId = nil
+                        },
+                        onReplyToReply: { reply, commentId in
+                            replyingToReply = reply
+                            replyingToReplyCommentId = commentId
+                            replyingToComment = nil
+                        },
+                        onDelete: {
+                            comments.removeAll { $0.id == comment.id }
                         }
-                        .buttonStyle(PlainButtonStyle())
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 1, leading: 8, bottom: 1, trailing: 8))
+                    .listRowBackground(Color.clear)
+                }
+                
+                if hasNext {
+                    Button {
+                        Task {
+                            await loadMoreComments()
+                        }
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                                .padding()
+                        } else {
+                            Text("Загрузить еще")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Color.appAccent)
+                                .padding()
+                        }
                     }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(maxWidth: .infinity)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
             }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .refreshable {
             await loadComments(refresh: true)
         }

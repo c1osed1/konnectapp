@@ -12,6 +12,10 @@ struct UserProfileView: View {
         AuthManager.shared.currentUser?.username == username
     }
     
+    private var canCreateWallPost: Bool {
+        !isOwnProfile && viewModel.profile != nil
+    }
+    
     var body: some View {
         ZStack {
             AppBackgroundView(backgroundURL: viewModel.profile?.user.profile_background_url)
@@ -45,38 +49,63 @@ struct UserProfileView: View {
                         .padding(.horizontal, 8)
                         .padding(.top, 8)
                         
-                        if viewModel.isLoadingPosts && viewModel.posts.isEmpty {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding(.top, 20)
-                        } else if viewModel.posts.isEmpty && !viewModel.isLoadingPosts {
-                            VStack(spacing: 12) {
-                                Image(systemName: "tray")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
-                                Text("Нет постов")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
-                            }
-                            .padding(.top, 40)
-                        } else {
-                            ForEach(viewModel.posts) { post in
-                                PostCard(post: post, navigationPath: .constant(NavigationPath()))
-                                    .padding(.horizontal, 8)
-                            }
-                            
-                            if viewModel.hasMore {
-                                Button(action: {
+                        // CreatePost для стены (видно всем на вкладке "Стена")
+                        if viewModel.selectedTab == .wall {
+                            CreatePostView(
+                                onPostCreated: { createdPost in
+                                    if let post = createdPost {
+                                        viewModel.addWallPost(post)
+                                    } else {
+                                        Task {
+                                            await viewModel.loadProfileWall(userIdentifier: username, page: 1)
+                                        }
+                                    }
+                                },
+                                postType: "stena",
+                                recipientId: viewModel.profile?.user.id
+                            )
+                            .padding(.horizontal, 8)
+                        }
+                        
+                        // Табы для переключения между постами и стеной
+                        ProfileTabsView(selectedTab: $viewModel.selectedTab)
+                            .padding(.horizontal, 8)
+                        
+                        // Контент в зависимости от выбранного таба
+                        if viewModel.selectedTab == .posts {
+                            ProfilePostsContent(
+                                posts: viewModel.posts,
+                                isLoading: viewModel.isLoadingPosts,
+                                hasMore: viewModel.hasMore,
+                                currentPage: viewModel.currentPage,
+                                userIdentifier: username,
+                                onLoadMore: {
                                     Task {
                                         await viewModel.loadProfilePosts(userIdentifier: username, page: viewModel.currentPage + 1)
                                     }
-                                }) {
-                                    Text("Загрузить еще")
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(Color.appAccent)
-                                        .padding()
                                 }
-                            }
+                            )
+                        } else if viewModel.selectedTab == .wall {
+                            ProfileWallContent(
+                                wallPosts: viewModel.wallPosts,
+                                isLoading: viewModel.isLoadingWall,
+                                hasMore: viewModel.hasMoreWall,
+                                currentPage: viewModel.currentWallPage,
+                                userIdentifier: username,
+                                onLoadMore: {
+                                    Task {
+                                        await viewModel.loadProfileWall(userIdentifier: username, page: viewModel.currentWallPage + 1)
+                                    }
+                                }
+                            )
+                        } else {
+                            ProfileAboutContent(
+                                profile: profile.user,
+                                socials: profile.socials,
+                                isPrivate: profile.is_private,
+                                isFriend: profile.is_friend,
+                                isOwnProfile: isOwnProfile
+                            )
                         }
                     } else if viewModel.isLoading {
                         ProgressView()
@@ -99,7 +128,11 @@ struct UserProfileView: View {
             }
             .refreshable {
                 await viewModel.loadProfile(userIdentifier: username)
-                await viewModel.loadProfilePosts(userIdentifier: username, page: 1)
+                if viewModel.selectedTab == .posts {
+                    await viewModel.loadProfilePosts(userIdentifier: username, page: 1)
+                } else {
+                    await viewModel.loadProfileWall(userIdentifier: username, page: 1)
+                }
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -116,12 +149,27 @@ struct UserProfileView: View {
                 }
             }
         }
-        .task(id: username) {
+        .task {
             if viewModel.profile == nil {
                 await viewModel.loadProfile(userIdentifier: username)
                 await viewModel.loadProfilePosts(userIdentifier: username, page: 1)
             }
         }
+        .onChange(of: viewModel.selectedTab) { oldValue, newValue in
+            Task {
+                if newValue == .posts && viewModel.posts.isEmpty {
+                    await viewModel.loadProfilePosts(userIdentifier: username, page: 1)
+                } else if newValue == .wall && viewModel.wallPosts.isEmpty {
+                    await viewModel.loadProfileWall(userIdentifier: username, page: 1)
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PostDeleted"))) { notification in
+            if let postId = notification.userInfo?["postId"] as? Int64 {
+                viewModel.removePost(postId: postId)
+            }
+        }
     }
+    
 }
 

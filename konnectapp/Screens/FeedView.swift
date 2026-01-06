@@ -16,17 +16,15 @@ struct FeedView: View {
                     onlineUsersBlock
                         .padding(.top, 8)
                     
-                    CreatePostView {
-                        Task {
-                            await viewModel.loadInitialFeed()
+                    CreatePostView { createdPost in
+                        if let post = createdPost {
+                            viewModel.addPostToFeed(post)
+                        } else {
+                            Task {
+                                await viewModel.loadInitialFeed()
+                            }
                         }
                     }
-                    .simultaneousGesture(
-                        TapGesture()
-                            .onEnded { _ in
-                                // Prevent dismissing keyboard when tapping inside CreatePostView
-                            }
-                    )
                     
                     feedTypeTabsView
                     
@@ -127,6 +125,11 @@ struct FeedView: View {
                 await viewModel.changeFeedType(newValue)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PostDeleted"))) { notification in
+            if let postId = notification.userInfo?["postId"] as? Int64 {
+                viewModel.removePost(postId: postId)
+            }
+        }
     }
     
     private func hideKeyboard() {
@@ -135,7 +138,7 @@ struct FeedView: View {
     
     private var onlineUsersBlock: some View {
         Group {
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
                 liquidGlassOnlineBlock
             } else {
                 fallbackOnlineBlock
@@ -146,80 +149,68 @@ struct FeedView: View {
     @available(iOS 26.0, *)
     @ViewBuilder
     private var liquidGlassOnlineBlock: some View {
-        GlassEffectContainer(spacing: 0) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    if onlineUsersViewModel.onlineUsers.isEmpty {
-                        ForEach(0..<10, id: \.self) { _ in
-                            SkeletonCircle(size: 44)
-                                .overlay(
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                if onlineUsersViewModel.onlineUsers.isEmpty {
+                    ForEach(0..<10, id: \.self) { _ in
+                        SkeletonCircle(size: 44)
+                            .overlay(
+                                Circle()
+                                    .fill(Color(red: 0.3, green: 0.3, blue: 0.3))
+                                    .frame(width: 12, height: 12)
+                                    .offset(x: 16, y: 16)
+                            )
+                    }
+                } else {
+                    ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
+                        Button(action: {
+                            navigationPath.append(user.username)
+                        }) {
+                            Group {
+                                if let avatarURL = user.photo ?? user.avatar_url, let url = URL(string: avatarURL) {
+                                    CachedAsyncImage(url: url, cacheType: .avatar)
+                                        .aspectRatio(contentMode: .fill)
+                                } else {
                                     Circle()
-                                        .fill(Color(red: 0.3, green: 0.3, blue: 0.3))
-                                        .frame(width: 12, height: 12)
-                                        .offset(x: 16, y: 16)
-                                )
-                        }
-                    } else {
-                        ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
-                            Button(action: {
-                                navigationPath.append(user.username)
-                            }) {
-                                Group {
-                                    if let avatarURL = user.photo ?? user.avatar_url, let url = URL(string: avatarURL) {
-                                        CachedAsyncImage(url: url, cacheType: .avatar)
-                                            .aspectRatio(contentMode: .fill)
-                                    } else {
-                                        Circle()
-                                            .fill(
-                                                LinearGradient(
-                                                    colors: [
-                                                        Color.appAccent,
-                                                        Color(red: 0.75, green: 0.65, blue: 0.95)
-                                                    ],
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                )
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color.appAccent,
+                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
                                             )
-                                            .overlay(
-                                                Text(String((user.name ?? user.username).prefix(1)))
-                                                    .font(.system(size: 14, weight: .bold))
-                                                    .foregroundColor(.black)
-                                            )
-                                    }
-                                }
-                                .frame(width: 44, height: 44)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .fill(Color.green)
-                                        .frame(width: 12, height: 12)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(Color.black.opacity(0.2), lineWidth: 2)
-                                                .frame(width: 12, height: 12)
                                         )
-                                        .offset(x: 16, y: 16)
-                                )
+                                        .overlay(
+                                            Text(String((user.name ?? user.username).prefix(1)))
+                                                .font(.system(size: 14, weight: .bold))
+                                                .foregroundColor(.black)
+                                        )
+                                }
                             }
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 12, height: 12)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.black.opacity(0.2), lineWidth: 2)
+                                            .frame(width: 12, height: 12)
+                                    )
+                                    .offset(x: 16, y: 16)
+                            )
                         }
                     }
                 }
-                .padding(.vertical, 8)
-                .padding(.leading, 15)
-                .padding(.trailing, 15)
             }
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial.opacity(0.1))
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                        )
-                }
-            )
-            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
+            .padding(.vertical, 8)
+            .padding(.leading, 15)
+            .padding(.trailing, 15)
         }
+        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 20))
     }
     
     @ViewBuilder
@@ -288,10 +279,10 @@ struct FeedView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.1))
+                    .fill(.ultraThinMaterial.opacity(0.3))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                            .fill(Color.themeBlockBackground.opacity(0.9))
                     )
                 
                 RoundedRectangle(cornerRadius: 20)
@@ -305,93 +296,44 @@ struct FeedView: View {
     
     private var feedTypeTabsView: some View {
         Group {
-            if #available(iOS 26.0, *) {
-                liquidGlassTabsView
+            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
+                Picker("", selection: $selectedFeedType) {
+                    Text("Все").tag(FeedType.all)
+                    Text("Подписки").tag(FeedType.following)
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.large)
+                .font(.system(size: 16, weight: .medium))
+                .frame(height: 48)
+                .padding(.horizontal, 2)
+                .glassEffect(in: RoundedRectangle(cornerRadius: 24))
             } else {
-                fallbackTabsView
-            }
-        }
-    }
-    
-    @available(iOS 26.0, *)
-    @ViewBuilder
-    private var liquidGlassTabsView: some View {
-        GlassEffectContainer(spacing: 0) {
-            HStack(spacing: 0) {
-                FeedTypeTab(title: "Все", type: .all, selected: $selectedFeedType)
-                FeedTypeTab(title: "Подписки", type: .following, selected: $selectedFeedType)
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 8)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial.opacity(0.1))
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                        )
+                Picker("", selection: $selectedFeedType) {
+                    Text("Все").tag(FeedType.all)
+                    Text("Подписки").tag(FeedType.following)
                 }
-            )
-            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
-        }
-    }
-    
-    @ViewBuilder
-    private var fallbackTabsView: some View {
-        HStack(spacing: 0) {
-            FeedTypeTab(title: "Все", type: .all, selected: $selectedFeedType)
-            FeedTypeTab(title: "Подписки", type: .following, selected: $selectedFeedType)
-            FeedTypeTab(title: "Рекомендации", type: .recommended, selected: $selectedFeedType)
-        }
-        .padding(.vertical, 8)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.1))
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                    )
-                
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
+                .pickerStyle(.segmented)
+                .controlSize(.large)
+                .font(.system(size: 16, weight: .medium))
+                .frame(height: 48)
+                .padding(.horizontal, 8)
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(.ultraThinMaterial.opacity(0.3))
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.themeBlockBackground.opacity(0.9))
+                            )
+                        
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(
+                                Color.appAccent.opacity(0.15),
+                                lineWidth: 0.5
+                            )
+                    }
+                )
             }
-        )
-    }
-}
-
-struct FeedTypeTab: View {
-    let title: String
-    let type: FeedType
-    @Binding var selected: FeedType
-    
-    var body: some View {
-        Button(action: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                selected = type
-            }
-        }) {
-            ZStack {
-                if selected == type {
-                    Capsule()
-                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2).opacity(0.4))
-                        .frame(height: 32)
-                        .padding(.horizontal, 4)
-                }
-                
-                Text(title)
-                    .font(.system(size: 14, weight: selected == type ? .semibold : .regular))
-                    .foregroundColor(selected == type ? Color.appAccent : Color(red: 0.6, green: 0.6, blue: 0.6))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 8)
-            }
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(PlainButtonStyle())
     }
 }

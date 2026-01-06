@@ -95,16 +95,6 @@ struct SocialButton: View {
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .padding(.horizontal, 12)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.ultraThinMaterial.opacity(0.1))
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                        )
-                }
-            )
             .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
         }
     }

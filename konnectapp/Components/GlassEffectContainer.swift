@@ -22,8 +22,13 @@ extension View {
     @ViewBuilder
     func glassEffect(_ style: GlassEffectStyle, in shape: some Shape) -> some View {
         if #available(iOS 26.0, *) {
-            self.background(shape.fill(.ultraThinMaterial.opacity(0.1)))
+            // Liquid glass эффект - используем ultraThinMaterial как у .buttonStyle(.glass)
+            // Без opacity для настоящего liquid glass эффекта
+            self.background(
+                shape.fill(.ultraThinMaterial)
+            )
         } else {
+            // Fallback для старых версий
             self.background(
                 shape.fill(.ultraThinMaterial.opacity(0.1))
                     .background(

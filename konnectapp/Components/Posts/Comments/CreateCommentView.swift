@@ -28,67 +28,136 @@ struct CreateCommentView: View {
     }
     
     var body: some View {
-        VStack(spacing: 12) {
+        let appAccent = Color.appAccent
+        let themeBlockBackground = Color.themeBlockBackground
+        
+        return VStack(spacing: 12) {
             if let replyingTo = replyingToComment {
-                HStack {
-                    HStack(spacing: 8) {
-                        Image(systemName: "arrowshape.turn.up.left")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.appAccent)
-                        if let username = replyingTo.user?.username {
-                            Text("Ответ @\(username)")
-                                .font(.system(size: 13))
-                                .foregroundColor(Color.appAccent)
+                Group {
+                    if #available(iOS 26.0, *) {
+                        HStack {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrowshape.turn.up.left")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color.appAccent)
+                                if let username = replyingTo.user?.username {
+                                    Text("Ответ @\(username)")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Color.appAccent)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 12))
+                            
+                            Spacer()
+                            
+                            Button {
+                                replyingToComment = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(Color.themeTextSecondary)
+                            }
                         }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.appAccent.opacity(0.2))
-                    )
-                    
-                    Spacer()
-                    
-                    Button {
-                        replyingToComment = nil
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(Color.themeTextSecondary)
+                        .padding(.bottom, 8)
+                    } else {
+                        HStack {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrowshape.turn.up.left")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color.appAccent)
+                                if let username = replyingTo.user?.username {
+                                    Text("Ответ @\(username)")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Color.appAccent)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(.ultraThinMaterial.opacity(0.3))
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.themeBlockBackground.opacity(0.9))
+                                    )
+                            )
+                            
+                            Spacer()
+                            
+                            Button {
+                                replyingToComment = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(Color.themeTextSecondary)
+                            }
+                        }
+                        .padding(.bottom, 8)
                     }
                 }
-                .padding(.bottom, 8)
             }
             
             HStack(alignment: .bottom, spacing: 8) {
+                // Скрепка слева
                 Group {
                     if #available(iOS 26.0, *) {
-                        GlassEffectContainer(spacing: 0) {
-                            TextField(placeholder, text: $commentText, axis: .vertical)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
+                        PhotosPicker(
+                            selection: $selectedImageItem,
+                            matching: .images,
+                            photoLibrary: .shared()
+                        ) {
+                            Image(systemName: "paperclip")
+                                .font(.system(size: 18))
+                                .foregroundColor(appAccent)
+                                .frame(minWidth: 40, minHeight: 40)
+                                .padding(.horizontal, 8)
+                                .glassEffect(.regular.interactive(), in: Capsule())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    } else {
+                        PhotosPicker(
+                            selection: $selectedImageItem,
+                            matching: .images,
+                            photoLibrary: .shared()
+                        ) {
+                            Image(systemName: "paperclip")
+                                .font(.system(size: 18))
+                                .foregroundColor(appAccent)
+                                .frame(minWidth: 40, minHeight: 40)
+                                .padding(.horizontal, 8)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(.ultraThinMaterial.opacity(0.1))
+                                    Capsule()
+                                        .fill(.ultraThinMaterial.opacity(0.3))
                                         .background(
-                                            RoundedRectangle(cornerRadius: 20)
-                                                .fill(Color.themeBlockBackground.opacity(0.6))
+                                            Capsule()
+                                                .fill(themeBlockBackground.opacity(0.8))
                                         )
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 20)
+                                            Capsule()
                                                 .stroke(
-                                                    Color.appAccent.opacity(0.15),
+                                                    appAccent.opacity(0.15),
                                                     lineWidth: 0.5
                                                 )
                                         )
                                 )
-                                .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
-                                .focused($isTextFieldFocused)
-                                .lineLimit(1...5)
                         }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                
+                // Поле ввода по центру
+                Group {
+                    if #available(iOS 26.0, *) {
+                        TextField(placeholder, text: $commentText, axis: .vertical)
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 20))
+                            .focused($isTextFieldFocused)
+                            .lineLimit(1...5)
                     } else {
                         TextField(placeholder, text: $commentText, axis: .vertical)
                             .font(.system(size: 15))
@@ -97,10 +166,10 @@ struct CreateCommentView: View {
                             .padding(.vertical, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .fill(.ultraThinMaterial.opacity(0.1))
+                                    .fill(.ultraThinMaterial.opacity(0.3))
                                     .background(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                            .fill(Color.themeBlockBackground.opacity(0.8))
                                     )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -115,120 +184,35 @@ struct CreateCommentView: View {
                     }
                 }
                 
-                if selectedImage != nil {
-                    Button {
-                        selectedImage = nil
-                        selectedImageItem = nil
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(.white)
-                    }
-                }
-                
+                // Самолетик справа
                 Group {
                     if #available(iOS 26.0, *) {
-                        GlassEffectContainer(spacing: 0) {
-                            PhotosPicker(
-                                selection: $selectedImageItem,
-                                matching: .images,
-                                photoLibrary: .shared()
-                            ) {
-                                Image(systemName: "photo")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(Color.appAccent)
-                                    .frame(width: 32, height: 32)
-                                    .background(
-                                        Circle()
-                                            .fill(.ultraThinMaterial.opacity(0.1))
-                                            .background(
-                                                Circle()
-                                                    .fill(Color.themeBlockBackground.opacity(0.6))
-                                            )
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(
-                                                        Color.appAccent.opacity(0.15),
-                                                        lineWidth: 0.5
-                                                    )
-                                            )
-                                    )
-                                    .glassEffect(GlassEffectStyle.regular, in: Circle())
+                        Button {
+                            Task {
+                                await postComment()
                             }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    } else {
-                        PhotosPicker(
-                            selection: $selectedImageItem,
-                            matching: .images,
-                            photoLibrary: .shared()
-                        ) {
-                            Image(systemName: "photo")
-                                .font(.system(size: 16))
-                                .foregroundColor(Color.appAccent)
-                                .frame(width: 32, height: 32)
-                                .background(
-                                    Circle()
-                                        .fill(.ultraThinMaterial.opacity(0.1))
-                                        .background(
-                                            Circle()
-                                                .fill(Color.themeBlockBackground.opacity(0.6))
-                                        )
-                                        .overlay(
-                                            Circle()
-                                                .stroke(
-                                                    Color.appAccent.opacity(0.15),
-                                                    lineWidth: 0.5
-                                                )
-                                        )
-                                )
+                        } label: {
+                            if isPosting {
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(minWidth: 40, minHeight: 40)
+                                    .padding(.horizontal, 8)
+                                    .glassEffect(.regular.interactive(), in: Capsule())
+                            } else {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(
+                                        (commentText.isEmpty && selectedImage == nil) ?
+                                        Color(red: 0.4, green: 0.4, blue: 0.4) :
+                                        Color.appAccent
+                                    )
+                                    .frame(minWidth: 40, minHeight: 40)
+                                    .padding(.horizontal, 8)
+                                    .glassEffect(.regular.interactive(), in: Capsule())
+                            }
                         }
                         .buttonStyle(PlainButtonStyle())
-                    }
-                }
-                
-                Group {
-                    if #available(iOS 26.0, *) {
-                        GlassEffectContainer(spacing: 0) {
-                            Button {
-                                Task {
-                                    await postComment()
-                                }
-                            } label: {
-                                if isPosting {
-                                    ProgressView()
-                                        .tint(.white)
-                                        .frame(width: 32, height: 32)
-                                } else {
-                                    Image(systemName: "paperplane.fill")
-                                        .font(.system(size: 18))
-                                        .foregroundColor(
-                                            (commentText.isEmpty && selectedImage == nil) ?
-                                            Color(red: 0.4, green: 0.4, blue: 0.4) :
-                                            Color.appAccent
-                                        )
-                                        .frame(width: 32, height: 32)
-                                        .background(
-                                            Circle()
-                                                .fill(.ultraThinMaterial.opacity(0.1))
-                                                .background(
-                                                    Circle()
-                                                        .fill(Color.themeBlockBackground.opacity(0.6))
-                                                )
-                                                .overlay(
-                                                    Circle()
-                                                        .stroke(
-                                                            Color.appAccent.opacity(0.15),
-                                                            lineWidth: 0.5
-                                                        )
-                                                )
-                                        )
-                                        .glassEffect(GlassEffectStyle.regular, in: Circle())
-                                }
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .disabled(isPosting || (commentText.isEmpty && selectedImage == nil))
-                        }
+                        .disabled(isPosting || (commentText.isEmpty && selectedImage == nil))
                     } else {
                         Button {
                             Task {
@@ -238,7 +222,8 @@ struct CreateCommentView: View {
                             if isPosting {
                                 ProgressView()
                                     .tint(.white)
-                                    .frame(width: 32, height: 32)
+                                    .frame(minWidth: 40, minHeight: 40)
+                                    .padding(.horizontal, 8)
                             } else {
                                 Image(systemName: "paperplane.fill")
                                     .font(.system(size: 18))
@@ -247,16 +232,17 @@ struct CreateCommentView: View {
                                         Color(red: 0.4, green: 0.4, blue: 0.4) :
                                         Color.appAccent
                                     )
-                                    .frame(width: 32, height: 32)
+                                    .frame(minWidth: 40, minHeight: 40)
+                                    .padding(.horizontal, 8)
                                     .background(
-                                        Circle()
-                                            .fill(.ultraThinMaterial.opacity(0.1))
+                                        Capsule()
+                                            .fill(.ultraThinMaterial.opacity(0.3))
                                             .background(
-                                                Circle()
-                                                    .fill(Color.themeBlockBackground.opacity(0.6))
+                                                Capsule()
+                                                    .fill(Color.themeBlockBackground.opacity(0.9))
                                             )
                                             .overlay(
-                                                Circle()
+                                                Capsule()
                                                     .stroke(
                                                         Color.appAccent.opacity(0.15),
                                                         lineWidth: 0.5
@@ -271,15 +257,24 @@ struct CreateCommentView: View {
                 }
             }
             
-            if let selectedImage = selectedImage {
+            if let image = selectedImage {
                 HStack {
-                    Image(uiImage: selectedImage)
+                    Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 60, height: 60)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                     
                     Spacer()
+                    
+                    Button {
+                        selectedImage = nil
+                        selectedImageItem = nil
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.white)
+                    }
                 }
             }
             

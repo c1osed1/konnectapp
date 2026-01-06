@@ -21,7 +21,7 @@ struct RepostedPostView: View {
     
     var body: some View {
         Group {
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
                 liquidGlassRepostedPost
             } else {
                 fallbackRepostedPost
@@ -58,17 +58,7 @@ struct RepostedPostView: View {
                     .padding(.vertical, 8)
             }
         }
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial.opacity(0.15))
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.themeBlockBackground.opacity(0.6))
-                    )
-            }
-        )
-        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
+        .glassEffect(in: RoundedRectangle(cornerRadius: 16))
     }
     
     @ViewBuilder
@@ -102,10 +92,10 @@ struct RepostedPostView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial.opacity(0.15))
+                    .fill(.ultraThinMaterial.opacity(0.3))
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.themeBlockBackground.opacity(0.6))
+                            .fill(Color.themeBlockBackground.opacity(0.9))
                     )
                 
                 RoundedRectangle(cornerRadius: 16)

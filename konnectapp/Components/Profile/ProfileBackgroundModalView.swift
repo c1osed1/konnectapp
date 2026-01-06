@@ -12,7 +12,10 @@ struct ProfileBackgroundModalView: View {
     @State private var successMessage: String?
     
     var body: some View {
-        NavigationView {
+        let appAccent = Color.appAccent
+        let themeBlockBackground = Color.themeBlockBackground
+        
+        return NavigationView {
             ZStack {
                 LinearGradient(
                     colors: [
@@ -124,7 +127,7 @@ struct ProfileBackgroundModalView: View {
                                     VStack(spacing: 12) {
                                         Image(systemName: "photo.badge.plus")
                                             .font(.system(size: 40))
-                                            .foregroundColor(Color(red: 0.82, green: 0.74, blue: 1.0))
+                                            .foregroundColor(appAccent)
                                         Text("Выбрать изображение")
                                             .font(.system(size: 16, weight: .medium))
                                             .foregroundColor(.white)
@@ -136,11 +139,11 @@ struct ProfileBackgroundModalView: View {
                                     .frame(height: 200)
                                     .background(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color.themeBlockBackground)
+                                            .fill(themeBlockBackground)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
                                             .stroke(
-                                                Color(red: 0.82, green: 0.74, blue: 1.0).opacity(0.3),
+                                                appAccent.opacity(0.3),
                                                 lineWidth: 2
                                             )
                                     )

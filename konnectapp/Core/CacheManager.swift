@@ -83,7 +83,29 @@ class CacheManager {
     func getCachedTrack(url: URL) -> URL? {
         let fileName = url.lastPathComponent
         let fileURL = tracksCacheDirectory.appendingPathComponent(fileName)
-        return fileManager.fileExists(atPath: fileURL.path) ? fileURL : nil
+        guard fileManager.fileExists(atPath: fileURL.path) else {
+            return nil
+        }
+        
+        // Проверяем, что файл не пустой (минимум 1KB для аудио файла)
+        if let attributes = try? fileManager.attributesOfItem(atPath: fileURL.path),
+           let fileSize = attributes[.size] as? Int64,
+           fileSize < 1024 {
+            print("⚠️ [CacheManager] Cached track file is too small (\(fileSize) bytes), removing")
+            try? fileManager.removeItem(at: fileURL)
+            return nil
+        }
+        
+        return fileURL
+    }
+    
+    func removeCachedTrack(url: URL) {
+        let fileName = url.lastPathComponent
+        let fileURL = tracksCacheDirectory.appendingPathComponent(fileName)
+        if fileManager.fileExists(atPath: fileURL.path) {
+            try? fileManager.removeItem(at: fileURL)
+            print("🗑️ [CacheManager] Removed cached track: \(fileName)")
+        }
     }
     
     func getCacheSize() -> CacheSize {

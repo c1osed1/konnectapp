@@ -19,11 +19,44 @@ struct MusicView: View {
                     .padding(.bottom, 16)
                 
                 // Стандартные iOS табы
-                Picker("", selection: $selectedTab) {
-                    Text("Общее").tag(MusicMainTab.general)
-                    Text("Поиск").tag(MusicMainTab.search)
+                Group {
+                    if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
+                        Picker("", selection: $selectedTab) {
+                            Text("Общее").tag(MusicMainTab.general)
+                            Text("Поиск").tag(MusicMainTab.search)
+                        }
+                        .pickerStyle(.segmented)
+                        .controlSize(.large)
+                        .font(.system(size: 16, weight: .medium))
+                        .frame(height: 48)
+                        .glassEffect(in: RoundedRectangle(cornerRadius: 24))
+                    } else {
+                        Picker("", selection: $selectedTab) {
+                            Text("Общее").tag(MusicMainTab.general)
+                            Text("Поиск").tag(MusicMainTab.search)
+                        }
+                        .pickerStyle(.segmented)
+                        .controlSize(.large)
+                        .font(.system(size: 16, weight: .medium))
+                        .frame(height: 48)
+                        .background(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.ultraThinMaterial.opacity(0.3))
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color.themeBlockBackground.opacity(0.9))
+                                    )
+                                
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(
+                                        Color.appAccent.opacity(0.15),
+                                        lineWidth: 0.5
+                                    )
+                            }
+                        )
+                    }
                 }
-                .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
                 
@@ -451,7 +484,7 @@ struct MusicView: View {
                     fallbackMiniPlayer(track: track)
                 }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 16)
             .padding(.bottom, 8)
         }
         .frame(maxHeight: .infinity, alignment: .bottom)
@@ -461,258 +494,161 @@ struct MusicView: View {
     @available(iOS 26.0, *)
     @ViewBuilder
     private func liquidGlassMiniPlayer(track: MusicTrack) -> some View {
-        GlassEffectContainer(spacing: 0) {
-            VStack(spacing: 0) {
-                // Прогресс-бар
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.themeBlockBackgroundSecondary.opacity(0.5))
-                        
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.appAccent, Color.appAccent.opacity(0.7)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+        HStack(spacing: 10) {
+            // Маленькая обложка
+            Button(action: {
+                showFullScreenPlayer = true
+            }) {
+                AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
+                    switch phase {
+                    case .empty, .failure:
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.appAccent.opacity(0.3))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(Color.appAccent.opacity(0.7))
                             )
-                            .frame(width: geometry.size.width * CGFloat(player.currentTime / max(player.duration, 1)))
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    @unknown default:
+                        EmptyView()
                     }
                 }
-                .frame(height: 3)
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                
-                // Плеер
-                Button(action: {
-                    showFullScreenPlayer = true
-                }) {
-                    HStack(spacing: 12) {
-                        // Обложка с закруглением
-                        AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                            switch phase {
-                            case .empty, .failure:
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.appAccent.opacity(0.4),
-                                                Color.appAccent.opacity(0.2)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 56, height: 56)
-                                    .overlay(
-                                        Image(systemName: "music.note")
-                                            .font(.system(size: 24))
-                                            .foregroundColor(Color.appAccent)
-                                    )
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 56, height: 56)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.appAccent.opacity(0.3), lineWidth: 1)
-                                    )
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-                        
-                        // Информация о треке
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(track.title)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
-                            
-                            Text(track.artist ?? track.user_name ?? "Unknown Artist")
-                                .font(.system(size: 13))
-                                .foregroundColor(Color.themeTextSecondary)
-                                .lineLimit(1)
-                        }
-                        
-                        Spacer()
-                        
-                        // Кнопка Play/Pause (как в Apple Music - просто иконка)
-                        Button(action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                player.togglePlayPause()
-                            }
-                        }) {
-                            Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(Color.appAccent)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                }
-                .buttonStyle(PlainButtonStyle())
             }
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(.ultraThinMaterial.opacity(0.4))
-                        .background(
-                            RoundedRectangle(cornerRadius: 24)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.themeBlockBackground.opacity(0.8),
-                                            Color.themeBackgroundStart.opacity(0.9)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                        )
+            .buttonStyle(PlainButtonStyle())
+            .padding(.leading, 8)
+            
+            // Название трека
+            Button(action: {
+                showFullScreenPlayer = true
+            }) {
+                Text(track.title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Spacer()
+            
+            // Кнопка Play/Pause
+            Button(action: {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    player.togglePlayPause()
                 }
-            )
-            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 24))
-            .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: -5)
+            }) {
+                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Кнопка следующий трек
+            Button(action: {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    player.nextTrack()
+                }
+            }) {
+                Image(systemName: "forward.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 30))
     }
     
     @ViewBuilder
     private func fallbackMiniPlayer(track: MusicTrack) -> some View {
-        VStack(spacing: 0) {
-            // Прогресс-бар
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color(red: 0.3, green: 0.3, blue: 0.3).opacity(0.5))
-                    
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.appAccent, Color.appAccent.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: geometry.size.width * CGFloat(player.currentTime / max(player.duration, 1)))
-                }
-            }
-            .frame(height: 3)
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            
-            // Плеер
+        HStack(spacing: 10) {
+            // Маленькая обложка
             Button(action: {
                 showFullScreenPlayer = true
             }) {
-                HStack(spacing: 12) {
-                    // Обложка с закруглением
-                    AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                        switch phase {
-                        case .empty, .failure:
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.appAccent.opacity(0.4),
-                                            Color.appAccent.opacity(0.2)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 56, height: 56)
-                                .overlay(
-                                    Image(systemName: "music.note")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(Color.appAccent)
-                                )
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 56, height: 56)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.appAccent.opacity(0.3), lineWidth: 1)
-                                )
-                        @unknown default:
-                            EmptyView()
-        }
-    }
-                    .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-                    
-                    // Информация о треке
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(track.title)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                        
-                        Text(track.artist ?? track.user_name ?? "Unknown Artist")
-                            .font(.system(size: 13))
-                            .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
-                            .lineLimit(1)
+                AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
+                    switch phase {
+                    case .empty, .failure:
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.appAccent.opacity(0.3))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(Color.appAccent.opacity(0.7))
+                            )
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    @unknown default:
+                        EmptyView()
                     }
-                    
-                    Spacer()
-                    
-                    // Кнопка Play/Pause (как в Apple Music - просто иконка)
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            player.togglePlayPause()
-                        }
-                    }) {
-                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(Color.appAccent)
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.leading, 8)
+            
+            // Название трека
+            Button(action: {
+                showFullScreenPlayer = true
+            }) {
+                Text(track.title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Spacer()
+            
+            // Кнопка Play/Pause
+            Button(action: {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    player.togglePlayPause()
+                }
+            }) {
+                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Кнопка следующий трек
+            Button(action: {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    player.nextTrack()
+                }
+            }) {
+                Image(systemName: "forward.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 28, height: 28)
             }
             .buttonStyle(PlainButtonStyle())
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(.ultraThinMaterial.opacity(0.4))
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.8),
-                                        Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.9)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                    )
-                
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.appAccent.opacity(0.3),
-                                Color.appAccent.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
+            RoundedRectangle(cornerRadius: 30)
+                .fill(.ultraThinMaterial.opacity(0.1))
+                .background(
+                    RoundedRectangle(cornerRadius: 30)
+                        .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.8))
+                )
         )
-        .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: -5)
     }
     
     // MARK: - Empty State

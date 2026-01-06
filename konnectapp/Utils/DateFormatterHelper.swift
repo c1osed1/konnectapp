@@ -39,22 +39,16 @@ struct DateFormatterHelper {
             return "только что"
         } else if diff < 3600 {
             let minutes = Int(diff / 60)
-            return "\(minutes) \(minutes == 1 ? "минуту" : minutes < 5 ? "минуты" : "минут") назад"
+            return "\(minutes) м."
         } else if diff < 86400 {
             let hours = Int(diff / 3600)
-            if hours == 1 {
-                return "1 час назад"
-            } else if hours < 5 {
-                return "\(hours) часа назад"
-            } else {
-                return "\(hours) часов назад"
-            }
+            return "\(hours) ч."
         } else if calendar.isDateInYesterday(date) {
             return "вчера"
         } else {
             let days = Int(diff / 86400)
             if days < 7 {
-                return "\(days) \(days == 1 ? "день" : days < 5 ? "дня" : "дней") назад"
+                return "\(days) д."
             } else {
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "d MMM"

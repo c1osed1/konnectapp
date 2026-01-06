@@ -32,6 +32,13 @@ struct SettingsView: View {
                             MoreRow(icon: "paintpalette.fill", title: "Тема оформления")
                         }
                         .buttonStyle(PlainButtonStyle())
+                        
+                        if #available(iOS 26.0, *) {
+                            Toggle(isOn: $themeManager.isGlassEffectEnabled) {
+                                MoreRow(icon: "sparkles", title: "Эффект стекла")
+                            }
+                            .toggleStyle(SwitchToggleStyle(tint: Color.appAccent))
+                        }
                     }
                     .padding(.horizontal, 16)
                     
