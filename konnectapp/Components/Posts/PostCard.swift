@@ -56,10 +56,10 @@ struct PostCard: View {
     @available(iOS 26.0, *)
     @ViewBuilder
     private var liquidGlassPostCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            postContent
-            postActions
-        }
+            VStack(alignment: .leading, spacing: 0) {
+                postContent
+                postActions
+            }
         .glassEffect(in: RoundedRectangle(cornerRadius: 20))
     }
     

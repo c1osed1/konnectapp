@@ -57,8 +57,8 @@ struct ProfileView: View {
                                     if let post = createdPost {
                                         viewModel.addPost(post)
                                     } else {
-                                        Task {
-                                            await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
+                                Task {
+                                    await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
                                         }
                                     }
                                 }
@@ -75,15 +75,15 @@ struct ProfileView: View {
                                     } else {
                                         Task {
                                             await viewModel.loadProfileWall(userIdentifier: userIdentifier, page: 1)
-                                        }
+                            }
                                     }
                                 },
                                 postType: "stena",
                                 recipientId: viewModel.profile?.user.id
                             )
-                            .padding(.horizontal, 8)
-                        }
-                        
+                                    .padding(.horizontal, 8)
+                            }
+                            
                         // Табы для переключения между постами и стеной
                         ProfileTabsView(selectedTab: $viewModel.selectedTab)
                             .padding(.horizontal, 8)
@@ -146,7 +146,7 @@ struct ProfileView: View {
             .refreshable {
                 await viewModel.loadProfile(userIdentifier: userIdentifier)
                 if viewModel.selectedTab == .posts {
-                    await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
+                await viewModel.loadProfilePosts(userIdentifier: userIdentifier, page: 1)
                 } else {
                     await viewModel.loadProfileWall(userIdentifier: userIdentifier, page: 1)
                 }
