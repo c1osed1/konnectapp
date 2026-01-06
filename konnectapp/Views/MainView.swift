@@ -3,6 +3,7 @@ import SwiftUI
 enum TabItem: String {
     case feed
     case music
+    case chats
     case profile
     case more
 }
@@ -30,6 +31,9 @@ struct MainView: View {
                         } else {
                             print("🔵 MainView: No background URL in currentUser")
                         }
+                        
+                        // Connect WebSocket immediately when MainView appears
+                        MessengerWebSocketService.shared.connect()
                     }
                     .onChange(of: authManager.currentUser?.profile_background_url) { oldValue, newValue in
                         print("🔄 MainView: backgroundURL changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
@@ -47,6 +51,12 @@ struct MainView: View {
                         .tag(TabItem.music)
                         .tabItem {
                             Label("Музыка", systemImage: "music.note")
+                        }
+                    
+                    ChatsView()
+                        .tag(TabItem.chats)
+                        .tabItem {
+                            Label("Чаты", systemImage: "message.fill")
                         }
                     
                     ProfileView()
@@ -76,6 +86,9 @@ struct MainView: View {
             }
             .navigationDestination(for: String.self) { username in
                 UserProfileView(username: username)
+            }
+            .navigationDestination(for: Chat.self) { chat in
+                ChatView(chat: chat)
             }
             .sheet(item: Binding(
                 get: { showPostDetail },

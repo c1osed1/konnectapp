@@ -119,7 +119,7 @@ struct SocialButton: View {
             .frame(height: 44)
             .padding(.horizontal, 12)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 12)
                     .fill(.ultraThinMaterial)
             )
         }
