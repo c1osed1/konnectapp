@@ -13,35 +13,20 @@ struct PostMusicView: View {
                 showFullScreenPlayer = true
             }) {
                 HStack(spacing: 10) {
-                    AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                        switch phase {
-                        case .empty:
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.themeBlockBackground)
-                                .frame(width: 48, height: 48)
-                                .overlay(
-                                    Image(systemName: "music.note")
-                                        .font(.system(size: 18))
-                                        .foregroundColor(.white.opacity(0.6))
-                                )
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 48, height: 48)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        case .failure:
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.themeBlockBackground)
-                                .frame(width: 48, height: 48)
-                                .overlay(
-                                    Image(systemName: "music.note")
-                                        .font(.system(size: 18))
-                                        .foregroundColor(.white.opacity(0.6))
-                                )
-                        @unknown default:
-                            EmptyView()
-                        }
+                    if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
+                        CachedAsyncImage(url: coverURL, cacheType: .post)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    } else {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.themeBlockBackground)
+                            .frame(width: 48, height: 48)
+                            .overlay(
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.white.opacity(0.6))
+                            )
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {

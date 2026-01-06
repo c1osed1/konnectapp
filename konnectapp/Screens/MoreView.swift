@@ -3,10 +3,10 @@ import SwiftUI
 struct MoreView: View {
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var themeManager = ThemeManager.shared
+    @StateObject private var notificationChecker = NotificationChecker.shared
     @State private var showSettings = false
     @State private var showAbout = false
     @State private var showNotifications = false
-    @State private var unreadCount: Int = 0
     
     var body: some View {
         ZStack {
@@ -30,7 +30,7 @@ struct MoreView: View {
                 Button {
                     showNotifications = true
                 } label: {
-                    MoreRow(icon: "bell.fill", title: "Уведомления", badgeCount: unreadCount > 0 ? unreadCount : nil)
+                    MoreRow(icon: "bell.fill", title: "Уведомления", badgeCount: notificationChecker.unreadCount > 0 ? notificationChecker.unreadCount : nil)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.horizontal, 16)
@@ -83,6 +83,11 @@ struct MoreView: View {
                 }
             }
         }
+        .onAppear {
+            Task {
+                await loadUnreadCount()
+            }
+        }
         .sheet(isPresented: $showAbout) {
             AboutAppView()
         }
@@ -92,7 +97,7 @@ struct MoreView: View {
         do {
             let response = try await NotificationService.shared.getNotifications()
             await MainActor.run {
-                unreadCount = response.unread_count ?? 0
+                notificationChecker.unreadCount = response.unread_count ?? 0
             }
         } catch {
             print("❌ Error loading unread count: \(error)")

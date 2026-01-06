@@ -60,6 +60,7 @@ struct MainView: View {
                         .tabItem {
                             Label("Еще", systemImage: "ellipsis")
                         }
+                        .badge(notificationChecker.unreadCount > 0 ? notificationChecker.unreadCount : nil)
                 }
                 .accentColor(Color.appAccent)
             }

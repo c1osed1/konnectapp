@@ -274,6 +274,30 @@ struct PostUser: Codable {
     let account_type: String?
     let last_active_utc: String?
     let time_diff_seconds: Double?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, username, name, photo
+        case avatar_url = "avatar_url"
+        case is_verified = "is_verified"
+        case is_following = "is_following"
+        case account_type = "account_type"
+        case last_active_utc = "last_active_utc"
+        case time_diff_seconds = "time_diff_seconds"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int64.self, forKey: .id)
+        username = try container.decode(String.self, forKey: .username)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        photo = try container.decodeIfPresent(String.self, forKey: .photo)
+        avatar_url = try container.decodeIfPresent(String.self, forKey: .avatar_url)
+        is_verified = try container.decodeIfPresent(Bool.self, forKey: .is_verified)
+        is_following = try container.decodeIfPresent(Bool.self, forKey: .is_following)
+        account_type = try container.decodeIfPresent(String.self, forKey: .account_type)
+        last_active_utc = try container.decodeIfPresent(String.self, forKey: .last_active_utc)
+        time_diff_seconds = try container.decodeIfPresent(Double.self, forKey: .time_diff_seconds)
+    }
 }
 
 // MARK: - Fact Model
@@ -814,6 +838,54 @@ struct Notification: Codable, Identifiable {
     let comment_data: CommentData?
     let reply_content: String?
     let reply_data: ReplyData?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, type, message, link
+        case created_at = "created_at"
+        case is_read = "is_read"
+        case content_type = "content_type"
+        case sender_id = "sender_id"
+        case user_id = "user_id"
+        case sender_user = "sender_user"
+        case post_content = "post_content"
+        case post_data = "post_data"
+        case comment_content = "comment_content"
+        case comment_data = "comment_data"
+        case reply_content = "reply_content"
+        case reply_data = "reply_data"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int64.self, forKey: .id)
+        type = try container.decode(String.self, forKey: .type)
+        message = try container.decode(String.self, forKey: .message)
+        created_at = try container.decodeIfPresent(String.self, forKey: .created_at)
+        is_read = try container.decodeIfPresent(Bool.self, forKey: .is_read)
+        link = try container.decodeIfPresent(String.self, forKey: .link)
+        content_type = try container.decodeIfPresent(String.self, forKey: .content_type)
+        sender_id = try container.decodeIfPresent(Int64.self, forKey: .sender_id)
+        user_id = try container.decodeIfPresent(Int64.self, forKey: .user_id)
+        
+        do {
+            sender_user = try container.decodeIfPresent(PostUser.self, forKey: .sender_user)
+            if sender_user == nil {
+                print("⚠️ Notification: sender_user is nil after decoding for notification \(id)")
+            } else {
+                print("✅ Notification: sender_user decoded successfully for notification \(id), name: \(sender_user?.name ?? "nil"), username: \(sender_user?.username ?? "nil")")
+            }
+        } catch {
+            print("❌ Notification: Error decoding sender_user for notification \(id): \(error)")
+            sender_user = nil
+        }
+        
+        post_content = try container.decodeIfPresent(String.self, forKey: .post_content)
+        post_data = try container.decodeIfPresent(PostData.self, forKey: .post_data)
+        comment_content = try container.decodeIfPresent(String.self, forKey: .comment_content)
+        comment_data = try container.decodeIfPresent(CommentData.self, forKey: .comment_data)
+        reply_content = try container.decodeIfPresent(String.self, forKey: .reply_content)
+        reply_data = try container.decodeIfPresent(ReplyData.self, forKey: .reply_data)
+    }
 }
 
 struct PostData: Codable {

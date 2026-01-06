@@ -4,10 +4,10 @@ struct NotificationsModalView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var themeManager = ThemeManager.shared
     @StateObject private var deepLinkHandler = DeepLinkHandler.shared
+    @StateObject private var notificationChecker = NotificationChecker.shared
     @State private var notifications: [Notification] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
-    @State private var unreadCount: Int = 0
     @State private var showPostDetail: Post?
     
     var body: some View {
@@ -109,13 +109,16 @@ struct NotificationsModalView: View {
             let response = try await NotificationService.shared.getNotifications()
             await MainActor.run {
                 notifications = response.notifications
-                unreadCount = response.unread_count ?? 0
+                notificationChecker.unreadCount = response.unread_count ?? 0
                 isLoading = false
             }
             
             Task {
                 do {
-                    _ = try await NotificationService.shared.markAllAsRead()
+                    let markReadResponse = try await NotificationService.shared.markAllAsRead()
+                    await MainActor.run {
+                        notificationChecker.unreadCount = markReadResponse.unread_count ?? 0
+                    }
                     print("✅ All notifications marked as read")
                 } catch {
                     print("❌ Error marking notifications as read: \(error)")
@@ -134,7 +137,7 @@ struct NotificationsModalView: View {
             let response = try await NotificationService.shared.deleteAllNotifications()
             await MainActor.run {
                 notifications = []
-                unreadCount = 0
+                notificationChecker.unreadCount = 0
             }
             print("✅ All notifications deleted: \(response.message ?? "")")
         } catch {
@@ -195,7 +198,7 @@ struct NotificationRow: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(formattedMessage)
+                Text(notificationMessage)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white)
                     .lineLimit(2)
@@ -235,12 +238,24 @@ struct NotificationRow: View {
         }
     }
     
-    private var formattedMessage: String {
-        if let sender = notification.sender_user {
-            let senderName = sender.name ?? sender.username
-            return "\(senderName) \(notification.message)"
+    private var notificationMessage: String {
+        guard let sender = notification.sender_user else {
+            print("⚠️ NotificationRow: sender_user is nil for notification \(notification.id), message: '\(notification.message)'")
+            return notification.message
         }
-        return notification.message
+        
+        let senderName: String
+        if let name = sender.name, !name.isEmpty {
+            senderName = name
+            print("✅ NotificationRow: Using name '\(name)' for notification \(notification.id)")
+        } else {
+            senderName = sender.username
+            print("⚠️ NotificationRow: name is nil or empty, using username '\(sender.username)' for notification \(notification.id)")
+        }
+        
+        let result = "\(senderName) \(notification.message)"
+        print("📝 NotificationRow: Final message for notification \(notification.id): '\(result)'")
+        return result
     }
     
     private func formatDate(_ dateString: String) -> String {

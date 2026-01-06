@@ -11,7 +11,20 @@ struct PostHeader: View {
                 navigationPath.append(user.username)
             }) {
                 Group {
-                    if let avatarURL = user.avatar_url, let url = URL(string: avatarURL) {
+                    let avatarURLString: String? = {
+                        if let avatarURL = user.avatar_url {
+                            return avatarURL
+                        } else if let photo = user.photo {
+                            if photo.hasPrefix("http") {
+                                return photo
+                            } else {
+                                return "https://s3.k-connect.ru/static/uploads/avatar/\(user.id)/\(photo)"
+                            }
+                        }
+                        return nil
+                    }()
+                    
+                    if let avatarURLString = avatarURLString, let url = URL(string: avatarURLString) {
                         CachedAsyncImage(url: url, cacheType: .avatar)
                             .aspectRatio(contentMode: .fill)
                     } else {

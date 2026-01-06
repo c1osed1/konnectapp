@@ -4,18 +4,25 @@ struct PostMediaView: View {
     let mediaURLs: [String]
     let isNsfw: Bool
     @State private var showNsfw: Bool = false
+    @State private var showImageViewer: Bool = false
+    @State private var selectedImageIndex: Int = 0
     
     var body: some View {
-        if mediaURLs.isEmpty {
-            EmptyView()
-        } else if mediaURLs.count == 1 {
-            singleImageView(url: mediaURLs[0])
-        } else if mediaURLs.count == 2 {
-            twoImagesView(urls: mediaURLs)
-        } else if mediaURLs.count == 3 {
-            threeImagesView(urls: mediaURLs)
-        } else {
-            gridImagesView(urls: mediaURLs)
+        Group {
+            if mediaURLs.isEmpty {
+                EmptyView()
+            } else if mediaURLs.count == 1 {
+                singleImageView(url: mediaURLs[0])
+            } else if mediaURLs.count == 2 {
+                twoImagesView(urls: mediaURLs)
+            } else if mediaURLs.count == 3 {
+                threeImagesView(urls: mediaURLs)
+            } else {
+                gridImagesView(urls: mediaURLs)
+            }
+        }
+        .fullScreenCover(isPresented: $showImageViewer) {
+            ImageViewer(imageURLs: mediaURLs, initialIndex: selectedImageIndex)
         }
     }
     
@@ -56,12 +63,18 @@ struct PostMediaView: View {
                 }
             }
         }
+        .onTapGesture {
+            if showNsfw || !isNsfw {
+                selectedImageIndex = 0
+                showImageViewer = true
+            }
+        }
     }
     
     @ViewBuilder
     private func twoImagesView(urls: [String]) -> some View {
         HStack(spacing: 2) {
-            ForEach(urls, id: \.self) { mediaURL in
+            ForEach(Array(urls.enumerated()), id: \.element) { index, mediaURL in
                 ZStack {
                     if let imageURL = URL(string: mediaURL) {
                         CachedAsyncImage(url: imageURL, cacheType: .post)
@@ -89,6 +102,12 @@ struct PostMediaView: View {
                                         .fill(Color.black.opacity(0.5))
                                 )
                         }
+                    }
+                }
+                .onTapGesture {
+                    if showNsfw || !isNsfw {
+                        selectedImageIndex = index
+                        showImageViewer = true
                     }
                 }
             }
@@ -137,9 +156,15 @@ struct PostMediaView: View {
                     }
                 }
             }
+            .onTapGesture {
+                if showNsfw || !isNsfw {
+                    selectedImageIndex = 0
+                    showImageViewer = true
+                }
+            }
             
             HStack(spacing: 2) {
-                ForEach(Array(urls[1...2]), id: \.self) { mediaURL in
+                ForEach(Array(urls[1...2].enumerated()), id: \.element) { subIndex, mediaURL in
                     ZStack {
                         AsyncImage(url: URL(string: mediaURL)) { phase in
                             switch phase {
@@ -179,6 +204,12 @@ struct PostMediaView: View {
                             }
                         }
                     }
+                    .onTapGesture {
+                        if showNsfw || !isNsfw {
+                            selectedImageIndex = subIndex + 1
+                            showImageViewer = true
+                        }
+                    }
                 }
             }
         }
@@ -188,7 +219,7 @@ struct PostMediaView: View {
     private func gridImagesView(urls: [String]) -> some View {
         VStack(spacing: 2) {
             HStack(spacing: 2) {
-                ForEach(Array(urls.prefix(2)), id: \.self) { mediaURL in
+                ForEach(Array(urls.prefix(2).enumerated()), id: \.element) { index, mediaURL in
                     ZStack {
                         AsyncImage(url: URL(string: mediaURL)) { phase in
                             switch phase {
@@ -228,11 +259,17 @@ struct PostMediaView: View {
                             }
                         }
                     }
+                    .onTapGesture {
+                        if showNsfw || !isNsfw {
+                            selectedImageIndex = index
+                            showImageViewer = true
+                        }
+                    }
                 }
             }
             
             HStack(spacing: 2) {
-                ForEach(Array(urls[2..<min(5, urls.count)]), id: \.self) { mediaURL in
+                ForEach(Array(urls[2..<min(5, urls.count)].enumerated()), id: \.element) { subIndex, mediaURL in
                     ZStack {
                         AsyncImage(url: URL(string: mediaURL)) { phase in
                             switch phase {
@@ -305,6 +342,12 @@ struct PostMediaView: View {
                                             .fill(Color.black.opacity(0.5))
                                     )
                             }
+                        }
+                    }
+                    .onTapGesture {
+                        if showNsfw || !isNsfw {
+                            selectedImageIndex = subIndex + 2
+                            showImageViewer = true
                         }
                     }
                 }

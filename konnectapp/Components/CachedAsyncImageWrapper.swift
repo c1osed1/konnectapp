@@ -27,13 +27,19 @@ struct CachedAsyncImage: View {
         }
         .onChange(of: url) { oldValue, newValue in
             if newValue != oldValue {
+                loadedImage = nil
                 loadImage()
             }
         }
     }
     
     private func loadImage() {
-        guard let url = url else { return }
+        guard let url = url else {
+            print("⚠️ CachedAsyncImage: URL is nil")
+            return
+        }
+        
+        print("🟢 CachedAsyncImage: Loading image from \(url.absoluteString)")
         
         var cachedData: Data?
         switch cacheType {
@@ -46,14 +52,17 @@ struct CachedAsyncImage: View {
         }
         
         if let data = cachedData, let image = UIImage(data: data) {
+            print("✅ CachedAsyncImage: Using cached image for \(url.absoluteString)")
             loadedImage = image
             return
         }
         
+        print("📥 CachedAsyncImage: Fetching image from network: \(url.absoluteString)")
         Task {
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 if let image = UIImage(data: data) {
+                    print("✅ CachedAsyncImage: Successfully loaded image from \(url.absoluteString)")
                     switch cacheType {
                     case .post:
                         CacheManager.shared.cachePostImage(url: url, data: data)
@@ -65,9 +74,11 @@ struct CachedAsyncImage: View {
                     await MainActor.run {
                         loadedImage = image
                     }
+                } else {
+                    print("❌ CachedAsyncImage: Failed to create UIImage from data for \(url.absoluteString)")
                 }
             } catch {
-                print("❌ Error loading image: \(error)")
+                print("❌ CachedAsyncImage: Error loading image from \(url.absoluteString): \(error)")
             }
         }
     }

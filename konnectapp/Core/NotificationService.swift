@@ -45,12 +45,15 @@ class NotificationService {
         if httpResponse.statusCode == 200 {
             do {
                 let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                decoder.keyDecodingStrategy = .useDefaultKeys
                 decoder.dateDecodingStrategy = .iso8601
                 let notificationsResponse = try decoder.decode(NotificationsResponse.self, from: data)
                 return notificationsResponse
             } catch {
                 print("❌ Notification decoding error: \(error)")
+                if let decodingError = error as? DecodingError {
+                    print("❌ Decoding error details: \(decodingError)")
+                }
                 throw NotificationError.decodingError(error)
             }
         } else {

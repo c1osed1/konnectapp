@@ -8,23 +8,69 @@ class NotificationChecker: ObservableObject {
     static let shared = NotificationChecker()
     
     @Published var lastNotificationId: Int64?
+    @Published var unreadCount: Int = 0
     private var checkTimer: Timer?
+    private var isAppActive: Bool = true
+    private var lastCheckTime: Date?
     
     private init() {
         requestNotificationPermission()
+        setupAppStateObservers()
+    }
+    
+    private func setupAppStateObservers() {
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.isAppActive = true
+            self?.startChecking()
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.isAppActive = false
+            self?.stopChecking()
+        }
     }
     
     func startChecking() {
+        guard isAppActive else { return }
         stopChecking()
-        checkTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+        
+        let timeSinceLastCheck = lastCheckTime.map { Date().timeIntervalSince($0) } ?? 0
+        let delay = max(0, 30.0 - timeSinceLastCheck)
+        
+        if delay > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                Task { @MainActor in
+                    await self?.checkForNewNotifications()
+                    self?.scheduleNextCheck()
+                }
+            }
+        } else {
+            Task { @MainActor in
+                await checkForNewNotifications()
+                scheduleNextCheck()
+            }
+        }
+    }
+    
+    private func scheduleNextCheck() {
+        guard isAppActive else { return }
+        checkTimer?.invalidate()
+        
+        checkTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 await self?.checkForNewNotifications()
+                self?.scheduleNextCheck()
             }
         }
         RunLoop.main.add(checkTimer!, forMode: .common)
-        Task { @MainActor in
-            await checkForNewNotifications()
-        }
     }
     
     func stopChecking() {
@@ -43,20 +89,31 @@ class NotificationChecker: ObservableObject {
     }
     
     private func checkForNewNotifications() async {
+        guard isAppActive else { return }
+        
         do {
             let response = try await NotificationService.shared.getNotifications()
+            
+            await MainActor.run {
+                unreadCount = response.unread_count ?? 0
+                lastCheckTime = Date()
+            }
             
             if let firstNotification = response.notifications.first {
                 if let lastId = lastNotificationId {
                     if firstNotification.id > lastId && (firstNotification.is_read == false || firstNotification.is_read == nil) {
                         showLocalNotification(for: firstNotification)
-                        lastNotificationId = firstNotification.id
+                        await MainActor.run {
+                            lastNotificationId = firstNotification.id
+                        }
                     }
                 } else {
                     if firstNotification.is_read == false || firstNotification.is_read == nil {
                         showLocalNotification(for: firstNotification)
                     }
-                    lastNotificationId = firstNotification.id
+                    await MainActor.run {
+                        lastNotificationId = firstNotification.id
+                    }
                 }
             }
         } catch {
@@ -70,7 +127,12 @@ class NotificationChecker: ObservableObject {
         
         let messageBody: String
         if let sender = notification.sender_user {
-            let senderName = sender.name ?? sender.username
+            let senderName: String
+            if let name = sender.name, !name.isEmpty {
+                senderName = name
+            } else {
+                senderName = sender.username
+            }
             messageBody = "\(senderName) \(notification.message)"
         } else {
             messageBody = notification.message
