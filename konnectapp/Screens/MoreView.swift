@@ -6,6 +6,7 @@ struct MoreView: View {
     @State private var showSettings = false
     @State private var showAbout = false
     @State private var showNotifications = false
+    @State private var unreadCount: Int = 0
     
     var body: some View {
         ZStack {
@@ -29,7 +30,7 @@ struct MoreView: View {
                 Button {
                     showNotifications = true
                 } label: {
-                    MoreRow(icon: "bell.fill", title: "Уведомления")
+                    MoreRow(icon: "bell.fill", title: "Уведомления", badgeCount: unreadCount > 0 ? unreadCount : nil)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.horizontal, 16)
@@ -72,8 +73,29 @@ struct MoreView: View {
         .sheet(isPresented: $showNotifications) {
             NotificationsModalView()
         }
+        .task {
+            await loadUnreadCount()
+        }
+        .onChange(of: showNotifications) { isPresented in
+            if !isPresented {
+                Task {
+                    await loadUnreadCount()
+                }
+            }
+        }
         .sheet(isPresented: $showAbout) {
             AboutAppView()
+        }
+    }
+    
+    private func loadUnreadCount() async {
+        do {
+            let response = try await NotificationService.shared.getNotifications()
+            await MainActor.run {
+                unreadCount = response.unread_count ?? 0
+            }
+        } catch {
+            print("❌ Error loading unread count: \(error)")
         }
     }
 }
@@ -81,12 +103,35 @@ struct MoreView: View {
 struct MoreRow: View {
     let icon: String
     let title: String
+    let badgeCount: Int?
+    
+    init(icon: String, title: String, badgeCount: Int? = nil) {
+        self.icon = icon
+        self.title = title
+        self.badgeCount = badgeCount
+    }
     
     var body: some View {
         HStack {
-            Image(systemName: icon)
-                .foregroundColor(Color.appAccent)
-                .frame(width: 24)
+            ZStack {
+                Image(systemName: icon)
+                    .foregroundColor(Color.appAccent)
+                    .frame(width: 24)
+                
+                if let count = badgeCount, count > 0 {
+                    Text(count > 99 ? "99+" : "\(count)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, count > 9 ? 4 : 5)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(Color.red)
+                        )
+                        .offset(x: 12, y: -12)
+                }
+            }
+            .frame(width: 24)
             
             Text(title)
                 .font(.system(size: 16))

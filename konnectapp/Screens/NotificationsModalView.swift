@@ -76,6 +76,18 @@ struct NotificationsModalView: View {
             .navigationTitle("Уведомления")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !notifications.isEmpty {
+                        Button {
+                            Task {
+                                await deleteAllNotifications()
+                            }
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Готово") {
                         dismiss()
@@ -114,6 +126,22 @@ struct NotificationsModalView: View {
                 errorMessage = error.localizedDescription
                 isLoading = false
             }
+        }
+    }
+    
+    private func deleteAllNotifications() async {
+        do {
+            let response = try await NotificationService.shared.deleteAllNotifications()
+            await MainActor.run {
+                notifications = []
+                unreadCount = 0
+            }
+            print("✅ All notifications deleted: \(response.message ?? "")")
+        } catch {
+            await MainActor.run {
+                errorMessage = "Ошибка при удалении: \(error.localizedDescription)"
+            }
+            print("❌ Error deleting notifications: \(error)")
         }
     }
     

@@ -99,6 +99,48 @@ class NotificationService {
             throw NotificationError.serverError(httpResponse.statusCode)
         }
     }
+    
+    func deleteAllNotifications() async throws -> DeleteAllResponse {
+        guard let token = try KeychainManager.getToken() else {
+            throw NotificationError.notAuthenticated
+        }
+        
+        guard let sessionKey = try KeychainManager.getSessionKey() else {
+            throw NotificationError.notAuthenticated
+        }
+        
+        guard let url = URL(string: "\(baseURL)/api/notifications/") else {
+            throw NotificationError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
+        request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NotificationError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 200 {
+            do {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                let deleteResponse = try decoder.decode(DeleteAllResponse.self, from: data)
+                return deleteResponse
+            } catch {
+                print("❌ Delete all notifications decoding error: \(error)")
+                throw NotificationError.decodingError(error)
+            }
+        } else {
+            throw NotificationError.serverError(httpResponse.statusCode)
+        }
+    }
 }
 
 struct MarkAllReadResponse: Codable {
@@ -106,6 +148,12 @@ struct MarkAllReadResponse: Codable {
     let message: String?
     let count: Int?
     let unread_count: Int?
+}
+
+struct DeleteAllResponse: Codable {
+    let success: Bool
+    let message: String?
+    let count: Int?
 }
 
 enum NotificationError: Error {
