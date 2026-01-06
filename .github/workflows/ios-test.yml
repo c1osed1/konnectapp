@@ -14,8 +14,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Select Xcode version
-      run: sudo xcode-select -switch /Applications/Xcode_15.4.app/Contents/Developer
+    - name: Show Xcode version
+      run: xcodebuild -version
       
     - name: Run tests
       run: |
