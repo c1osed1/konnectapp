@@ -149,68 +149,83 @@ struct FeedView: View {
     @available(iOS 26.0, *)
     @ViewBuilder
     private var liquidGlassOnlineBlock: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        let content = ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 if onlineUsersViewModel.onlineUsers.isEmpty {
-                    ForEach(0..<10, id: \.self) { _ in
-                        SkeletonCircle(size: 44)
-                            .overlay(
-                                Circle()
-                                    .fill(Color(red: 0.3, green: 0.3, blue: 0.3))
-                                    .frame(width: 12, height: 12)
-                                    .offset(x: 16, y: 16)
-                            )
-                    }
+                    skeletonUsers
                 } else {
-                    ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
-                        Button(action: {
-                            navigationPath.append(user.username)
-                        }) {
-                            Group {
-                                if let avatarURL = user.photo ?? user.avatar_url, let url = URL(string: avatarURL) {
-                                    CachedAsyncImage(url: url, cacheType: .avatar)
-                                        .aspectRatio(contentMode: .fill)
-                                } else {
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [
-                                                    Color.appAccent,
-                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .overlay(
-                                            Text(String((user.name ?? user.username).prefix(1)))
-                                                .font(.system(size: 14, weight: .bold))
-                                                .foregroundColor(.black)
-                                        )
-                                }
-                            }
-                            .frame(width: 44, height: 44)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 12, height: 12)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.black.opacity(0.2), lineWidth: 2)
-                                            .frame(width: 12, height: 12)
-                                    )
-                                    .offset(x: 16, y: 16)
-                            )
-                        }
-                    }
+                    onlineUsersList
                 }
             }
             .padding(.vertical, 8)
             .padding(.leading, 15)
             .padding(.trailing, 15)
         }
-        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 20))
+        content.glassEffect(.regularInteractive, in: RoundedRectangle(cornerRadius: 20))
+    }
+    
+    @ViewBuilder
+    private var skeletonUsers: some View {
+        ForEach(0..<10, id: \.self) { _ in
+            SkeletonCircle(size: 44)
+                .overlay(
+                    Circle()
+                        .fill(Color(red: 0.3, green: 0.3, blue: 0.3))
+                        .frame(width: 12, height: 12)
+                        .offset(x: 16, y: 16)
+                )
+        }
+    }
+    
+    @ViewBuilder
+    private var onlineUsersList: some View {
+        ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
+            Button(action: {
+                navigationPath.append(user.username)
+            }) {
+                userAvatarView(user: user)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func userAvatarView(user: PostUser) -> some View {
+        Group {
+            if let avatarURL = user.photo ?? user.avatar_url, let url = URL(string: avatarURL) {
+                CachedAsyncImage(url: url, cacheType: .avatar)
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.appAccent,
+                                Color(red: 0.75, green: 0.65, blue: 0.95)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        Text(String((user.name ?? user.username).prefix(1)))
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.black)
+                    )
+            }
+        }
+        .frame(width: 44, height: 44)
+        .clipShape(Circle())
+        .overlay(
+            Circle()
+                .fill(Color.green)
+                .frame(width: 12, height: 12)
+                .overlay(
+                    Circle()
+                        .stroke(Color.black.opacity(0.2), lineWidth: 2)
+                        .frame(width: 12, height: 12)
+                )
+                .offset(x: 16, y: 16)
+        )
     }
     
     @ViewBuilder

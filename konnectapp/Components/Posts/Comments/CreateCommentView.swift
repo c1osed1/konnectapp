@@ -48,7 +48,7 @@ struct CreateCommentView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 12))
+                            .glassEffect(.regularInteractive, in: RoundedRectangle(cornerRadius: 12))
                             
                             Spacer()
                             
@@ -113,7 +113,7 @@ struct CreateCommentView: View {
                                 .foregroundColor(appAccent)
                                 .frame(minWidth: 40, minHeight: 40)
                                 .padding(.horizontal, 8)
-                                .glassEffect(.regular.interactive(), in: Capsule())
+                                .glassEffect(.regularInteractive, in: Capsule())
                         }
                         .buttonStyle(PlainButtonStyle())
                     } else {
@@ -155,7 +155,7 @@ struct CreateCommentView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
-                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 20))
+                            .glassEffect(.regularInteractive, in: RoundedRectangle(cornerRadius: 20))
                             .focused($isTextFieldFocused)
                             .lineLimit(1...5)
                     } else {
@@ -197,7 +197,7 @@ struct CreateCommentView: View {
                                     .tint(.white)
                                     .frame(minWidth: 40, minHeight: 40)
                                     .padding(.horizontal, 8)
-                                    .glassEffect(.regular.interactive(), in: Capsule())
+                                    .glassEffect(.regularInteractive, in: Capsule())
                             } else {
                                 Image(systemName: "paperplane.fill")
                                     .font(.system(size: 18))
@@ -208,7 +208,7 @@ struct CreateCommentView: View {
                                     )
                                     .frame(minWidth: 40, minHeight: 40)
                                     .padding(.horizontal, 8)
-                                    .glassEffect(.regular.interactive(), in: Capsule())
+                                    .glassEffect(.regularInteractive, in: Capsule())
                             }
                         }
                         .buttonStyle(PlainButtonStyle())

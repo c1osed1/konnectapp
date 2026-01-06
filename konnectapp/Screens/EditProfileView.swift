@@ -184,8 +184,18 @@ struct EditProfileView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                     }
-                    .buttonStyle(.glass)
-                    .buttonBorderShape(.roundedRectangle(radius: 12))
+                    .buttonStyle(PlainButtonStyle())
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.ultraThinMaterial)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                Color.appAccent.opacity(0.15),
+                                lineWidth: 0.5
+                            )
+                    )
                     
                     PhotosPicker(
                         selection: $selectedBannerItem,
@@ -198,8 +208,18 @@ struct EditProfileView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                     }
-                    .buttonStyle(.glass)
-                    .buttonBorderShape(.roundedRectangle(radius: 12))
+                    .buttonStyle(PlainButtonStyle())
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.ultraThinMaterial)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                Color.appAccent.opacity(0.15),
+                                lineWidth: 0.5
+                            )
+                    )
                 } else {
                     PhotosPicker(
                         selection: $selectedAvatarItem,
@@ -338,8 +358,18 @@ struct EditProfileView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
             }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.roundedRectangle(radius: 14))
+            .buttonStyle(PlainButtonStyle())
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(.ultraThinMaterial)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(
+                        Color.appAccent.opacity(0.15),
+                        lineWidth: 0.5
+                    )
+            )
             .disabled(isUploading || !hasChanges)
             .opacity(hasChanges && !isUploading ? 1.0 : 0.5)
         } else {
@@ -572,8 +602,18 @@ struct ProfileStyleButton: View {
                 .frame(width: 160)
                 .padding(16)
             }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.roundedRectangle(radius: 14))
+            .buttonStyle(PlainButtonStyle())
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(.ultraThinMaterial)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(
+                        Color.appAccent.opacity(0.15),
+                        lineWidth: 0.5
+                    )
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(

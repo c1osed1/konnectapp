@@ -116,7 +116,7 @@ struct CreatePostView: View {
                 isPublishing: isPublishing
             )
         }
-        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 20))
+        .glassEffect(.regularInteractive, in: RoundedRectangle(cornerRadius: 20))
         .photosPicker(
             isPresented: $showImagePicker,
             selection: $selectedItems,

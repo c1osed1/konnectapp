@@ -12,23 +12,34 @@ struct GlassEffectContainer<Content: View>: View {
 
 enum GlassEffectStyle {
     case regular
+    case regularInteractive
 }
 
 extension GlassEffectStyle {
     static var glass: GlassEffectStyle { .regular }
+    
+    var isInteractive: Bool {
+        switch self {
+        case .regular: return false
+        case .regularInteractive: return true
+        }
+    }
 }
 
 extension View {
+    @available(iOS 26.0, *)
+    @ViewBuilder
+    func glassEffect(in shape: some Shape) -> some View {
+        self.glassEffect(GlassEffectStyle.regular, in: shape)
+    }
+    
     @ViewBuilder
     func glassEffect(_ style: GlassEffectStyle, in shape: some Shape) -> some View {
         if #available(iOS 26.0, *) {
-            // Liquid glass эффект - используем ultraThinMaterial как у .buttonStyle(.glass)
-            // Без opacity для настоящего liquid glass эффекта
             self.background(
                 shape.fill(.ultraThinMaterial)
             )
         } else {
-            // Fallback для старых версий
             self.background(
                 shape.fill(.ultraThinMaterial.opacity(0.1))
                     .background(
@@ -36,5 +47,11 @@ extension View {
                     )
             )
         }
+    }
+}
+
+extension GlassEffectStyle {
+    func interactive() -> GlassEffectStyle {
+        .regularInteractive
     }
 }

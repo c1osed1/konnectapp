@@ -565,7 +565,7 @@ struct MusicView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 30))
+        .glassEffect(.regularInteractive, in: RoundedRectangle(cornerRadius: 30))
     }
     
     @ViewBuilder

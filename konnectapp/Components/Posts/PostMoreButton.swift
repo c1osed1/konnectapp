@@ -28,8 +28,11 @@ struct PostMoreButton: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 5)
                     }
-                    .buttonStyle(.glass)
-                    .buttonBorderShape(.roundedRectangle(radius: 20))
+                    .buttonStyle(PlainButtonStyle())
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(.ultraThinMaterial)
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(
