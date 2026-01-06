@@ -23,8 +23,8 @@ struct ReportModalView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(red: 0.06, green: 0.06, blue: 0.06),
-                        Color(red: 0.1, green: 0.1, blue: 0.1)
+                        Color.themeBackgroundStart,
+                        Color.themeBackgroundEnd
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -61,7 +61,7 @@ struct ReportModalView: View {
                                 .padding(12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(selectedReason == reason.0 ? Color.appAccent.opacity(0.2) : Color(red: 0.15, green: 0.15, blue: 0.15))
+                                        .fill(selectedReason == reason.0 ? Color.appAccent.opacity(0.2) : Color.themeBlockBackground)
                                 )
                             }
                         }
@@ -78,7 +78,7 @@ struct ReportModalView: View {
                                 .padding(12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color(red: 0.15, green: 0.15, blue: 0.15))
+                                        .fill(Color.themeBlockBackground)
                                 )
                                 .lineLimit(3...8)
                         }

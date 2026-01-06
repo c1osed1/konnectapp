@@ -6,6 +6,7 @@ struct ChartTrackRowView: View {
     let onPlay: () -> Void
     let onLike: () -> Void
     @StateObject private var player = MusicPlayer.shared
+    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         Button(action: onPlay) {
@@ -13,7 +14,7 @@ struct ChartTrackRowView: View {
                 // Позиция в чарте
                 Text("\(position)")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(position <= 3 ? Color.appAccent : Color(red: 0.6, green: 0.6, blue: 0.6))
+                    .foregroundColor(position <= 3 ? Color.appAccent : Color.themeTextSecondary)
                     .frame(width: 30)
                 
                 // Обложка
@@ -82,20 +83,20 @@ struct ChartTrackRowView: View {
                     
                     Text(track.artist ?? track.user_name ?? "Unknown Artist")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
+                        .foregroundColor(Color.themeTextSecondary)
                         .lineLimit(1)
                     
                     HStack(spacing: 12) {
                         if let playsCount = track.plays_count {
                             Label("\(formatCount(playsCount))", systemImage: "play.fill")
                                 .font(.system(size: 12))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                         }
                         
                         if let likesCount = track.likes_count {
                             Label("\(formatCount(likesCount))", systemImage: "heart.fill")
                                 .font(.system(size: 12))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                         }
                     }
                 }
@@ -137,8 +138,8 @@ struct ChartTrackRowView: View {
         switch trend {
         case "up": return .green
         case "down": return .red
-        case "stable": return Color(red: 0.6, green: 0.6, blue: 0.6)
-        default: return Color(red: 0.6, green: 0.6, blue: 0.6)
+        case "stable": return Color.themeTextSecondary
+        default: return Color.themeTextSecondary
         }
     }
     

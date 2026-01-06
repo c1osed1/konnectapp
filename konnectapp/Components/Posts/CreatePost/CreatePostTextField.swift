@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CreatePostTextField: View {
     @Binding var text: String
+    @StateObject private var themeManager = ThemeManager.shared
     @FocusState private var isFocused: Bool
     
     var body: some View {
@@ -20,7 +21,7 @@ struct CreatePostTextField: View {
             if text.isEmpty && !isFocused {
                 Text("что сегодня тут напишешь?")
                     .font(.system(size: 15))
-                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                    .foregroundColor(Color.themeTextSecondary)
                     .padding(.leading, 8)
                     .padding(.top, 10)
                     .allowsHitTesting(false)
@@ -28,7 +29,7 @@ struct CreatePostTextField: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.5))
+                .fill(Color.themeBlockBackground.opacity(0.5))
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(

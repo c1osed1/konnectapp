@@ -8,28 +8,13 @@ struct ProfileAvatar: View {
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            AsyncImage(url: URL(string: avatarURL ?? "")) { phase in
-                switch phase {
-                case .empty:
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.2, green: 0.2, blue: 0.3),
-                                    Color(red: 0.15, green: 0.15, blue: 0.25)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: size, height: size)
-                case .success(let image):
-                    image
-                        .resizable()
+            Group {
+                if let avatarURL = avatarURL, let url = URL(string: avatarURL) {
+                    CachedAsyncImage(url: url, cacheType: .avatar)
                         .aspectRatio(contentMode: .fill)
                         .frame(width: size, height: size)
                         .clipShape(Circle())
-                case .failure:
+                } else {
                     Circle()
                         .fill(
                             LinearGradient(
@@ -42,8 +27,6 @@ struct ProfileAvatar: View {
                             )
                         )
                         .frame(width: size, height: size)
-                @unknown default:
-                    EmptyView()
                 }
             }
             .overlay(

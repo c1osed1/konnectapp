@@ -3,8 +3,9 @@ import SwiftUI
 struct MusicView: View {
     @StateObject private var viewModel = MusicViewModel()
     @StateObject private var player = MusicPlayer.shared
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var selectedTab: MusicMainTab = .general
-    @State private var showPlayer: Bool = false
+    @State private var showFullScreenPlayer: Bool = false
     
     var body: some View {
         ZStack {
@@ -40,6 +41,9 @@ struct MusicView: View {
             if let currentTrack = player.currentTrack {
                 miniPlayerView(track: currentTrack)
             }
+        }
+        .fullScreenCover(isPresented: $showFullScreenPlayer) {
+            FullScreenPlayerView()
         }
         .task {
             if viewModel.myVibeTracks.isEmpty {
@@ -95,15 +99,15 @@ struct MusicView: View {
                     if viewModel.isLoadingMyVibe {
                         Text("Загрузка...")
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                     } else if viewModel.myVibeTracks.isEmpty {
                         Text("Лайкайте треки для рекомендаций")
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                     } else {
                         Text("\(viewModel.myVibeTracks.count) треков")
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                     }
                     
                     HStack(spacing: 8) {
@@ -127,7 +131,7 @@ struct MusicView: View {
                             .fill(.ultraThinMaterial.opacity(0.3))
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                    .fill(Color.themeBlockBackground.opacity(0.6))
                             )
                             .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 24))
                     } else {
@@ -135,7 +139,7 @@ struct MusicView: View {
                             .fill(.ultraThinMaterial.opacity(0.3))
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                    .fill(Color.themeBlockBackground.opacity(0.6))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24)
@@ -372,7 +376,7 @@ struct MusicView: View {
                             viewModel.searchResults = []
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                         }
                     }
                 }
@@ -463,7 +467,7 @@ struct MusicView: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         Capsule()
-                            .fill(Color(red: 0.3, green: 0.3, blue: 0.3).opacity(0.5))
+                            .fill(Color.themeBlockBackgroundSecondary.opacity(0.5))
                         
                         Capsule()
                             .fill(
@@ -482,7 +486,7 @@ struct MusicView: View {
                 
                 // Плеер
                 Button(action: {
-                    showPlayer = true
+                    showFullScreenPlayer = true
                 }) {
                     HStack(spacing: 12) {
                         // Обложка с закруглением
@@ -531,7 +535,7 @@ struct MusicView: View {
                             
                             Text(track.artist ?? track.user_name ?? "Unknown Artist")
                                 .font(.system(size: 13))
-                                .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                                .foregroundColor(Color.themeTextSecondary)
                                 .lineLimit(1)
                         }
                         
@@ -563,8 +567,8 @@ struct MusicView: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.8),
-                                            Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.9)
+                                            Color.themeBlockBackground.opacity(0.8),
+                                            Color.themeBackgroundStart.opacity(0.9)
                                         ],
                                         startPoint: .top,
                                         endPoint: .bottom
@@ -604,7 +608,7 @@ struct MusicView: View {
             
             // Плеер
             Button(action: {
-                showPlayer = true
+                showFullScreenPlayer = true
             }) {
                 HStack(spacing: 12) {
                     // Обложка с закруглением

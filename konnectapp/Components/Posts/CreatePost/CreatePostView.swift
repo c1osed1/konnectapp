@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct CreatePostView: View {
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var text: String = ""
     @State private var images: [UIImage] = []
     @State private var selectedTrack: MusicTrack? = nil
@@ -45,7 +46,7 @@ struct CreatePostView: View {
                             switch phase {
                             case .empty:
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .fill(Color.themeBlockBackground)
                                     .frame(width: 50, height: 50)
                             case .success(let image):
                                 image
@@ -55,7 +56,7 @@ struct CreatePostView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                             case .failure:
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .fill(Color.themeBlockBackground)
                                     .frame(width: 50, height: 50)
                             @unknown default:
                                 EmptyView()

@@ -22,28 +22,18 @@ struct PostMediaView: View {
     @ViewBuilder
     private func singleImageView(url: String) -> some View {
         ZStack {
-            AsyncImage(url: URL(string: url)) { phase in
-                switch phase {
-                case .empty:
-                    Rectangle()
-                        .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
-                        .frame(minHeight: 200)
-                        .aspectRatio(16/9, contentMode: .fit)
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: .infinity)
-                        .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
-                        .clipped()
-                case .failure:
-                    Rectangle()
-                        .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
-                        .frame(minHeight: 200)
-                        .aspectRatio(16/9, contentMode: .fit)
-                @unknown default:
-                    EmptyView()
-                }
+            if let imageURL = URL(string: url) {
+                CachedAsyncImage(url: imageURL, cacheType: .post)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 200)
+                    .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
+                    .clipped()
+            } else {
+                Rectangle()
+                    .fill(Color.themeBlockBackground)
+                    .frame(minHeight: 200)
+                    .aspectRatio(16/9, contentMode: .fit)
             }
             
             if isNsfw && !showNsfw {
@@ -73,27 +63,17 @@ struct PostMediaView: View {
         HStack(spacing: 2) {
             ForEach(urls, id: \.self) { mediaURL in
                 ZStack {
-                    AsyncImage(url: URL(string: mediaURL)) { phase in
-                        switch phase {
-                        case .empty:
-                            Rectangle()
-                                .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
-                                .frame(height: 200)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 200)
-                                .frame(maxWidth: .infinity)
-                                .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
-                                .clipped()
-                        case .failure:
-                            Rectangle()
-                                .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
-                                .frame(height: 200)
-                        @unknown default:
-                            EmptyView()
-                        }
+                    if let imageURL = URL(string: mediaURL) {
+                        CachedAsyncImage(url: imageURL, cacheType: .post)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
+                            .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
+                            .clipped()
+                    } else {
+                        Rectangle()
+                            .fill(Color.themeBlockBackground)
+                            .frame(height: 200)
                     }
                     
                     if isNsfw && !showNsfw {
@@ -123,7 +103,7 @@ struct PostMediaView: View {
                     switch phase {
                     case .empty:
                         Rectangle()
-                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                            .fill(Color.themeBlockBackground)
                             .frame(height: 200)
                     case .success(let image):
                         image
@@ -135,7 +115,7 @@ struct PostMediaView: View {
                             .clipped()
                     case .failure:
                         Rectangle()
-                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                            .fill(Color.themeBlockBackground)
                             .frame(height: 200)
                     @unknown default:
                         EmptyView()
@@ -165,7 +145,7 @@ struct PostMediaView: View {
                             switch phase {
                             case .empty:
                                 Rectangle()
-                                    .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .fill(Color.themeBlockBackground)
                                     .frame(height: 200)
                             case .success(let image):
                                 image
@@ -177,7 +157,7 @@ struct PostMediaView: View {
                                     .clipped()
                             case .failure:
                                 Rectangle()
-                                    .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .fill(Color.themeBlockBackground)
                                     .frame(height: 200)
                             @unknown default:
                                 EmptyView()
@@ -214,7 +194,7 @@ struct PostMediaView: View {
                             switch phase {
                             case .empty:
                                 Rectangle()
-                                    .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .fill(Color.themeBlockBackground)
                                     .frame(height: 150)
                             case .success(let image):
                                 image
@@ -226,7 +206,7 @@ struct PostMediaView: View {
                                     .clipped()
                             case .failure:
                                 Rectangle()
-                                    .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .fill(Color.themeBlockBackground)
                                     .frame(height: 150)
                             @unknown default:
                                 EmptyView()
@@ -259,7 +239,7 @@ struct PostMediaView: View {
                             case .empty:
                                 ZStack {
                                     Rectangle()
-                                        .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                        .fill(Color.themeBlockBackground)
                                         .frame(height: 150)
                                     
                                     if urls.count > 5 && mediaURL == urls[4] {
@@ -294,7 +274,7 @@ struct PostMediaView: View {
                             case .failure:
                                 ZStack {
                                     Rectangle()
-                                        .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                        .fill(Color.themeBlockBackground)
                                         .frame(height: 150)
                                     
                                     if urls.count > 5 && mediaURL == urls[4] {

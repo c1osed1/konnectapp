@@ -9,6 +9,7 @@ struct CreatePostActions: View {
     let onAddMusic: () -> Void
     let onPublish: () -> Void
     let isPublishing: Bool
+    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         HStack(spacing: 8) {
@@ -24,7 +25,7 @@ struct CreatePostActions: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.5))
+                        .fill(Color.themeBlockBackground.opacity(0.5))
                 )
             }
             
@@ -40,7 +41,7 @@ struct CreatePostActions: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.5))
+                        .fill(Color.themeBlockBackground.opacity(0.5))
                 )
             }
             
@@ -54,7 +55,7 @@ struct CreatePostActions: View {
                         .frame(width: 40, height: 40)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.5))
+                                .fill(Color.themeBlockBackground.opacity(0.5))
                         )
                 }
             }

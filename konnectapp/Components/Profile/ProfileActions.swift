@@ -6,6 +6,7 @@ struct ProfileActions: View {
     let onFollowToggle: () -> Void
     let onEdit: () -> Void
     let onMessage: () -> Void
+    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         Group {
@@ -34,7 +35,7 @@ struct ProfileActions: View {
                                     .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
+                                            .fill(Color.themeBlockBackground.opacity(0.6))
                                     )
                             }
                         )
@@ -71,7 +72,7 @@ struct ProfileActions: View {
                                     .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
+                                            .fill(Color.themeBlockBackground.opacity(0.6))
                                     )
                             }
                         )
@@ -97,7 +98,7 @@ struct ProfileActions: View {
                                     .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
+                                            .fill(Color.themeBlockBackground.opacity(0.6))
                                     )
                                 
                                 RoundedRectangle(cornerRadius: 12)
@@ -144,7 +145,7 @@ struct ProfileActions: View {
                                     .fill(.ultraThinMaterial.opacity(0.1))
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
+                                            .fill(Color.themeBlockBackground.opacity(0.6))
                                     )
                                 
                                 RoundedRectangle(cornerRadius: 12)

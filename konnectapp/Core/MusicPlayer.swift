@@ -20,6 +20,8 @@ class MusicPlayer: ObservableObject {
     private var player: AVPlayer?
     private var timeObserver: Any?
     private var cancellables = Set<AnyCancellable>()
+    private var currentPlaylist: [MusicTrack] = []
+    private var currentIndex: Int = 0
     
     private init() {
         setupAudioSession()
@@ -116,29 +118,45 @@ class MusicPlayer: ObservableObject {
             return
         }
         
-        // Сохраняем старый player для безопасного удаления observer
         let oldPlayer = player
-        
         currentTrack = track
         currentPlaylist = playlist.isEmpty ? [track] : playlist
         currentIndex = currentPlaylist.firstIndex(where: { $0.id == track.id }) ?? 0
         
-        // Удаляем observer из старого player перед созданием нового
         if let observer = timeObserver, let playerToClean = oldPlayer {
             playerToClean.removeTimeObserver(observer)
             timeObserver = nil
         }
         
-        let playerItem = AVPlayerItem(url: url)
-        player = AVPlayer(playerItem: playerItem)
+        Task {
+            let playURL: URL
+            if let cachedURL = CacheManager.shared.getCachedTrack(url: url) {
+                playURL = cachedURL
+            } else {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    CacheManager.shared.cacheTrack(url: url, data: data)
+                    if let cachedURL = CacheManager.shared.getCachedTrack(url: url) {
+                        playURL = cachedURL
+                    } else {
+                        playURL = url
+                    }
+                } catch {
+                    print("❌ Error caching track: \(error)")
+                    playURL = url
+                }
+            }
+            
+            await MainActor.run {
+                let playerItem = AVPlayerItem(url: playURL)
+                player = AVPlayer(playerItem: playerItem)
+                setupTimeObserver()
+                updateNowPlayingInfo()
+                player?.play()
+                isPlaying = true
+            }
+        }
         
-        setupTimeObserver()
-        updateNowPlayingInfo()
-        
-        player?.play()
-        isPlaying = true
-        
-        // Отправляем событие проигрывания на сервер
         Task {
             do {
                 _ = try await MusicService.shared.playTrack(trackId: track.id)
@@ -170,8 +188,12 @@ class MusicPlayer: ObservableObject {
     
     func seek(to time: TimeInterval) {
         let cmTime = CMTime(seconds: time, preferredTimescale: 600)
-        player?.seek(to: cmTime)
-        currentTime = time
+        player?.seek(to: cmTime) { [weak self] completed in
+            if completed {
+                self?.currentTime = time
+                self?.updateNowPlayingInfo()
+            }
+        }
     }
     
     func nextTrack() {
@@ -184,6 +206,13 @@ class MusicPlayer: ObservableObject {
         guard !currentPlaylist.isEmpty else { return }
         currentIndex = currentIndex > 0 ? currentIndex - 1 : currentPlaylist.count - 1
         playTrack(currentPlaylist[currentIndex], playlist: currentPlaylist)
+    }
+    
+    func setPlaylist(_ tracks: [MusicTrack], startIndex: Int = 0) {
+        guard !tracks.isEmpty, startIndex >= 0, startIndex < tracks.count else { return }
+        currentPlaylist = tracks
+        currentIndex = startIndex
+        playTrack(tracks[startIndex], playlist: tracks)
     }
     
     func stop() {
@@ -214,7 +243,11 @@ class MusicPlayer: ObservableObject {
             nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = album
         }
         
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = TimeInterval(track.duration)
+        if duration > 0 {
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = duration
+        } else {
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = TimeInterval(track.duration)
+        }
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? playbackRate : 0.0
         
@@ -280,18 +313,6 @@ class MusicPlayer: ObservableObject {
     @objc private func playerItemFailedToPlay() {
         print("❌ Player item failed to play")
         stop()
-    }
-    
-    // MARK: - Playlist Management
-    private var currentPlaylist: [MusicTrack] = []
-    private var currentIndex: Int = 0
-    
-    func setPlaylist(_ tracks: [MusicTrack], startIndex: Int = 0) {
-        currentPlaylist = tracks
-        currentIndex = min(startIndex, tracks.count - 1)
-        if !tracks.isEmpty {
-            playTrack(tracks[currentIndex], playlist: tracks)
-        }
     }
 }
 

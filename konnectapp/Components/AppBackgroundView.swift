@@ -7,48 +7,20 @@ struct AppBackgroundView: View {
         GeometryReader { geometry in
             Group {
                 if let backgroundURL = backgroundURL, !backgroundURL.isEmpty, let url = URL(string: backgroundURL) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            defaultGradient
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .onAppear {
-                                    print("🟡 AppBackgroundView: Loading image from \(backgroundURL)")
-                                }
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .clipped()
-                                .overlay(
-                                    // Затемнение для лучшей читаемости
-                                    LinearGradient(
-                                        colors: [
-                                            Color.black.opacity(0.3),
-                                            Color.black.opacity(0.5)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                                .onAppear {
-                                    print("🟢 AppBackgroundView: Image loaded successfully from \(backgroundURL)")
-                                }
-                        case .failure(let error):
-                            defaultGradient
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .onAppear {
-                                    print("❌ AppBackgroundView: Failed to load image from \(backgroundURL), error: \(error.localizedDescription)")
-                                }
-                        @unknown default:
-                            defaultGradient
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .onAppear {
-                                    print("⚠️ AppBackgroundView: Unknown state for image loading")
-                                }
-                        }
-                    }
+                    CachedAsyncImage(url: url, cacheType: .banner)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                        .overlay(
+                            LinearGradient(
+                                colors: [
+                                    Color.black.opacity(0.3),
+                                    Color.black.opacity(0.5)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
                 } else {
                     defaultGradient
                         .frame(width: geometry.size.width, height: geometry.size.height)
@@ -71,11 +43,13 @@ struct AppBackgroundView: View {
         .allowsHitTesting(false) // Фон не должен перехватывать нажатия
     }
     
+    @StateObject private var themeManager = ThemeManager.shared
+    
     private var defaultGradient: some View {
         LinearGradient(
             colors: [
-                Color(red: 0.06, green: 0.06, blue: 0.06),
-                Color(red: 0.1, green: 0.1, blue: 0.1)
+                Color.themeBackgroundStart,
+                Color.themeBackgroundEnd
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing

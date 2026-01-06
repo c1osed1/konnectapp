@@ -49,7 +49,6 @@ class FeedViewModel: ObservableObject {
                 return
             }
             
-            print("❌ Feed loading error: \(error.localizedDescription)")
             await MainActor.run {
                 self.isLoading = false
                 if let authError = error as? AuthError {

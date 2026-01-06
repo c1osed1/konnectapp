@@ -4,6 +4,7 @@ struct CommentView: View {
     let comment: Comment
     @Binding var navigationPath: NavigationPath
     @StateObject private var authManager = AuthManager.shared
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var isLiked: Bool
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
@@ -137,7 +138,7 @@ struct CommentView: View {
                                         .frame(width: 40, height: 40)
                                 @unknown default:
                                     Circle()
-                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .fill(Color.themeBlockBackgroundSecondary)
                                         .frame(width: 40, height: 40)
                                 }
                             }
@@ -164,7 +165,7 @@ struct CommentView: View {
                                 if let timestamp = comment.timestamp {
                                     Text(DateFormatterHelper.formatRelativeTime(timestamp))
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
+                                        .foregroundColor(Color.themeTextSecondary.opacity(0.8))
                                 }
                             }
                         }
@@ -181,7 +182,7 @@ struct CommentView: View {
                                 switch phase {
                                 case .empty:
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .fill(Color.themeBlockBackgroundSecondary)
                                         .frame(height: 200)
                                 case .success(let img):
                                     img
@@ -191,11 +192,11 @@ struct CommentView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
                                 case .failure:
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .fill(Color.themeBlockBackgroundSecondary)
                                         .frame(height: 200)
                                 @unknown default:
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                        .fill(Color.themeBlockBackgroundSecondary)
                                         .frame(height: 200)
                                 }
                             }
@@ -211,12 +212,12 @@ struct CommentView: View {
                                 HStack(spacing: 4) {
                                     Image(systemName: isLiked ? "heart.fill" : "heart")
                                         .font(.system(size: 14))
-                                        .foregroundColor(isLiked ? .red : Color(red: 0.6, green: 0.6, blue: 0.6))
+                                        .foregroundColor(isLiked ? .red : Color.themeTextSecondary)
                                     
                                     if likesCount > 0 {
                                         Text("\(likesCount)")
                                             .font(.system(size: 13))
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                            .foregroundColor(Color.themeTextSecondary)
                                     }
                                 }
                             }
@@ -230,11 +231,11 @@ struct CommentView: View {
                                     HStack(spacing: 4) {
                                         Image(systemName: "arrowshape.turn.up.right")
                                             .font(.system(size: 14))
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                            .foregroundColor(Color.themeTextSecondary)
                                         
                                         Text("\(repliesCount) ответ\(repliesCount == 1 ? "" : repliesCount < 5 ? "а" : "ов")")
                                             .font(.system(size: 13))
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                            .foregroundColor(Color.themeTextSecondary)
                                     }
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -278,7 +279,7 @@ struct CommentView: View {
                             .fill(.ultraThinMaterial.opacity(0.1))
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                    .fill(Color.themeBlockBackground.opacity(0.5))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
@@ -293,7 +294,7 @@ struct CommentView: View {
                             .fill(.ultraThinMaterial.opacity(0.1))
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                    .fill(Color.themeBlockBackground.opacity(0.5))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)

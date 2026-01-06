@@ -7,6 +7,7 @@ struct CommentsListView: View {
     @Binding var replyingToComment: Comment?
     @Binding var replyingToReply: Reply?
     @Binding var replyingToReplyCommentId: Int64?
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var comments: [Comment] = []
     @State private var isLoading: Bool = false
     @State private var currentPage: Int = 1
@@ -32,10 +33,10 @@ struct CommentsListView: View {
                     VStack(spacing: 8) {
                         Image(systemName: "bubble.right")
                             .font(.system(size: 40))
-                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+                            .foregroundColor(Color.themeTextSecondary)
                         Text("Нет комментариев")
                             .font(.system(size: 16))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                     }
                     .padding(.vertical, 40)
                 } else {

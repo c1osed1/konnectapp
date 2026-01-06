@@ -5,6 +5,7 @@ struct TrackRowView: View {
     let onPlay: () -> Void
     let onLike: () -> Void
     @StateObject private var player = MusicPlayer.shared
+    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         Button(action: onPlay) {
@@ -66,13 +67,13 @@ struct TrackRowView: View {
                     
                     Text(track.artist ?? track.user_name ?? "Unknown Artist")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
+                        .foregroundColor(Color.themeTextSecondary)
                         .lineLimit(1)
                     
                     if let genre = track.genre {
                         Text(genre)
                             .font(.system(size: 12))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                             .lineLimit(1)
                     }
                 }
@@ -91,7 +92,7 @@ struct TrackRowView: View {
                 Button(action: onLike) {
                     Image(systemName: track.is_liked == true ? "heart.fill" : "heart")
                         .font(.system(size: 18))
-                        .foregroundColor(track.is_liked == true ? Color.red : Color(red: 0.6, green: 0.6, blue: 0.6))
+                        .foregroundColor(track.is_liked == true ? Color.red : Color.themeTextSecondary)
                 }
                 .buttonStyle(PlainButtonStyle())
             }

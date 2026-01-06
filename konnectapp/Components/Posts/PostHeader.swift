@@ -10,27 +10,28 @@ struct PostHeader: View {
             Button(action: {
                 navigationPath.append(user.username)
             }) {
-                AsyncImage(url: URL(string: user.avatar_url ?? "")) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.appAccent,
-                                    Color(red: 0.75, green: 0.65, blue: 0.95)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                Group {
+                    if let avatarURL = user.avatar_url, let url = URL(string: avatarURL) {
+                        CachedAsyncImage(url: url, cacheType: .avatar)
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.appAccent,
+                                        Color(red: 0.75, green: 0.65, blue: 0.95)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                    .overlay(
-                        Text(String((user.name ?? user.username).prefix(1)))
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.black)
-                    )
+                            .overlay(
+                                Text(String((user.name ?? user.username).prefix(1)))
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.black)
+                            )
+                    }
                 }
                 .frame(width: 44, height: 44)
                 .clipShape(Circle())

@@ -3,6 +3,7 @@ import SwiftUI
 struct RepostedPostView: View {
     let originalPost: OriginalPost
     @Binding var navigationPath: NavigationPath
+    @StateObject private var themeManager = ThemeManager.shared
     
     private var uniqueMedia: [String] {
         var allMedia: [String] = []
@@ -63,7 +64,7 @@ struct RepostedPostView: View {
                     .fill(.ultraThinMaterial.opacity(0.15))
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(red: 0.12, green: 0.12, blue: 0.12).opacity(0.6))
+                            .fill(Color.themeBlockBackground.opacity(0.6))
                     )
             }
         )
@@ -104,7 +105,7 @@ struct RepostedPostView: View {
                     .fill(.ultraThinMaterial.opacity(0.15))
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(red: 0.12, green: 0.12, blue: 0.12).opacity(0.6))
+                            .fill(Color.themeBlockBackground.opacity(0.6))
                     )
                 
                 RoundedRectangle(cornerRadius: 16)

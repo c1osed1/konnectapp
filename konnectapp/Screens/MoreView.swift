@@ -2,7 +2,10 @@ import SwiftUI
 
 struct MoreView: View {
     @StateObject private var authManager = AuthManager.shared
-    @State private var showBackgroundModal = false
+    @StateObject private var themeManager = ThemeManager.shared
+    @State private var showSettings = false
+    @State private var showAbout = false
+    @State private var showNotifications = false
     
     var body: some View {
         ZStack {
@@ -15,25 +18,28 @@ struct MoreView: View {
                     .foregroundColor(.white)
                     .padding(.top, 20)
                 
-                // Настройки
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Настройки")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                    
-                    Button {
-                        showBackgroundModal = true
-                    } label: {
-                        MoreRow(icon: "photo.fill", title: "Фон профиля")
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                Button {
+                    showSettings = true
+                } label: {
+                    MoreRow(icon: "gearshape.fill", title: "Настройки")
                 }
+                .buttonStyle(PlainButtonStyle())
                 .padding(.horizontal, 16)
                 
-                VStack(spacing: 12) {
+                Button {
+                    showNotifications = true
+                } label: {
+                    MoreRow(icon: "bell.fill", title: "Уведомления")
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal, 16)
+                
+                Button {
+                    showAbout = true
+                } label: {
                     MoreRow(icon: "info.circle", title: "О приложении")
                 }
+                .buttonStyle(PlainButtonStyle())
                 .padding(.horizontal, 16)
                 
                 Button(action: {
@@ -60,8 +66,14 @@ struct MoreView: View {
                 .padding(.bottom, 100)
             }
         }
-        .sheet(isPresented: $showBackgroundModal) {
-            ProfileBackgroundModalView()
+        .fullScreenCover(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .sheet(isPresented: $showNotifications) {
+            NotificationsModalView()
+        }
+        .sheet(isPresented: $showAbout) {
+            AboutAppView()
         }
     }
 }
@@ -83,13 +95,13 @@ struct MoreRow: View {
             Spacer()
             
             Image(systemName: "chevron.right")
-                .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
+                .foregroundColor(Color.themeTextSecondary)
                 .font(.system(size: 14))
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                .fill(Color.themeBlockBackground)
         )
     }
 }

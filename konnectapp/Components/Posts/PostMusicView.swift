@@ -2,21 +2,22 @@ import SwiftUI
 
 struct PostMusicView: View {
     let tracks: [MusicTrack]
-    @State private var isPlaying: Bool = false
-    @State private var currentTrackIndex: Int = 0
+    @StateObject private var player = MusicPlayer.shared
+    @StateObject private var themeManager = ThemeManager.shared
+    @State private var showFullScreenPlayer = false
     
     var body: some View {
         if let track = tracks.first {
             Button(action: {
-                // TODO: Implement music playback
-                isPlaying.toggle()
+                player.setPlaylist(tracks, startIndex: 0)
+                showFullScreenPlayer = true
             }) {
                 HStack(spacing: 10) {
                     AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
                         switch phase {
                         case .empty:
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                .fill(Color.themeBlockBackground)
                                 .frame(width: 48, height: 48)
                                 .overlay(
                                     Image(systemName: "music.note")
@@ -31,7 +32,7 @@ struct PostMusicView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                         case .failure:
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                .fill(Color.themeBlockBackground)
                                 .frame(width: 48, height: 48)
                                 .overlay(
                                     Image(systemName: "music.note")
@@ -52,26 +53,22 @@ struct PostMusicView: View {
                         if let artist = track.artist {
                             Text(artist)
                                 .font(.system(size: 13))
-                                .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                                .foregroundColor(Color.themeTextSecondary)
                                 .lineLimit(1)
                         }
                     }
                     
                     Spacer()
                     
-                    Button(action: {
-                        isPlaying.toggle()
-                    }) {
-                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
+                    Image(systemName: player.currentTrack?.id == track.id && player.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6))
+                        .fill(Color.themeBlockBackground.opacity(0.6))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
                                 .stroke(
@@ -82,6 +79,9 @@ struct PostMusicView: View {
                 )
             }
             .buttonStyle(PlainButtonStyle())
+            .fullScreenCover(isPresented: $showFullScreenPlayer) {
+                FullScreenPlayerView()
+            }
         }
     }
 }

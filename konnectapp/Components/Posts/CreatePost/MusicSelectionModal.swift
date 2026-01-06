@@ -13,7 +13,7 @@ struct MusicSelectionModal: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(red: 0.05, green: 0.05, blue: 0.05)
+                Color.themeBackgroundStart
                     .ignoresSafeArea()
                 
                 if isLoading && tracks.isEmpty {

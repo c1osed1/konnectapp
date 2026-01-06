@@ -387,6 +387,61 @@ struct LikeResponse: Codable {
     let likes_count: Int
 }
 
+// MARK: - Track Detail Response
+struct TrackDetailResponse: Codable {
+    let success: Bool
+    let track: MusicTrackDetail
+}
+
+// MARK: - Music Track Detail (расширенная версия)
+struct MusicTrackDetail: Codable {
+    let id: Int64
+    let title: String
+    let artist: String?
+    let album: String?
+    let duration: Int
+    let file_path: String?
+    let cover_path: String?
+    let user_id: Int64?
+    let user_name: String?
+    let user_username: String?
+    let genre: String?
+    let description: String?
+    let plays_count: Int?
+    let likes_count: Int?
+    let verified: Bool?
+    let artist_id: Int64?
+    let created_at: String?
+    let artist_info: ArtistInfo?
+}
+
+// MARK: - Artist Info
+struct ArtistInfo: Codable {
+    let id: Int64
+    let avatar_url: String?
+    let verified: Bool?
+}
+
+// MARK: - Lyrics Response
+struct LyricsResponse: Codable {
+    let track_id: Int64
+    let has_lyrics: Bool
+    let has_synced_lyrics: Bool
+    let lyrics: String?
+    let synced_lyrics: [SyncedLyricLine]?
+    let lyrics_url: String?
+    let source_url: String?
+}
+
+// MARK: - Synced Lyric Line
+struct SyncedLyricLine: Codable, Identifiable {
+    let text: String
+    let startTimeMs: Int
+    let lineId: String
+    
+    var id: String { lineId }
+}
+
 // MARK: - Profile Models
 struct ProfileUser: Codable {
     let id: Int64
@@ -739,6 +794,64 @@ struct ProfileResponse: Codable {
     let current_user_is_moderator: Bool?
     let is_private: Bool?
     let message: String?
+}
+
+// MARK: - Notification Models
+struct Notification: Codable, Identifiable {
+    let id: Int64
+    let type: String
+    let message: String
+    let created_at: String?
+    let is_read: Bool?
+    let link: String?
+    let content_type: String?
+    let sender_id: Int64?
+    let user_id: Int64?
+    let sender_user: PostUser?
+    let post_content: String?
+    let post_data: PostData?
+    let comment_content: String?
+    let comment_data: CommentData?
+    let reply_content: String?
+    let reply_data: ReplyData?
+}
+
+struct PostData: Codable {
+    let id: Int64
+    let created_at: String?
+    let image_url: String?
+    let preview: String?
+    let text: String?
+    let title: String?
+    let user_id: Int64?
+}
+
+struct CommentData: Codable {
+    let id: Int64
+    let author: PostUser?
+    let created_at: String?
+    let image_url: String?
+    let post_id: Int64?
+    let preview: String?
+    let text: String?
+    let user_id: Int64?
+}
+
+struct ReplyData: Codable {
+    let id: Int64
+    let author: PostUser?
+    let created_at: String?
+    let image_url: String?
+    let post_id: Int64?
+    let preview: String?
+    let text: String?
+    let user_id: Int64?
+}
+
+struct NotificationsResponse: Codable {
+    let success: Bool
+    let notifications: [Notification]
+    let unread_count: Int?
 }
 
 // MARK: - Auth Errors

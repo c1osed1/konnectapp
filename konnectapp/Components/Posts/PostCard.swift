@@ -3,6 +3,7 @@ import SwiftUI
 struct PostCard: View {
     let post: Post
     @Binding var navigationPath: NavigationPath
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var isLiked: Bool
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
@@ -66,7 +67,7 @@ struct PostCard: View {
                         .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                .fill(Color.themeBlockBackground.opacity(0.5))
                         )
                 }
             )

@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var viewModel = ProfileViewModel()
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var showFollowers = false
     @State private var showFollowing = false
     @State private var showEditProfile = false

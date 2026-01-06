@@ -7,6 +7,7 @@ struct CreateCommentView: View {
     @Binding var replyingToComment: Comment?
     @Binding var replyingToReply: Reply?
     @Binding var replyingToReplyCommentId: Int64?
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var commentText: String = ""
     @State private var selectedImage: UIImage?
     @State private var selectedImageItem: PhotosPickerItem?
@@ -54,7 +55,7 @@ struct CreateCommentView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 18))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                     }
                 }
                 .padding(.bottom, 8)
@@ -74,7 +75,7 @@ struct CreateCommentView: View {
                                         .fill(.ultraThinMaterial.opacity(0.1))
                                         .background(
                                             RoundedRectangle(cornerRadius: 20)
-                                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                                .fill(Color.themeBlockBackground.opacity(0.6))
                                         )
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 20)
@@ -142,7 +143,7 @@ struct CreateCommentView: View {
                                             .fill(.ultraThinMaterial.opacity(0.1))
                                             .background(
                                                 Circle()
-                                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                                    .fill(Color.themeBlockBackground.opacity(0.6))
                                             )
                                             .overlay(
                                                 Circle()
@@ -171,7 +172,7 @@ struct CreateCommentView: View {
                                         .fill(.ultraThinMaterial.opacity(0.1))
                                         .background(
                                             Circle()
-                                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                                .fill(Color.themeBlockBackground.opacity(0.6))
                                         )
                                         .overlay(
                                             Circle()
@@ -212,7 +213,7 @@ struct CreateCommentView: View {
                                                 .fill(.ultraThinMaterial.opacity(0.1))
                                                 .background(
                                                     Circle()
-                                                        .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                                        .fill(Color.themeBlockBackground.opacity(0.6))
                                                 )
                                                 .overlay(
                                                     Circle()
@@ -252,7 +253,7 @@ struct CreateCommentView: View {
                                             .fill(.ultraThinMaterial.opacity(0.1))
                                             .background(
                                                 Circle()
-                                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.6))
+                                                    .fill(Color.themeBlockBackground.opacity(0.6))
                                             )
                                             .overlay(
                                                 Circle()

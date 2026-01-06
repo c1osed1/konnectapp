@@ -20,7 +20,38 @@ extension Color {
     }
     
     static var appAccent: Color {
-        return Color.accentColor(from: AuthManager.shared.currentUser)
+        if let currentUser = AuthManager.shared.currentUser {
+            return accentColor(from: currentUser)
+        }
+        return defaultAccentColor
+    }
+    
+    static var themeBackgroundStart: Color {
+        return ThemeManager.shared.currentTheme.colors.backgroundStart
+    }
+    
+    static var themeBackgroundEnd: Color {
+        return ThemeManager.shared.currentTheme.colors.backgroundEnd
+    }
+    
+    static var themeBlockBackground: Color {
+        return ThemeManager.shared.currentTheme.colors.blockBackground
+    }
+    
+    static var themeBlockBackgroundSecondary: Color {
+        return ThemeManager.shared.currentTheme.colors.blockBackgroundSecondary
+    }
+    
+    static var themeTextPrimary: Color {
+        return ThemeManager.shared.currentTheme.colors.textPrimary
+    }
+    
+    static var themeTextSecondary: Color {
+        return ThemeManager.shared.currentTheme.colors.textSecondary
+    }
+    
+    static var themeBorder: Color {
+        return ThemeManager.shared.currentTheme.colors.border
     }
 }
 

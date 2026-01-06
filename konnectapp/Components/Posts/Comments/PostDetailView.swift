@@ -4,6 +4,7 @@ struct PostDetailView: View {
     let post: Post
     @Environment(\.dismiss) var dismiss
     @Binding var navigationPath: NavigationPath
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var detailedPost: Post?
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
@@ -17,8 +18,8 @@ struct PostDetailView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(red: 0.06, green: 0.06, blue: 0.06),
-                        Color(red: 0.1, green: 0.1, blue: 0.1)
+                        Color.themeBackgroundStart,
+                        Color.themeBackgroundEnd
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing

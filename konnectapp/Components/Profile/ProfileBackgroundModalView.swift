@@ -16,8 +16,8 @@ struct ProfileBackgroundModalView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(red: 0.06, green: 0.06, blue: 0.06),
-                        Color(red: 0.1, green: 0.1, blue: 0.1)
+                        Color.themeBackgroundStart,
+                        Color.themeBackgroundEnd
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -37,7 +37,7 @@ struct ProfileBackgroundModalView: View {
                                     switch phase {
                                     case .empty:
                                         RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                            .fill(Color.themeBlockBackgroundSecondary)
                                             .frame(height: 200)
                                             .overlay(
                                                 ProgressView()
@@ -51,7 +51,7 @@ struct ProfileBackgroundModalView: View {
                                             .clipShape(RoundedRectangle(cornerRadius: 16))
                                     case .failure:
                                         RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                            .fill(Color.themeBlockBackgroundSecondary)
                                             .frame(height: 200)
                                             .overlay(
                                                 VStack(spacing: 8) {
@@ -64,7 +64,7 @@ struct ProfileBackgroundModalView: View {
                                             )
                                     @unknown default:
                                         RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                            .fill(Color.themeBlockBackgroundSecondary)
                                             .frame(height: 200)
                                     }
                                 }
@@ -112,7 +112,7 @@ struct ProfileBackgroundModalView: View {
                                     .padding(.vertical, 12)
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                            .fill(Color.themeBlockBackgroundSecondary)
                                     )
                                 }
                             } else {
@@ -130,13 +130,13 @@ struct ProfileBackgroundModalView: View {
                                             .foregroundColor(.white)
                                         Text("PNG, JPG, JPEG, GIF до 10MB")
                                             .font(.system(size: 13))
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                            .foregroundColor(Color.themeTextSecondary)
                                     }
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 200)
                                     .background(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                            .fill(Color.themeBlockBackground)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
                                             .stroke(

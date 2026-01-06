@@ -3,6 +3,7 @@ import SwiftUI
 struct FeedView: View {
     @StateObject private var viewModel = FeedViewModel()
     @StateObject private var onlineUsersViewModel = OnlineUsersViewModel()
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var selectedFeedType: FeedType = .all
     @Binding var navigationPath: NavigationPath
     
@@ -37,10 +38,10 @@ struct FeedView: View {
                         VStack(spacing: 12) {
                             Image(systemName: "tray")
                                 .font(.system(size: 48))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                             Text("Лента пуста")
                                 .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
+                                .foregroundColor(Color.themeTextPrimary)
                             
                             if let errorMessage = viewModel.errorMessage {
                                 Text(errorMessage)
@@ -88,7 +89,7 @@ struct FeedView: View {
                         if !viewModel.hasMore && !viewModel.posts.isEmpty {
                             Text("Конец ленты")
                                 .font(.system(size: 14))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                                 .padding()
                         }
                     }
@@ -160,67 +161,46 @@ struct FeedView: View {
                         }
                     } else {
                         ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
-                        Button(action: {
-                            navigationPath.append(user.username)
-                        }) {
-                            AsyncImage(url: URL(string: user.photo ?? user.avatar_url ?? "")) { phase in
-                                switch phase {
-                                case .empty:
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [
-                                                    Color.appAccent,
-                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .overlay(
-                                            Text(String((user.name ?? user.username).prefix(1)))
-                                                .font(.system(size: 14, weight: .bold))
-                                                .foregroundColor(.black)
-                                        )
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                case .failure:
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [
-                                                    Color.appAccent,
-                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .overlay(
-                                            Text(String((user.name ?? user.username).prefix(1)))
-                                                .font(.system(size: 14, weight: .bold))
-                                                .foregroundColor(.black)
-                                        )
-                                @unknown default:
-                                    EmptyView()
-                                }
-                            }
-                            .frame(width: 44, height: 44)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 12, height: 12)
-                                    .overlay(
+                            Button(action: {
+                                navigationPath.append(user.username)
+                            }) {
+                                Group {
+                                    if let avatarURL = user.photo ?? user.avatar_url, let url = URL(string: avatarURL) {
+                                        CachedAsyncImage(url: url, cacheType: .avatar)
+                                            .aspectRatio(contentMode: .fill)
+                                    } else {
                                         Circle()
-                                            .stroke(Color.black.opacity(0.2), lineWidth: 2)
-                                            .frame(width: 12, height: 12)
-                                    )
-                                    .offset(x: 16, y: 16)
-                            )
-                        }
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [
+                                                        Color.appAccent,
+                                                        Color(red: 0.75, green: 0.65, blue: 0.95)
+                                                    ],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .overlay(
+                                                Text(String((user.name ?? user.username).prefix(1)))
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .foregroundColor(.black)
+                                            )
+                                    }
+                                }
+                                .frame(width: 44, height: 44)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 12, height: 12)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.black.opacity(0.2), lineWidth: 2)
+                                                .frame(width: 12, height: 12)
+                                        )
+                                        .offset(x: 16, y: 16)
+                                )
+                            }
                         }
                     }
                 }
@@ -258,67 +238,46 @@ struct FeedView: View {
                     }
                 } else {
                     ForEach(onlineUsersViewModel.onlineUsers.prefix(20), id: \.id) { user in
-                    Button(action: {
-                        navigationPath.append(user.username)
-                    }) {
-                        AsyncImage(url: URL(string: user.photo ?? user.avatar_url ?? "")) { phase in
-                            switch phase {
-                            case .empty:
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.appAccent,
-                                                Color(red: 0.75, green: 0.65, blue: 0.95)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .overlay(
-                                        Text(String((user.name ?? user.username).prefix(1)))
-                                            .font(.system(size: 14, weight: .bold))
-                                            .foregroundColor(.black)
-                                    )
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            case .failure:
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.appAccent,
-                                                Color(red: 0.75, green: 0.65, blue: 0.95)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .overlay(
-                                        Text(String((user.name ?? user.username).prefix(1)))
-                                            .font(.system(size: 14, weight: .bold))
-                                            .foregroundColor(.black)
-                                    )
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 12, height: 12)
-                                .overlay(
+                        Button(action: {
+                            navigationPath.append(user.username)
+                        }) {
+                            Group {
+                                if let avatarURL = user.photo ?? user.avatar_url, let url = URL(string: avatarURL) {
+                                    CachedAsyncImage(url: url, cacheType: .avatar)
+                                        .aspectRatio(contentMode: .fill)
+                                } else {
                                     Circle()
-                                        .stroke(Color.black.opacity(0.2), lineWidth: 2)
-                                        .frame(width: 12, height: 12)
-                                )
-                                .offset(x: 16, y: 16)
-                        )
-                    }
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color.appAccent,
+                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .overlay(
+                                            Text(String((user.name ?? user.username).prefix(1)))
+                                                .font(.system(size: 14, weight: .bold))
+                                                .foregroundColor(.black)
+                                        )
+                                }
+                            }
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 12, height: 12)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.black.opacity(0.2), lineWidth: 2)
+                                            .frame(width: 12, height: 12)
+                                    )
+                                    .offset(x: 16, y: 16)
+                            )
+                        }
                     }
                 }
             }

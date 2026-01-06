@@ -44,7 +44,6 @@ class OnlineUsersViewModel: ObservableObject {
                 return
             }
             
-            print("❌ Error loading online users: \(error.localizedDescription)")
             await MainActor.run {
                 self.isLoading = false
             }

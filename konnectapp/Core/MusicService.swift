@@ -244,6 +244,60 @@ class MusicService {
         let decoder = JSONDecoder()
         return try decoder.decode(LikeResponse.self, from: data)
     }
+    
+    // MARK: - Получение информации о треке
+    func getTrack(trackId: Int64) async throws -> TrackDetailResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/\(trackId)") else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: url)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            throw AuthError.invalidResponse
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode(TrackDetailResponse.self, from: data)
+    }
+    
+    // MARK: - Получение текстов песни
+    func getLyrics(trackId: Int64) async throws -> LyricsResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/\(trackId)/lyrics") else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: url)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            throw AuthError.invalidResponse
+        }
+        
+        let decoder = JSONDecoder()
+        return try decoder.decode(LyricsResponse.self, from: data)
+    }
 }
 
 // MARK: - Enums

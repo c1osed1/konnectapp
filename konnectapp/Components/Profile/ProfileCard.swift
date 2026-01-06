@@ -10,6 +10,7 @@ struct ProfileCard: View {
     let onMessage: () -> Void
     let onFollowersTap: () -> Void
     let onFollowingTap: () -> Void
+    @StateObject private var themeManager = ThemeManager.shared
     
     private var borderColor: Color {
         if let profileColor = profile.profile_color, let color = Color(hex: profileColor) {
@@ -172,7 +173,7 @@ struct ProfileCard: View {
                     if let about = profile.about, !about.isEmpty {
                         Text(about)
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.8, green: 0.8, blue: 0.8))
+                            .foregroundColor(Color.themeTextPrimary)
                             .lineSpacing(4)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
@@ -182,7 +183,7 @@ struct ProfileCard: View {
                                         .fill(.ultraThinMaterial.opacity(0.1))
                                         .background(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                                .fill(Color.themeBlockBackground.opacity(0.5))
                                         )
                                 }
                             )
@@ -207,8 +208,8 @@ struct ProfileCard: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.1, green: 0.1, blue: 0.1),
-                                                    Color(red: 0.15, green: 0.15, blue: 0.15)
+                                                    Color.themeBackgroundStart,
+                                                    Color.themeBlockBackground
                                                 ],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
@@ -224,8 +225,8 @@ struct ProfileCard: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.1, green: 0.1, blue: 0.1),
-                                                    Color(red: 0.15, green: 0.15, blue: 0.15)
+                                                    Color.themeBackgroundStart,
+                                                    Color.themeBlockBackground
                                                 ],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
@@ -306,7 +307,7 @@ struct ProfileCard: View {
                             HStack(spacing: 4) {
                                 Text("@\(profile.username)")
                                     .font(.system(size: 15))
-                                    .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                                    .foregroundColor(Color.themeTextSecondary)
                                 
                                 if let subscription = profile.subscription, subscription.active {
                                     SubscriptionIcon(subscriptionType: subscription.type, size: 16)
@@ -484,7 +485,7 @@ struct ProfileCard: View {
                     if let about = profile.about, !about.isEmpty {
                         Text(about)
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.8, green: 0.8, blue: 0.8))
+                            .foregroundColor(Color.themeTextPrimary)
                             .lineSpacing(4)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
@@ -494,7 +495,7 @@ struct ProfileCard: View {
                                         .fill(.ultraThinMaterial.opacity(0.1))
                                         .background(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                                .fill(Color.themeBlockBackground.opacity(0.5))
                                         )
                                     
                                     RoundedRectangle(cornerRadius: 16)
@@ -524,8 +525,8 @@ struct ProfileCard: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.1, green: 0.1, blue: 0.1),
-                                                    Color(red: 0.15, green: 0.15, blue: 0.15)
+                                                    Color.themeBackgroundStart,
+                                                    Color.themeBlockBackground
                                                 ],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
@@ -541,8 +542,8 @@ struct ProfileCard: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.1, green: 0.1, blue: 0.1),
-                                                    Color(red: 0.15, green: 0.15, blue: 0.15)
+                                                    Color.themeBackgroundStart,
+                                                    Color.themeBlockBackground
                                                 ],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
@@ -623,7 +624,7 @@ struct ProfileCard: View {
                             HStack(spacing: 4) {
                                 Text("@\(profile.username)")
                                     .font(.system(size: 15))
-                                    .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                                    .foregroundColor(Color.themeTextSecondary)
                                 
                                 if let subscription = profile.subscription, subscription.active {
                                     SubscriptionIcon(subscriptionType: subscription.type, size: 16)
@@ -669,7 +670,7 @@ struct ProfileCard: View {
                     if let about = profile.about, !about.isEmpty {
                         Text(about)
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.8, green: 0.8, blue: 0.8))
+                            .foregroundColor(Color.themeTextPrimary)
                             .lineSpacing(4)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
@@ -679,7 +680,7 @@ struct ProfileCard: View {
                                         .fill(.ultraThinMaterial.opacity(0.1))
                                         .background(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                                .fill(Color.themeBlockBackground.opacity(0.5))
                                         )
                                     
                                     RoundedRectangle(cornerRadius: 16)

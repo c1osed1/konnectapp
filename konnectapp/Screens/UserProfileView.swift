@@ -3,6 +3,7 @@ import SwiftUI
 struct UserProfileView: View {
     let username: String
     @StateObject private var viewModel = ProfileViewModel()
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var showFollowers = false
     @State private var showFollowing = false
     @Environment(\.dismiss) private var dismiss

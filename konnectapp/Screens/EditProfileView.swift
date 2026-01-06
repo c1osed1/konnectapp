@@ -4,6 +4,7 @@ import PhotosUI
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ProfileViewModel
+    @StateObject private var themeManager = ThemeManager.shared
     
     @State private var name: String
     @State private var username: String
@@ -46,8 +47,8 @@ struct EditProfileView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(red: 0.06, green: 0.06, blue: 0.06),
-                    Color(red: 0.1, green: 0.1, blue: 0.1)
+                    Color.themeBackgroundStart,
+                    Color.themeBackgroundEnd
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -139,14 +140,14 @@ struct EditProfileView: View {
                                 .aspectRatio(contentMode: .fill)
                         default:
                             Circle()
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                                .fill(Color.themeBlockBackgroundSecondary)
                         }
                     }
                     .frame(width: 100, height: 100)
                     .clipShape(Circle())
                 } else {
                     Circle()
-                        .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                        .fill(Color.themeBlockBackgroundSecondary)
                         .frame(width: 100, height: 100)
                 }
                 
@@ -191,14 +192,14 @@ struct EditProfileView: View {
                             .aspectRatio(contentMode: .fill)
                     default:
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                            .fill(Color.themeBlockBackgroundSecondary)
                     }
                 }
                 .frame(height: 150)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             } else {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
+                    .fill(Color.themeBlockBackgroundSecondary)
                     .frame(height: 150)
             }
             
@@ -233,7 +234,7 @@ struct EditProfileView: View {
                 .padding(12)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(red: 0.15, green: 0.15, blue: 0.15))
+                        .fill(Color.themeBlockBackground)
                 )
         }
         .padding(16)
@@ -254,7 +255,7 @@ struct EditProfileView: View {
                 .padding(12)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(red: 0.15, green: 0.15, blue: 0.15))
+                        .fill(Color.themeBlockBackground)
                 )
         }
         .padding(16)
