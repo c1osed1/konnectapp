@@ -1,171 +1,58 @@
 import SwiftUI
+import UIKit
 
 struct ImageViewer: View {
     let imageURLs: [String]
     let initialIndex: Int
     @Environment(\.dismiss) private var dismiss
-    @State private var currentIndex: Int
-    @State private var dragOffset: CGFloat = 0
-    @State private var isDragging: Bool = false
     
     init(imageURLs: [String], initialIndex: Int = 0) {
         self.imageURLs = imageURLs
         self.initialIndex = initialIndex
-        _currentIndex = State(initialValue: initialIndex)
     }
     
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-                .opacity(1.0 - abs(dragOffset) / 1000)
-            
-            PageViewController(
-                pages: imageURLs.compactMap { URL(string: $0) },
-                currentPage: $currentIndex
-            )
-            .offset(y: dragOffset)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        if value.translation.height > 0 {
-                            isDragging = true
-                            dragOffset = value.translation.height
-                        }
-                    }
-                    .onEnded { value in
-                        if value.translation.height > 150 {
-                            dismiss()
-                        } else {
-                            withAnimation {
-                                dragOffset = 0
-                                isDragging = false
-                            }
-                        }
-                    }
-            )
-            
-            VStack {
-                HStack {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(12)
-                            .background(
-                                Circle()
-                                    .fill(Color.black.opacity(0.5))
-                            )
-                    }
-                    .padding()
-                    
-                    Spacer()
-                    
-                    Text("\(currentIndex + 1) / \(imageURLs.count)")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(Color.black.opacity(0.5))
-                        )
-                        .padding()
-                }
-                
-                Spacer()
-            }
-        }
-    }
-}
-
-struct PageViewController: UIViewControllerRepresentable {
-    let pages: [URL]
-    @Binding var currentPage: Int
-    
-    func makeUIViewController(context: Context) -> UIPageViewController {
-        let pageViewController = UIPageViewController(
-            transitionStyle: .scroll,
-            navigationOrientation: .horizontal
+        ImageViewerController(
+            imageURLs: imageURLs,
+            initialIndex: initialIndex,
+            onDismiss: { dismiss() }
         )
-        pageViewController.dataSource = context.coordinator
-        pageViewController.delegate = context.coordinator
-        
-        if !pages.isEmpty && currentPage < pages.count {
-            let initialViewController = ImageViewController(imageURL: pages[currentPage])
-            pageViewController.setViewControllers(
-                [initialViewController],
-                direction: .forward,
-                animated: false
-            )
-        }
-        
-        return pageViewController
-    }
-    
-    func updateUIViewController(_ pageViewController: UIPageViewController, context: Context) {
-        if !pages.isEmpty && currentPage < pages.count {
-            let currentViewController = ImageViewController(imageURL: pages[currentPage])
-            let direction: UIPageViewController.NavigationDirection = currentPage > context.coordinator.lastPage ? .forward : .reverse
-            pageViewController.setViewControllers(
-                [currentViewController],
-                direction: direction,
-                animated: true
-            )
-            context.coordinator.lastPage = currentPage
-        }
-    }
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
-        var parent: PageViewController
-        var lastPage: Int = 0
-        
-        init(_ parent: PageViewController) {
-            self.parent = parent
-            self.lastPage = parent.currentPage
-        }
-        
-        func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-            guard let imageViewController = viewController as? ImageViewController,
-                  let currentIndex = parent.pages.firstIndex(of: imageViewController.imageURL),
-                  currentIndex > 0 else {
-                return nil
-            }
-            return ImageViewController(imageURL: parent.pages[currentIndex - 1])
-        }
-        
-        func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-            guard let imageViewController = viewController as? ImageViewController,
-                  let currentIndex = parent.pages.firstIndex(of: imageViewController.imageURL),
-                  currentIndex < parent.pages.count - 1 else {
-                return nil
-            }
-            return ImageViewController(imageURL: parent.pages[currentIndex + 1])
-        }
-        
-        func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-            if completed,
-               let currentViewController = pageViewController.viewControllers?.first as? ImageViewController,
-               let index = parent.pages.firstIndex(of: currentViewController.imageURL) {
-                parent.currentPage = index
-                lastPage = index
-            }
-        }
+        .ignoresSafeArea()
     }
 }
 
-class ImageViewController: UIViewController {
-    let imageURL: URL
-    private var imageView: UIImageView?
-    private var scrollView: UIScrollView?
+struct ImageViewerController: UIViewControllerRepresentable {
+    let imageURLs: [String]
+    let initialIndex: Int
+    let onDismiss: () -> Void
     
-    init(imageURL: URL) {
-        self.imageURL = imageURL
+    func makeUIViewController(context: Context) -> ImageViewerViewController {
+        let controller = ImageViewerViewController(
+            imageURLs: imageURLs.compactMap { URL(string: $0) },
+            initialIndex: initialIndex
+        )
+        controller.onDismiss = onDismiss
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: ImageViewerViewController, context: Context) {}
+}
+
+class ImageViewerViewController: UIViewController {
+    let imageURLs: [URL]
+    let initialIndex: Int
+    var onDismiss: (() -> Void)?
+    
+    private var pageViewController: UIPageViewController!
+    private var currentIndex: Int = 0
+    private var panGesture: UIPanGestureRecognizer!
+    private var dragOffset: CGFloat = 0
+    private var backgroundView: UIView!
+    
+    init(imageURLs: [URL], initialIndex: Int) {
+        self.imageURLs = imageURLs
+        self.initialIndex = initialIndex
+        self.currentIndex = initialIndex
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -175,22 +62,230 @@ class ImageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
+    }
+    
+    private func setupUI() {
         view.backgroundColor = .black
         
-        let scrollView = UIScrollView()
+        backgroundView = UIView()
+        backgroundView.backgroundColor = .black
+        view.addSubview(backgroundView)
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
+        pageViewController = UIPageViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .horizontal
+        )
+        pageViewController.dataSource = self
+        pageViewController.delegate = self
+        
+        addChild(pageViewController)
+        view.addSubview(pageViewController.view)
+        pageViewController.didMove(toParent: self)
+        
+        pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            pageViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
+            pageViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            pageViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
+        if !imageURLs.isEmpty && initialIndex < imageURLs.count {
+            let initialVC = SingleImageViewController(imageURL: imageURLs[initialIndex])
+            pageViewController.setViewControllers([initialVC], direction: .forward, animated: false)
+        }
+        
+        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        panGesture.delegate = self
+        view.addGestureRecognizer(panGesture)
+        
+        setupTopBar()
+    }
+    
+    private func setupTopBar() {
+        let topBar = UIView()
+        topBar.backgroundColor = .clear
+        view.addSubview(topBar)
+        topBar.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            topBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            topBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            topBar.heightAnchor.constraint(equalToConstant: 60)
+        ])
+        
+        let closeButton = UIButton(type: .system)
+        closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+        closeButton.tintColor = .white
+        closeButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        closeButton.layer.cornerRadius = 20
+        closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        topBar.addSubview(closeButton)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            closeButton.leadingAnchor.constraint(equalTo: topBar.leadingAnchor, constant: 16),
+            closeButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+            closeButton.widthAnchor.constraint(equalToConstant: 40),
+            closeButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        
+        let counterLabel = UILabel()
+        counterLabel.text = "\(currentIndex + 1) / \(imageURLs.count)"
+        counterLabel.textColor = .white
+        counterLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        counterLabel.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        counterLabel.textAlignment = .center
+        counterLabel.layer.cornerRadius = 16
+        counterLabel.clipsToBounds = true
+        topBar.addSubview(counterLabel)
+        counterLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            counterLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
+            counterLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+            counterLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60),
+            counterLabel.heightAnchor.constraint(equalToConstant: 32)
+        ])
+        
+        updateCounter = { [weak counterLabel, weak self] in
+            guard let self = self else { return }
+            counterLabel?.text = "\(self.currentIndex + 1) / \(self.imageURLs.count)"
+        }
+    }
+    
+    private var updateCounter: (() -> Void)?
+    
+    @objc private func closeTapped() {
+        onDismiss?()
+    }
+    
+    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        guard let currentVC = pageViewController.viewControllers?.first as? SingleImageViewController,
+              currentVC.scrollView.zoomScale <= 1.0 else {
+            return
+        }
+        
+        let translation = gesture.translation(in: view)
+        let velocity = gesture.velocity(in: view)
+        
+        switch gesture.state {
+        case .began, .changed:
+            if translation.y > 0 {
+                dragOffset = translation.y
+                let progress = min(dragOffset / 300.0, 1.0)
+                backgroundView.alpha = 1.0 - progress * 0.8
+                currentVC.view.transform = CGAffineTransform(translationX: 0, y: dragOffset)
+            }
+        case .ended, .cancelled:
+            if dragOffset > 150 || velocity.y > 500 {
+                UIView.animate(withDuration: 0.3, animations: {
+                    self.backgroundView.alpha = 0
+                    currentVC.view.transform = CGAffineTransform(translationX: 0, y: self.view.bounds.height)
+                }) { _ in
+                    self.onDismiss?()
+                }
+            } else {
+                UIView.animate(withDuration: 0.2) {
+                    self.backgroundView.alpha = 1.0
+                    currentVC.view.transform = .identity
+                }
+            }
+            dragOffset = 0
+        default:
+            break
+        }
+    }
+}
+
+extension ImageViewerViewController: UIPageViewControllerDataSource {
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        guard let imageVC = viewController as? SingleImageViewController,
+              let index = imageURLs.firstIndex(of: imageVC.imageURL),
+              index > 0 else {
+            return nil
+        }
+        return SingleImageViewController(imageURL: imageURLs[index - 1])
+    }
+    
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        guard let imageVC = viewController as? SingleImageViewController,
+              let index = imageURLs.firstIndex(of: imageVC.imageURL),
+              index < imageURLs.count - 1 else {
+            return nil
+        }
+        return SingleImageViewController(imageURL: imageURLs[index + 1])
+    }
+}
+
+extension ImageViewerViewController: UIPageViewControllerDelegate {
+    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        if completed,
+           let currentVC = pageViewController.viewControllers?.first as? SingleImageViewController,
+           let index = imageURLs.firstIndex(of: currentVC.imageURL) {
+            currentIndex = index
+            updateCounter?()
+        }
+    }
+}
+
+extension ImageViewerViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let panGesture = gestureRecognizer as? UIPanGestureRecognizer,
+              let currentVC = pageViewController.viewControllers?.first as? SingleImageViewController else {
+            return false
+        }
+        
+        if currentVC.scrollView.zoomScale > 1.0 {
+            return false
+        }
+        
+        let translation = panGesture.translation(in: view)
+        return abs(translation.y) > abs(translation.x) && translation.y > 0
+    }
+}
+
+class SingleImageViewController: UIViewController {
+    let imageURL: URL
+    let scrollView: UIScrollView
+    let imageView: UIImageView
+    
+    init(imageURL: URL) {
+        self.imageURL = imageURL
+        self.scrollView = UIScrollView()
+        self.imageView = UIImageView()
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .clear
+        
         scrollView.delegate = self
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 4.0
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.backgroundColor = .clear
         view.addSubview(scrollView)
-        self.scrollView = scrollView
         
-        let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
         imageView.isUserInteractionEnabled = true
         scrollView.addSubview(imageView)
-        self.imageView = imageView
         
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -200,7 +295,7 @@ class ImageViewController: UIViewController {
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapped))
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapped(_:)))
         doubleTap.numberOfTapsRequired = 2
         imageView.addGestureRecognizer(doubleTap)
         
@@ -213,7 +308,7 @@ class ImageViewController: UIViewController {
     }
     
     private func updateImageViewFrame() {
-        guard let imageView = imageView, let image = imageView.image, let scrollView = scrollView else { return }
+        guard let image = imageView.image else { return }
         
         let imageSize = image.size
         let viewSize = view.bounds.size
@@ -235,8 +330,6 @@ class ImageViewController: UIViewController {
     }
     
     @objc private func doubleTapped(_ gesture: UITapGestureRecognizer) {
-        guard let scrollView = scrollView else { return }
-        
         if scrollView.zoomScale > 1.0 {
             scrollView.setZoomScale(1.0, animated: true)
         } else {
@@ -247,7 +340,6 @@ class ImageViewController: UIViewController {
     }
     
     private func zoomRectForScale(scale: CGFloat, center: CGPoint) -> CGRect {
-        guard let scrollView = scrollView else { return .zero }
         var zoomRect = CGRect.zero
         zoomRect.size.height = scrollView.frame.size.height / scale
         zoomRect.size.width = scrollView.frame.size.width / scale
@@ -261,7 +353,7 @@ class ImageViewController: UIViewController {
             if let cachedData = CacheManager.shared.getCachedPostImage(url: imageURL),
                let image = UIImage(data: cachedData) {
                 await MainActor.run {
-                    imageView?.image = image
+                    imageView.image = image
                     updateImageViewFrame()
                 }
                 return
@@ -272,7 +364,7 @@ class ImageViewController: UIViewController {
                 if let image = UIImage(data: data) {
                     CacheManager.shared.cachePostImage(url: imageURL, data: data)
                     await MainActor.run {
-                        imageView?.image = image
+                        imageView.image = image
                         updateImageViewFrame()
                     }
                 }
@@ -283,13 +375,12 @@ class ImageViewController: UIViewController {
     }
 }
 
-extension ImageViewController: UIScrollViewDelegate {
+extension SingleImageViewController: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return imageView
     }
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
-        guard let imageView = imageView else { return }
         let boundsSize = scrollView.bounds.size
         var frameToCenter = imageView.frame
         
@@ -308,5 +399,3 @@ extension ImageViewController: UIScrollViewDelegate {
         imageView.frame = frameToCenter
     }
 }
-
-

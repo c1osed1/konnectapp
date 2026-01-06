@@ -157,7 +157,7 @@ struct NotificationsModalView: View {
                 Task {
                     do {
                         let response = try await CommentService.shared.getPostDetail(postId: postId, includeComments: false)
-                        if let post = response.post {
+                        if response.post != nil {
                             await MainActor.run {
                                 dismiss()
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {

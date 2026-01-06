@@ -76,8 +76,8 @@ struct MoreView: View {
         .task {
             await loadUnreadCount()
         }
-        .onChange(of: showNotifications) { isPresented in
-            if !isPresented {
+        .onChange(of: showNotifications) { oldValue, newValue in
+            if !newValue {
                 Task {
                     await loadUnreadCount()
                 }

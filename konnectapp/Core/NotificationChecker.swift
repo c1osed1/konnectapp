@@ -24,8 +24,10 @@ class NotificationChecker: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.isAppActive = true
-            self?.startChecking()
+            Task { @MainActor in
+                self?.isAppActive = true
+                self?.startChecking()
+            }
         }
         
         NotificationCenter.default.addObserver(
@@ -33,8 +35,10 @@ class NotificationChecker: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.isAppActive = false
-            self?.stopChecking()
+            Task { @MainActor in
+                self?.isAppActive = false
+                self?.stopChecking()
+            }
         }
     }
     

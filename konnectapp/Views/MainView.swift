@@ -55,12 +55,22 @@ struct MainView: View {
                             Label("Профиль", systemImage: "person.fill")
                         }
                     
-                    MoreView()
-                        .tag(TabItem.more)
-                        .tabItem {
-                            Label("Еще", systemImage: "ellipsis")
+                    Group {
+                        if notificationChecker.unreadCount > 0 {
+                            MoreView()
+                                .tag(TabItem.more)
+                                .tabItem {
+                                    Label("Еще", systemImage: "ellipsis")
+                                }
+                                .badge(notificationChecker.unreadCount)
+                        } else {
+                            MoreView()
+                                .tag(TabItem.more)
+                                .tabItem {
+                                    Label("Еще", systemImage: "ellipsis")
+                                }
                         }
-                        .badge(notificationChecker.unreadCount > 0 ? notificationChecker.unreadCount : nil)
+                    }
                 }
                 .accentColor(Color.appAccent)
             }
