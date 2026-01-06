@@ -187,33 +187,39 @@ struct MusicView: View {
                     .padding(.vertical, 40)
             } else if let charts = viewModel.charts {
                 // Отображаем выбранный тип чарта на всю ширину
-                let tracks: [MusicTrack]
-                switch viewModel.selectedChartType {
-                case .popular:
-                    tracks = charts.popular ?? []
-                case .plays:
-                    tracks = charts.most_played ?? []
-                case .likes:
-                    tracks = charts.most_liked ?? []
-                case .new:
-                    tracks = charts.new_releases ?? []
-                case .combined:
-                    tracks = []
-                }
-                
-                if tracks.isEmpty {
-                    emptyStateView(
-                        icon: "chart.bar",
-                        title: "Чарты пусты",
-                        message: "Попробуйте позже"
-                    )
-                } else {
-                    LazyVStack(spacing: 4) {
-                        ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
-                            chartTrackRow(track: track, position: index + 1, playlist: tracks)
-                                .padding(.horizontal, 8)
-                        }
-                    }
+                chartsContentView(charts: charts)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func chartsContentView(charts: ChartsData) -> some View {
+        let tracks: [MusicTrack] = {
+            switch viewModel.selectedChartType {
+            case .popular:
+                return charts.popular ?? []
+            case .plays:
+                return charts.most_played ?? []
+            case .likes:
+                return charts.most_liked ?? []
+            case .new:
+                return charts.new_releases ?? []
+            case .combined:
+                return []
+            }
+        }()
+        
+        if tracks.isEmpty {
+            emptyStateView(
+                icon: "chart.bar",
+                title: "Чарты пусты",
+                message: "Попробуйте позже"
+            )
+        } else {
+            LazyVStack(spacing: 4) {
+                ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
+                    chartTrackRow(track: track, position: index + 1, playlist: tracks)
+                        .padding(.horizontal, 8)
                 }
             }
         }
