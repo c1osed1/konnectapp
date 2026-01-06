@@ -46,45 +46,45 @@ enum AppTheme: String, CaseIterable, Codable {
             return ThemeColors(
                 accent: Color(red: 0.95, green: 0.95, blue: 0.95).opacity(0.9),
                 backgroundStart: Color.black,
-                backgroundEnd: Color(red: 0.02, green: 0.02, blue: 0.02),
-                blockBackground: Color(red: 0.05, green: 0.05, blue: 0.05),
-                blockBackgroundSecondary: Color(red: 0.08, green: 0.08, blue: 0.08),
+                backgroundEnd: Color.black,
+                blockBackground: Color.black,
+                blockBackgroundSecondary: Color(red: 0.02, green: 0.02, blue: 0.02),
                 textPrimary: Color.white,
                 textSecondary: Color(red: 0.8, green: 0.8, blue: 0.8),
-                border: Color(red: 0.15, green: 0.15, blue: 0.15)
+                border: Color(red: 0.1, green: 0.1, blue: 0.1)
             )
         case .blue:
             return ThemeColors(
                 accent: Color(red: 0.2, green: 0.6, blue: 1.0),
-                backgroundStart: Color(red: 0.05, green: 0.1, blue: 0.15),
-                backgroundEnd: Color(red: 0.08, green: 0.15, blue: 0.22),
-                blockBackground: Color(red: 0.1, green: 0.15, blue: 0.2),
-                blockBackgroundSecondary: Color(red: 0.12, green: 0.18, blue: 0.25),
+                backgroundStart: Color(red: 0.0, green: 0.05, blue: 0.15),
+                backgroundEnd: Color(red: 0.0, green: 0.08, blue: 0.22),
+                blockBackground: Color(red: 0.0, green: 0.1, blue: 0.25),
+                blockBackgroundSecondary: Color(red: 0.0, green: 0.12, blue: 0.3),
                 textPrimary: Color.white,
                 textSecondary: Color(red: 0.7, green: 0.8, blue: 0.9),
-                border: Color(red: 0.15, green: 0.2, blue: 0.3)
+                border: Color(red: 0.0, green: 0.15, blue: 0.35)
             )
         case .purple:
             return ThemeColors(
                 accent: Color(red: 0.82, green: 0.74, blue: 1.0),
                 backgroundStart: Color(red: 0.06, green: 0.06, blue: 0.06),
-                backgroundEnd: Color(red: 0.1, green: 0.1, blue: 0.1),
-                blockBackground: Color(red: 0.13, green: 0.13, blue: 0.13),
-                blockBackgroundSecondary: Color(red: 0.16, green: 0.16, blue: 0.16),
+                backgroundEnd: Color(red: 0.08, green: 0.08, blue: 0.08),
+                blockBackground: Color(red: 0.1, green: 0.1, blue: 0.1),
+                blockBackgroundSecondary: Color(red: 0.12, green: 0.12, blue: 0.12),
                 textPrimary: Color.white,
                 textSecondary: Color(red: 0.7, green: 0.7, blue: 0.7),
-                border: Color(red: 0.2, green: 0.2, blue: 0.2)
+                border: Color(red: 0.15, green: 0.15, blue: 0.15)
             )
         case .green:
             return ThemeColors(
                 accent: Color(red: 0.2, green: 0.8, blue: 0.4),
-                backgroundStart: Color(red: 0.05, green: 0.1, blue: 0.05),
-                backgroundEnd: Color(red: 0.08, green: 0.15, blue: 0.08),
-                blockBackground: Color(red: 0.1, green: 0.15, blue: 0.1),
-                blockBackgroundSecondary: Color(red: 0.12, green: 0.18, blue: 0.12),
+                backgroundStart: Color(red: 0.0, green: 0.08, blue: 0.0),
+                backgroundEnd: Color(red: 0.0, green: 0.12, blue: 0.0),
+                blockBackground: Color(red: 0.0, green: 0.15, blue: 0.0),
+                blockBackgroundSecondary: Color(red: 0.0, green: 0.2, blue: 0.0),
                 textPrimary: Color.white,
                 textSecondary: Color(red: 0.7, green: 0.85, blue: 0.7),
-                border: Color(red: 0.15, green: 0.25, blue: 0.15)
+                border: Color(red: 0.0, green: 0.3, blue: 0.0)
             )
         }
     }

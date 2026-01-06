@@ -119,20 +119,8 @@ struct SocialButton: View {
             .frame(height: 44)
             .padding(.horizontal, 12)
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.ultraThinMaterial.opacity(0.1))
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                        )
-                    
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(
-                            Color.appAccent.opacity(0.15),
-                            lineWidth: 0.5
-                        )
-                }
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.ultraThinMaterial)
             )
         }
     }

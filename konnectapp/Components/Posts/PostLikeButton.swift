@@ -24,27 +24,13 @@ struct PostLikeButton: View {
                             .foregroundColor(.white)
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
             }
             .buttonStyle(PlainButtonStyle())
             .background(
                 RoundedRectangle(cornerRadius: 20)
                     .fill(.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
             )
             .disabled(isLiking)
         } else {
@@ -64,21 +50,14 @@ struct PostLikeButton: View {
                             .foregroundColor(.white)
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
                         .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(
-                                    Color.appAccent.opacity(0.15),
-                                    lineWidth: 0.5
-                                )
+                                .fill(Color.themeBlockBackground.opacity(0.9))
                         )
                 )
             }

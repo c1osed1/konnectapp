@@ -28,7 +28,9 @@ struct ProfileActions: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
                         .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
                 }
             } else {
@@ -37,17 +39,9 @@ struct ProfileActions: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.1))
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(isFollowing ? Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6) : Color.appAccent)
-                                    )
-                            }
-                        )
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
                         .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
                 }
                 
@@ -56,16 +50,6 @@ struct ProfileActions: View {
                         .font(.system(size: 16))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
-                        .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.1))
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.themeBlockBackground.opacity(0.6))
-                                    )
-                            }
-                        )
                         .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
                 }
             }
@@ -81,22 +65,12 @@ struct ProfileActions: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
                         .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.1))
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.themeBlockBackground.opacity(0.6))
-                                    )
-                                
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(
-                                        Color.appAccent.opacity(0.15),
-                                        lineWidth: 0.5
-                                    )
-                            }
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.ultraThinMaterial)
                         )
                 }
             } else {
@@ -105,22 +79,12 @@ struct ProfileActions: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
                         .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.1))
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(isFollowing ? Color(red: 0.13, green: 0.13, blue: 0.13).opacity(0.6) : Color.appAccent)
-                                    )
-                                
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(
-                                        Color.appAccent.opacity(0.15),
-                                        lineWidth: 0.5
-                                    )
-                            }
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.ultraThinMaterial)
                         )
                 }
                 
@@ -130,20 +94,8 @@ struct ProfileActions: View {
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
                         .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial.opacity(0.1))
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.themeBlockBackground.opacity(0.6))
-                                    )
-                                
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(
-                                        Color.appAccent.opacity(0.15),
-                                        lineWidth: 0.5
-                                    )
-                            }
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.ultraThinMaterial)
                         )
                 }
             }

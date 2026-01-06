@@ -25,8 +25,8 @@ struct PostMoreButton: View {
                                 .font(.system(size: 16))
                                 .foregroundColor(.white)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 11)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .background(
@@ -47,14 +47,14 @@ struct PostMoreButton: View {
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 11)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
                             .fill(.ultraThinMaterial.opacity(0.1))
                             .background(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                    .fill(Color.themeBlockBackground.opacity(0.9))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 20)

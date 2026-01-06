@@ -67,17 +67,7 @@ struct NativeGlassEffectModifier<S: Shape>: ViewModifier {
     
     func body(content: Content) -> some View {
         content.background(
-            ZStack {
-                shape.fill(.ultraThinMaterial)
-                    .background(
-                        shape.fill(Color.themeBlockBackground.opacity(0.95))
-                    )
-                
-                shape.stroke(
-                    Color.appAccent.opacity(0.2),
-                    lineWidth: 0.5
-                )
-            }
+            shape.fill(.ultraThinMaterial)
         )
     }
 }

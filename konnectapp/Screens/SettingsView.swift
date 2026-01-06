@@ -35,7 +35,7 @@ struct SettingsView: View {
                         
                         if #available(iOS 26.0, *) {
                             Toggle(isOn: $themeManager.isGlassEffectEnabled) {
-                                MoreRow(icon: "sparkles", title: "Эффект стекла")
+                                MoreRow(icon: "sparkles", title: "Эффект размытия")
                             }
                             .toggleStyle(SwitchToggleStyle(tint: Color.appAccent))
                         }
