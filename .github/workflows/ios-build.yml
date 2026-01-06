@@ -28,7 +28,7 @@ jobs:
           -scheme konnectapp \
           -sdk iphonesimulator \
           -destination 'generic/platform=iOS Simulator' \
-          IPHONEOS_DEPLOYMENT_TARGET=18.0 \
+          IPHONEOS_DEPLOYMENT_TARGET=26.2 \
           GENERATE_INFOPLIST_FILE=NO \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \

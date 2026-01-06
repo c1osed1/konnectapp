@@ -46,7 +46,7 @@ jobs:
           -configuration Release \
           -sdk iphoneos \
           -destination 'generic/platform=iOS' \
-          IPHONEOS_DEPLOYMENT_TARGET=18.0 \
+          IPHONEOS_DEPLOYMENT_TARGET=26.2 \
           ARCHS=arm64 \
           ONLY_ACTIVE_ARCH=NO \
           GENERATE_INFOPLIST_FILE=NO \
