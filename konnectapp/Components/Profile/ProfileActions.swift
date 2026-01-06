@@ -28,7 +28,6 @@ struct ProfileActions: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(minHeight: 44)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
                         .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
@@ -65,7 +64,6 @@ struct ProfileActions: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(minHeight: 44)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
                         .background(

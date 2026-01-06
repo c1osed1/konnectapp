@@ -167,7 +167,9 @@ struct FeedView: View {
     @ViewBuilder
     private var skeletonUsers: some View {
         ForEach(0..<10, id: \.self) { _ in
-            SkeletonCircle(size: 44)
+            Circle()
+                .fill(Color.themeBlockBackground.opacity(0.5))
+                .frame(width: 44, height: 44)
                 .overlay(
                     Circle()
                         .fill(Color(red: 0.3, green: 0.3, blue: 0.3))
@@ -234,7 +236,9 @@ struct FeedView: View {
             HStack(spacing: 12) {
                 if onlineUsersViewModel.onlineUsers.isEmpty {
                     ForEach(0..<10, id: \.self) { _ in
-                        SkeletonCircle(size: 44)
+                        Circle()
+                            .fill(Color.themeBlockBackground.opacity(0.5))
+                            .frame(width: 44, height: 44)
                             .overlay(
                                 Circle()
                                     .fill(Color(red: 0.3, green: 0.3, blue: 0.3))

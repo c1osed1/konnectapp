@@ -69,7 +69,7 @@ struct StatItem: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 8)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 12)
                 .fill(.ultraThinMaterial)
         )
     }
