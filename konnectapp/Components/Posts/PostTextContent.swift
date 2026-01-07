@@ -18,7 +18,7 @@ struct PostTextContent: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(isExpanded || !shouldTruncate ? content : truncatedContent)
                     .font(.system(size: 15))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                     .lineSpacing(4)
                 
                 if shouldTruncate {

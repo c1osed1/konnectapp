@@ -62,7 +62,7 @@ struct TrackRowView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(track.title)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                         .lineLimit(1)
                     
                     Text(track.artist ?? track.user_name ?? "Unknown Artist")

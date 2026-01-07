@@ -25,14 +25,14 @@ struct PostMusicView: View {
                                 .overlay(
                                     Image(systemName: "music.note")
                                         .font(.system(size: 18))
-                                        .foregroundColor(.white.opacity(0.6))
+                                        .foregroundColor(Color.themeTextSecondary.opacity(0.6))
                                 )
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(track.title)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .lineLimit(1)
                         
                         if let artist = track.artist {
@@ -47,7 +47,7 @@ struct PostMusicView: View {
                     
                     Image(systemName: player.currentTrack?.id == track.id && player.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)

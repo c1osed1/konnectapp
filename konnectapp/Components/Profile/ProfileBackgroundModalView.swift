@@ -14,6 +14,8 @@ struct ProfileBackgroundModalView: View {
     var body: some View {
         let appAccent = Color.appAccent
         let themeBlockBackground = Color.themeBlockBackground
+        let themeTextPrimary = Color.themeTextPrimary
+        let themeTextSecondary = Color.themeTextSecondary
         
         return NavigationView {
             ZStack {
@@ -33,7 +35,7 @@ struct ProfileBackgroundModalView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Текущий фон")
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                             
                             if let currentBackground = authManager.currentUser?.profile_background_url, !currentBackground.isEmpty {
                                 AsyncImage(url: URL(string: currentBackground)) { phase in
@@ -92,7 +94,7 @@ struct ProfileBackgroundModalView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Новый фон")
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                             
                             if let selectedImage = selectedImage {
                                 Image(uiImage: selectedImage)
@@ -110,7 +112,7 @@ struct ProfileBackgroundModalView: View {
                                         Text("Удалить выбранное")
                                     }
                                     .font(.system(size: 15))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.themeTextPrimary)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
                                     .background(
@@ -130,10 +132,10 @@ struct ProfileBackgroundModalView: View {
                                             .foregroundColor(appAccent)
                                         Text("Выбрать изображение")
                                             .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(themeTextPrimary)
                                         Text("PNG, JPG, JPEG, GIF до 10MB")
                                             .font(.system(size: 13))
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                            .foregroundColor(themeTextSecondary)
                                     }
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 200)
@@ -166,7 +168,7 @@ struct ProfileBackgroundModalView: View {
                                                 .tint(.white)
                                             Text("Загрузка...")
                                                 .font(.system(size: 16, weight: .semibold))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(Color.themeTextPrimary)
                                         }
                                         .frame(maxWidth: .infinity)
                                         .frame(height: 56)
@@ -177,7 +179,7 @@ struct ProfileBackgroundModalView: View {
                                     } else {
                                         Text("Загрузить фон")
                                             .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(Color.themeTextPrimary)
                                             .frame(maxWidth: .infinity)
                                             .frame(height: 56)
                                             .background(
@@ -201,7 +203,7 @@ struct ProfileBackgroundModalView: View {
                                                 .tint(.white)
                                             Text("Удаление...")
                                                 .font(.system(size: 16, weight: .semibold))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(Color.themeTextPrimary)
                                         }
                                         .frame(maxWidth: .infinity)
                                         .frame(height: 56)
@@ -212,7 +214,7 @@ struct ProfileBackgroundModalView: View {
                                     } else {
                                         Text("Удалить фон")
                                             .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(Color.themeTextPrimary)
                                             .frame(maxWidth: .infinity)
                                             .frame(height: 56)
                                             .background(
@@ -261,7 +263,7 @@ struct ProfileBackgroundModalView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 }
             }

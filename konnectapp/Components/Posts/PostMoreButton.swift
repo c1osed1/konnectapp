@@ -23,7 +23,7 @@ struct PostMoreButton: View {
                         HStack(spacing: 4) {
                             Image(systemName: "list.bullet")
                                 .font(.system(size: 16))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                         }
                         .padding(.horizontal, 18)
                         .padding(.vertical, 11)

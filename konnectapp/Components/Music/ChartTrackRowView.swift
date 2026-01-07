@@ -70,7 +70,7 @@ struct ChartTrackRowView: View {
                     HStack(spacing: 6) {
                         Text(track.title)
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .lineLimit(1)
                         
                         // Тренд стрелка
@@ -115,7 +115,7 @@ struct ChartTrackRowView: View {
                 Button(action: onLike) {
                     Image(systemName: track.is_liked == true ? "heart.fill" : "heart")
                         .font(.system(size: 18))
-                        .foregroundColor(track.is_liked == true ? Color.red : Color(red: 0.6, green: 0.6, blue: 0.6))
+                        .foregroundColor(track.is_liked == true ? Color.red : Color.themeTextSecondary)
                 }
                 .buttonStyle(PlainButtonStyle())
             }

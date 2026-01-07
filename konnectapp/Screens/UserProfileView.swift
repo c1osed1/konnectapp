@@ -118,7 +118,7 @@ struct UserProfileView: View {
                                 .foregroundColor(.red)
                             Text(errorMessage)
                                 .font(.system(size: 16))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.top, 100)
@@ -145,7 +145,7 @@ struct UserProfileView: View {
                         Text("Назад")
                             .font(.system(size: 17))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 }
             }
         }

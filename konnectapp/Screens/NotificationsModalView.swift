@@ -25,7 +25,7 @@ struct NotificationsModalView: View {
                 
                 if isLoading && notifications.isEmpty {
                     ProgressView()
-                        .tint(.white)
+                        .tint(Color.themeTextPrimary)
                 } else if let errorMessage = errorMessage {
                     VStack(spacing: 16) {
                         Image(systemName: "exclamationmark.triangle")
@@ -33,7 +33,7 @@ struct NotificationsModalView: View {
                             .foregroundColor(.red)
                         Text(errorMessage)
                             .font(.system(size: 16))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 20)
                         
@@ -42,7 +42,7 @@ struct NotificationsModalView: View {
                                 await loadNotifications()
                             }
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(
@@ -57,7 +57,7 @@ struct NotificationsModalView: View {
                             .foregroundColor(Color.themeTextSecondary)
                         Text("Нет уведомлений")
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 } else {
                     ScrollView {
@@ -84,7 +84,7 @@ struct NotificationsModalView: View {
                             }
                         } label: {
                             Image(systemName: "trash")
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                         }
                     }
                 }
@@ -92,7 +92,7 @@ struct NotificationsModalView: View {
                     Button("Готово") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 }
             }
         }
@@ -200,7 +200,7 @@ struct NotificationRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(notificationMessage)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                     .lineLimit(2)
                 
                 if let createdAt = notification.created_at {

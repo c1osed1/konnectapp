@@ -88,7 +88,7 @@ struct PostDetailView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 }
             }

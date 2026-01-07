@@ -2,6 +2,12 @@ import SwiftUI
 
 struct ProfileSocials: View {
     let socials: [Social]
+    let useDarkText: Bool
+    
+    init(socials: [Social], useDarkText: Bool = false) {
+        self.socials = socials
+        self.useDarkText = useDarkText
+    }
     
     private var limitedSocials: [Social] {
         Array(socials.prefix(2))
@@ -11,7 +17,7 @@ struct ProfileSocials: View {
         if !limitedSocials.isEmpty {
             HStack(spacing: 8) {
                 ForEach(limitedSocials, id: \.name) { social in
-                    SocialButton(social: social)
+                    SocialButton(social: social, useDarkText: useDarkText)
                         .frame(maxWidth: limitedSocials.count == 1 ? .infinity : nil)
                 }
             }
@@ -21,7 +27,22 @@ struct ProfileSocials: View {
 
 struct SocialButton: View {
     let social: Social
+    let useDarkText: Bool
     @Environment(\.openURL) private var openURL
+    
+    init(social: Social, useDarkText: Bool = false) {
+        self.social = social
+        self.useDarkText = useDarkText
+    }
+    
+    private var textColor: Color {
+        useDarkText ? Color.black : Color.white
+    }
+    
+    private var borderColor: Color {
+        // Светлосерый бордер для лучшей видимости на белом фоне
+        useDarkText ? Color.gray.opacity(0.25) : Color.themeBorder.opacity(0.6)
+    }
     
     private var iconName: String {
         let name = social.name.lowercased()
@@ -90,12 +111,16 @@ struct SocialButton: View {
                 
                 Text(social.name)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(textColor)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .padding(.horizontal, 12)
             .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(borderColor, lineWidth: 0.5)
+            )
         }
     }
     
@@ -113,14 +138,18 @@ struct SocialButton: View {
                 
                 Text(social.name)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(textColor)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .padding(.horizontal, 12)
             .background(
-                    RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(borderColor, lineWidth: 0.5)
+                    )
             )
         }
     }

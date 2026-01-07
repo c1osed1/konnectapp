@@ -350,11 +350,39 @@ struct ChatView: View {
                 .frame(width: 40, height: 40)
                 .glassEffect(in: Circle())
             
-            AsyncImage(url: URL(string: otherUserAvatar ?? "")) { image in
-                image
-                    .resizable()
+            Group {
+                if let avatarURL = URL(string: otherUserAvatar ?? "") {
+                    CachedAsyncImage(url: avatarURL, cacheType: .avatar)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(Color.themeBlockBackground)
+                        .overlay(
+                            Text(chat.title.prefix(1).uppercased())
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Color.appAccent)
+                        )
+                        .frame(width: 40, height: 40)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var fallbackAvatar: some View {
+        Group {
+            if let avatarURL = URL(string: otherUserAvatar ?? "") {
+                CachedAsyncImage(url: avatarURL, cacheType: .avatar)
                     .aspectRatio(contentMode: .fill)
-            } placeholder: {
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                    .background(
+                        Circle()
+                            .fill(.ultraThinMaterial.opacity(0.9))
+                    )
+            } else {
                 Circle()
                     .fill(Color.themeBlockBackground)
                     .overlay(
@@ -362,33 +390,9 @@ struct ChatView: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(Color.appAccent)
                     )
+                    .frame(width: 40, height: 40)
             }
-            .frame(width: 40, height: 40)
-            .clipShape(Circle())
         }
-    }
-    
-    @ViewBuilder
-    private var fallbackAvatar: some View {
-        AsyncImage(url: URL(string: otherUserAvatar ?? "")) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-        } placeholder: {
-            Circle()
-                .fill(Color.themeBlockBackground)
-                .overlay(
-                    Text(chat.title.prefix(1).uppercased())
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color.appAccent)
-                )
-        }
-        .frame(width: 40, height: 40)
-        .background(
-            Circle()
-                .fill(.ultraThinMaterial.opacity(0.9))
-        )
-        .clipShape(Circle())
     }
 }
 
@@ -512,27 +516,29 @@ struct MessageBubbleView: View {
             if shouldShowAvatar {
                 // Get avatar URL from chat members
                 let avatarURL = getAvatarURL(for: message.sender_id)
-                AsyncImage(url: URL(string: avatarURL ?? "")) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.appAccent, Color(red: 0.75, green: 0.65, blue: 0.95)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                Group {
+                    if let url = URL(string: avatarURL ?? "") {
+                        CachedAsyncImage(url: url, cacheType: .avatar)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 32, height: 32)
+                            .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.appAccent, Color(red: 0.75, green: 0.65, blue: 0.95)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .overlay(
-                            Text(message.sender_name.prefix(1).uppercased())
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                        )
+                            .overlay(
+                                Text(message.sender_name.prefix(1).uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                            )
+                            .frame(width: 32, height: 32)
+                    }
                 }
-                .frame(width: 32, height: 32)
-                .clipShape(Circle())
             } else if isGroupChat && !isOwnMessage {
                 // Spacer to align messages when avatar is not shown
                 Spacer()
@@ -626,29 +632,13 @@ struct MessageBubbleView: View {
                             }
                             
                             ZStack(alignment: .bottomTrailing) {
-                                AsyncImage(url: url) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(Color.themeBlockBackground)
-                                            .frame(width: 200, height: 200)
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(maxWidth: 250, maxHeight: 300)
-                                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                                            .onTapGesture {
-                                                showImageFullscreen = true
-                                            }
-                                    case .failure:
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(Color.themeBlockBackground)
-                                            .frame(width: 200, height: 200)
-                                    @unknown default:
-                                        EmptyView()
+                                CachedAsyncImage(url: url, cacheType: .post)
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(maxWidth: 250, maxHeight: 300)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .onTapGesture {
+                                        showImageFullscreen = true
                                     }
-                                }
                                 
                                 // Time overlay (Telegram style) - no read status for photos
                                 HStack(spacing: 4) {
@@ -1066,7 +1056,7 @@ struct FullScreenImageView: View {
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 30))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                     .padding()
                 }

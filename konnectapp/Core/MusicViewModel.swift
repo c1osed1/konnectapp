@@ -7,12 +7,14 @@ class MusicViewModel: ObservableObject {
     @Published var myVibeTracks: [MusicTrack] = []
     @Published var charts: ChartsData?
     @Published var recentTracks: [MusicTrack] = []
+    @Published var likedTracks: [MusicTrack] = []
     @Published var searchResults: [MusicTrack] = []
     @Published var searchQuery: String = ""
     
     @Published var isLoadingMyVibe: Bool = false
     @Published var isLoadingCharts: Bool = false
     @Published var isLoadingRecent: Bool = false
+    @Published var isLoadingLiked: Bool = false
     @Published var isSearching: Bool = false
     
     @Published var errorMessage: String?
@@ -75,6 +77,26 @@ class MusicViewModel: ObservableObject {
         }
         
         isLoadingRecent = false
+    }
+    
+    // MARK: - Liked Tracks
+    func loadLikedTracks(page: Int = 1, perPage: Int = 20) async {
+        isLoadingLiked = true
+        errorMessage = nil
+        
+        do {
+            let response = try await musicService.getLikedTracks(page: page, perPage: perPage)
+            if page == 1 {
+                likedTracks = response.tracks
+            } else {
+                likedTracks.append(contentsOf: response.tracks)
+            }
+        } catch {
+            errorMessage = "Не удалось загрузить любимые треки"
+            print("❌ Error loading liked tracks: \(error)")
+        }
+        
+        isLoadingLiked = false
     }
     
     // MARK: - Search
@@ -155,6 +177,13 @@ class MusicViewModel: ObservableObject {
         if charts != nil {
             Task {
                 await loadCharts(type: selectedChartType)
+            }
+        }
+        
+        // Обновляем в Liked Tracks
+        if !likedTracks.isEmpty {
+            Task {
+                await loadLikedTracks(page: 1, perPage: 20)
             }
         }
     }

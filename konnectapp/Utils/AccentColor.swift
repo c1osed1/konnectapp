@@ -29,37 +29,37 @@ extension Color {
     
     @MainActor
     static var themeBackgroundStart: Color {
-        return ThemeManager.shared.currentTheme.colors.backgroundStart
+        return ThemeManager.shared.effectiveColors.backgroundStart
     }
     
     @MainActor
     static var themeBackgroundEnd: Color {
-        return ThemeManager.shared.currentTheme.colors.backgroundEnd
+        return ThemeManager.shared.effectiveColors.backgroundEnd
     }
     
     @MainActor
     static var themeBlockBackground: Color {
-        return ThemeManager.shared.currentTheme.colors.blockBackground
+        return ThemeManager.shared.effectiveColors.blockBackground
     }
     
     @MainActor
     static var themeBlockBackgroundSecondary: Color {
-        return ThemeManager.shared.currentTheme.colors.blockBackgroundSecondary
+        return ThemeManager.shared.effectiveColors.blockBackgroundSecondary
     }
     
     @MainActor
     static var themeTextPrimary: Color {
-        return ThemeManager.shared.currentTheme.colors.textPrimary
+        return ThemeManager.shared.effectiveColors.textPrimary
     }
     
     @MainActor
     static var themeTextSecondary: Color {
-        return ThemeManager.shared.currentTheme.colors.textSecondary
+        return ThemeManager.shared.effectiveColors.textSecondary
     }
     
     @MainActor
     static var themeBorder: Color {
-        return ThemeManager.shared.currentTheme.colors.border
+        return ThemeManager.shared.effectiveColors.border
     }
 }
 

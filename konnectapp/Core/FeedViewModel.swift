@@ -12,19 +12,11 @@ class FeedViewModel: ObservableObject {
     private var loadingMore = false
     
     func loadInitialFeed() async {
-        // Разрешаем повторные вызовы для pull-to-refresh
-        // Но используем флаг, чтобы не запускать несколько запросов одновременно
-        let shouldLoad = await MainActor.run {
-            if isLoading {
-                return false
-            }
+        await MainActor.run {
             isLoading = true
             currentPage = 1
             errorMessage = nil
-            return true
         }
-        
-        guard shouldLoad else { return }
         
         defer {
             Task { @MainActor in
@@ -66,6 +58,55 @@ class FeedViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    func refreshFeed() async {
+        // Отдельный метод для pull-to-refresh, который всегда обновляет данные
+        let currentFeedType = await MainActor.run {
+            currentPage = 1
+            errorMessage = nil
+            return feedType
+        }
+        
+        // Используем detached task, чтобы избежать отмены при pull-to-refresh
+        await Task.detached { [weak self, currentFeedType] in
+            guard let strongSelf = self else { return }
+            
+            do {
+                print("🔄 Refreshing feed: type=\(currentFeedType.rawValue), page=1")
+                let response = try await FeedService.shared.getFeed(
+                    page: 1,
+                    perPage: 20,
+                    sort: currentFeedType,
+                    includeAll: currentFeedType == .all
+                )
+                
+                print("✅ Feed refreshed: \(response.posts.count) posts")
+                
+                await MainActor.run {
+                    strongSelf.posts = response.posts
+                    strongSelf.hasMore = response.has_next
+                    strongSelf.currentPage = 2
+                    strongSelf.errorMessage = nil
+                }
+            } catch {
+                let nsError = error as NSError
+                // Игнорируем ошибки отмены (cancellation)
+                if error is CancellationError || (nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled) {
+                    print("ℹ️ Feed refresh cancelled")
+                    return
+                }
+                
+                print("❌ Feed refresh error: \(error.localizedDescription)")
+                await MainActor.run {
+                    if let authError = error as? AuthError {
+                        strongSelf.errorMessage = authError.errorDescription
+                    } else {
+                        strongSelf.errorMessage = error.localizedDescription
+                    }
+                }
+            }
+        }.value
     }
     
     func loadMorePosts() async {

@@ -217,31 +217,26 @@ struct PostMediaView: View {
     
     @ViewBuilder
     private func gridImagesView(urls: [String]) -> some View {
+        // Показываем максимум 4 фотографии
+        let displayURLs = Array(urls.prefix(4))
+        let remainingCount = urls.count > 4 ? urls.count - 4 : 0
+        
         VStack(spacing: 2) {
+            // Верхний ряд: первые 2 фотографии
             HStack(spacing: 2) {
-                ForEach(Array(urls.prefix(2).enumerated()), id: \.element) { index, mediaURL in
+                ForEach(Array(displayURLs.prefix(2).enumerated()), id: \.element) { index, mediaURL in
                     ZStack {
-                        AsyncImage(url: URL(string: mediaURL)) { phase in
-                            switch phase {
-                            case .empty:
-                                Rectangle()
-                                    .fill(Color.themeBlockBackground)
-                                    .frame(height: 150)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(height: 150)
-                                    .frame(maxWidth: .infinity)
-                                    .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
-                                    .clipped()
-                            case .failure:
-                                Rectangle()
-                                    .fill(Color.themeBlockBackground)
-                                    .frame(height: 150)
-                            @unknown default:
-                                EmptyView()
-                            }
+                        if let imageURL = URL(string: mediaURL) {
+                            CachedAsyncImage(url: imageURL, cacheType: .post)
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 150)
+                                .frame(maxWidth: .infinity)
+                                .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
+                                .clipped()
+                        } else {
+                            Rectangle()
+                                .fill(Color.themeBlockBackground)
+                                .frame(height: 150)
                         }
                         
                         if isNsfw && !showNsfw {
@@ -268,8 +263,11 @@ struct PostMediaView: View {
                 }
             }
             
+            // Нижний ряд: следующие 2 фотографии (3-я и 4-я)
             HStack(spacing: 2) {
-                ForEach(Array(urls[2..<min(5, urls.count)].enumerated()), id: \.element) { subIndex, mediaURL in
+                ForEach(Array(displayURLs[2..<min(4, displayURLs.count)].enumerated()), id: \.element) { subIndex, mediaURL in
+                    // Показываем +N на последней фотографии (4-й, второй элемент в нижнем ряду)
+                    let isLastImage = remainingCount > 0 && subIndex == 1 && displayURLs.count == 4
                     ZStack {
                         AsyncImage(url: URL(string: mediaURL)) { phase in
                             switch phase {
@@ -279,12 +277,13 @@ struct PostMediaView: View {
                                         .fill(Color.themeBlockBackground)
                                         .frame(height: 150)
                                     
-                                    if urls.count > 5 && mediaURL == urls[4] {
+                                    // Показываем +N на последней фотографии (4-й)
+                                    if isLastImage {
                                         Rectangle()
                                             .fill(Color.black.opacity(0.6))
                                             .frame(height: 150)
                                         
-                                        Text("+\(urls.count - 5)")
+                                        Text("+\(remainingCount)")
                                             .font(.system(size: 24, weight: .bold))
                                             .foregroundColor(.white)
                                     }
@@ -299,11 +298,13 @@ struct PostMediaView: View {
                                         .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
                                         .clipped()
                                     
-                                    if urls.count > 5 && mediaURL == urls[4] {
+                                    // Показываем +N на последней фотографии (4-й)
+                                    if isLastImage {
                                         Rectangle()
                                             .fill(Color.black.opacity(0.6))
+                                            .frame(height: 150)
                                         
-                                        Text("+\(urls.count - 5)")
+                                        Text("+\(remainingCount)")
                                             .font(.system(size: 24, weight: .bold))
                                             .foregroundColor(.white)
                                     }
@@ -314,12 +315,13 @@ struct PostMediaView: View {
                                         .fill(Color.themeBlockBackground)
                                         .frame(height: 150)
                                     
-                                    if urls.count > 5 && mediaURL == urls[4] {
+                                    // Показываем +N на последней фотографии (4-й)
+                                    if isLastImage {
                                         Rectangle()
                                             .fill(Color.black.opacity(0.6))
                                             .frame(height: 150)
                                         
-                                        Text("+\(urls.count - 5)")
+                                        Text("+\(remainingCount)")
                                             .font(.system(size: 24, weight: .bold))
                                             .foregroundColor(.white)
                                     }

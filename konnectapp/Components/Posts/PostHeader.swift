@@ -57,7 +57,7 @@ struct PostHeader: View {
                     HStack(spacing: 4) {
                         Text(user.name ?? user.username)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                         
                         if user.is_verified == true {
                             Image(systemName: "checkmark.seal.fill")
@@ -68,7 +68,7 @@ struct PostHeader: View {
                     
                     Text("@\(user.username)")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                        .foregroundColor(Color.themeTextSecondary)
                 }
             }
             
@@ -77,7 +77,7 @@ struct PostHeader: View {
             if let timestamp = timestamp {
                 Text(formatDate(timestamp))
                     .font(.system(size: 12))
-                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                    .foregroundColor(Color.themeTextSecondary)
             }
         }
     }

@@ -17,13 +17,13 @@ struct SettingsView: View {
                     VStack(spacing: 20) {
                         Text("Настройки")
                             .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .padding(.top, 20)
                     
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Внешний вид")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .padding(.horizontal, 16)
                         
                         Button {
@@ -45,7 +45,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Профиль")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .padding(.horizontal, 16)
                         
                         Button {
@@ -60,7 +60,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Кеш")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .padding(.horizontal, 16)
                         
                         Button {
@@ -81,7 +81,7 @@ struct SettingsView: View {
                     Button("Готово") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 }
             }
             .sheet(isPresented: $showBackgroundModal) {

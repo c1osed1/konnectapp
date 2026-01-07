@@ -27,27 +27,32 @@ class OnlineUsersViewModel: ObservableObject {
             isLoading = true
         }
         
-        do {
-            let users = try await OnlineUsersService.shared.getOnlineUsers(limit: 50)
-            print("✅ Loaded \(users.count) online users")
-            await MainActor.run {
-                self.onlineUsers = users
-                self.isLoading = false
-            }
-        } catch {
-            // Игнорируем ошибки отмены (cancellation) - это нормально при pull-to-refresh
-            if error is CancellationError {
-                print("ℹ️ Online users loading cancelled (normal for pull-to-refresh)")
+        // Используем detached task, чтобы избежать отмены при pull-to-refresh
+        await Task.detached { [weak self] in
+            guard let self = self else { return }
+            
+            do {
+                let users = try await OnlineUsersService.shared.getOnlineUsers(limit: 50)
+                print("✅ Loaded \(users.count) online users")
+                await MainActor.run {
+                    self.onlineUsers = users
+                    self.isLoading = false
+                }
+            } catch {
+                // Игнорируем ошибки отмены (cancellation) - это нормально при pull-to-refresh
+                if error is CancellationError {
+                    print("ℹ️ Online users loading cancelled (normal for pull-to-refresh)")
+                    await MainActor.run {
+                        self.isLoading = false
+                    }
+                    return
+                }
+                
                 await MainActor.run {
                     self.isLoading = false
                 }
-                return
             }
-            
-            await MainActor.run {
-                self.isLoading = false
-            }
-        }
+        }.value
     }
 }
 

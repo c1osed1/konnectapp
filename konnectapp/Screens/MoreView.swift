@@ -16,7 +16,7 @@ struct MoreView: View {
                 VStack(spacing: 20) {
                 Text("Еще")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                     .padding(.top, 20)
                 
                 Button {
@@ -53,7 +53,7 @@ struct MoreView: View {
                         Text("Выйти")
                             .font(.system(size: 16, weight: .semibold))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.white) // Красная кнопка выхода остается белой
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .background(
@@ -140,7 +140,7 @@ struct MoreRow: View {
             
             Text(title)
                 .font(.system(size: 16))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             Spacer()
             

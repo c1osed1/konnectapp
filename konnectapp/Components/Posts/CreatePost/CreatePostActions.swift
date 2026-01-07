@@ -12,6 +12,7 @@ struct CreatePostActions: View {
     @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
+        let borderColor = Color.themeBorder.opacity(0.6)
         HStack(spacing: 8) {
             Button(action: onAddGallery) {
                 HStack(spacing: 6) {
@@ -20,12 +21,16 @@ struct CreatePostActions: View {
                     Text("Галерея")
                         .font(.system(size: 14, weight: .medium))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color.themeBlockBackground.opacity(0.5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(borderColor, lineWidth: 0.5)
+                        )
                 )
             }
             
@@ -36,12 +41,16 @@ struct CreatePostActions: View {
                     Text("Музыка")
                         .font(.system(size: 14, weight: .medium))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color.themeBlockBackground.opacity(0.5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(borderColor, lineWidth: 0.5)
+                        )
                 )
             }
             
@@ -51,11 +60,15 @@ struct CreatePostActions: View {
                 }) {
                     Image(systemName: isNsfw ? "eye.slash.fill" : "eye.slash")
                         .font(.system(size: 18))
-                        .foregroundColor(isNsfw ? Color.appAccent : .white)
+                        .foregroundColor(isNsfw ? Color.appAccent : Color.themeTextPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(Color.themeBlockBackground.opacity(0.5))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(borderColor, lineWidth: 0.5)
+                                )
                         )
                 }
             }
@@ -66,12 +79,12 @@ struct CreatePostActions: View {
                 Group {
                     if isPublishing {
                         ProgressView()
-                            .tint(.white)
+                            .tint(Color.themeTextPrimary)
                             .frame(width: 16, height: 16)
                     } else {
                         Image(systemName: "paperplane.fill")
                             .font(.system(size: 16))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 }
                 .padding(.horizontal, 12)

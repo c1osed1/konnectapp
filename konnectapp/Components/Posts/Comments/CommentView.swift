@@ -40,33 +40,14 @@ struct CommentView: View {
                         Button {
                             navigationPath.append(user.username)
                         } label: {
-                            AsyncImage(url: URL(string: user.avatar_url ?? (user.photo?.hasPrefix("http") == true ? user.photo! : "https://s3.k-connect.ru/static/uploads/avatar/\(user.id)/\(user.photo ?? "")"))) { phase in
-                                switch phase {
-                                case .empty:
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [
-                                                    Color.appAccent,
-                                                    Color(red: 0.75, green: 0.65, blue: 0.95)
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .overlay(
-                                            Text(String((user.name ?? user.username).prefix(1)))
-                                                .font(.system(size: 12, weight: .bold))
-                                                .foregroundColor(.black)
-                                        )
-                                        .frame(width: 32, height: 32)
-                                case .success(let image):
-                                    image
-                                        .resizable()
+                            Group {
+                                let avatarURLString = user.avatar_url ?? (user.photo?.hasPrefix("http") == true ? user.photo! : "https://s3.k-connect.ru/static/uploads/avatar/\(user.id)/\(user.photo ?? "")")
+                                if let avatarURL = URL(string: avatarURLString) {
+                                    CachedAsyncImage(url: avatarURL, cacheType: .avatar)
                                         .aspectRatio(contentMode: .fill)
                                         .frame(width: 32, height: 32)
                                         .clipShape(Circle())
-                                case .failure:
+                                } else {
                                     Circle()
                                         .fill(
                                             LinearGradient(
@@ -83,10 +64,6 @@ struct CommentView: View {
                                                 .font(.system(size: 12, weight: .bold))
                                                 .foregroundColor(.black)
                                         )
-                                        .frame(width: 32, height: 32)
-                                @unknown default:
-                                    Circle()
-                                        .fill(Color.themeBlockBackgroundSecondary)
                                         .frame(width: 32, height: 32)
                                 }
                             }
@@ -102,13 +79,13 @@ struct CommentView: View {
                                 } label: {
                                     Text(user.name ?? user.username)
                                         .font(.system(size: 13, weight: .semibold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Color.themeTextPrimary)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 
                                 Text("@\(user.username)")
                                     .font(.system(size: 11))
-                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                    .foregroundColor(Color.themeTextSecondary)
                                 
                                 if let timestamp = comment.timestamp {
                                     Text(DateFormatterHelper.formatRelativeTime(timestamp))
@@ -121,34 +98,16 @@ struct CommentView: View {
                         if let content = comment.content, !content.isEmpty {
                             Text(content)
                                 .font(.system(size: 13))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         
                         if let image = comment.image, let imageURL = URL(string: image) {
-                            AsyncImage(url: imageURL) { phase in
-                                switch phase {
-                                case .empty:
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.themeBlockBackgroundSecondary)
-                                        .frame(height: 150)
-                                case .success(let img):
-                                    img
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(maxHeight: 200)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                case .failure:
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.themeBlockBackgroundSecondary)
-                                        .frame(height: 150)
-                                @unknown default:
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.themeBlockBackgroundSecondary)
-                                        .frame(height: 150)
-                                }
-                            }
-                            .padding(.top, 3)
+                            CachedAsyncImage(url: imageURL, cacheType: .post)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 200)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .padding(.top, 3)
                         }
                         
                         HStack(spacing: 12) {
@@ -212,7 +171,7 @@ struct CommentView: View {
                         // Если replies пустой, но replies_count > 0, возможно нужно загрузить
                         Text("Загрузка ответов...")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                             .padding(.leading, 40)
                             .padding(.top, 6)
                     }
@@ -338,33 +297,14 @@ struct ReplyView: View {
                 Button {
                     navigationPath.append(user.username)
                 } label: {
-                    AsyncImage(url: URL(string: user.avatar_url ?? (user.photo?.hasPrefix("http") == true ? user.photo! : "https://s3.k-connect.ru/static/uploads/avatar/\(user.id)/\(user.photo ?? "")"))) { phase in
-                        switch phase {
-                        case .empty:
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.appAccent,
-                                            Color(red: 0.75, green: 0.65, blue: 0.95)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .overlay(
-                                    Text(String((user.name ?? user.username).prefix(1)))
-                                        .font(.system(size: 11, weight: .bold))
-                                        .foregroundColor(.black)
-                                )
-                                .frame(width: 28, height: 28)
-                        case .success(let image):
-                            image
-                                .resizable()
+                    Group {
+                        let avatarURLString = user.avatar_url ?? (user.photo?.hasPrefix("http") == true ? user.photo! : "https://s3.k-connect.ru/static/uploads/avatar/\(user.id)/\(user.photo ?? "")")
+                        if let avatarURL = URL(string: avatarURLString) {
+                            CachedAsyncImage(url: avatarURL, cacheType: .avatar)
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 28, height: 28)
                                 .clipShape(Circle())
-                        case .failure:
+                        } else {
                             Circle()
                                 .fill(
                                     LinearGradient(
@@ -381,10 +321,6 @@ struct ReplyView: View {
                                         .font(.system(size: 11, weight: .bold))
                                         .foregroundColor(.black)
                                 )
-                                .frame(width: 28, height: 28)
-                        @unknown default:
-                            Circle()
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
                                 .frame(width: 28, height: 28)
                         }
                     }
@@ -400,18 +336,18 @@ struct ReplyView: View {
                         } label: {
                             Text(user.name ?? user.username)
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                         }
                         .buttonStyle(PlainButtonStyle())
                         
                         Text("@\(user.username)")
                             .font(.system(size: 10))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                         
                         if let timestamp = reply.timestamp {
                             Text(DateFormatterHelper.formatRelativeTime(timestamp))
                                 .font(.system(size: 9))
-                                .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
+                                .foregroundColor(Color.themeTextSecondary.opacity(0.8))
                         }
                     }
                 }
@@ -419,34 +355,16 @@ struct ReplyView: View {
                 if let content = reply.content, !content.isEmpty {
                     Text(content)
                         .font(.system(size: 12))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 if let image = reply.image, let imageURL = URL(string: image) {
-                    AsyncImage(url: imageURL) { phase in
-                        switch phase {
-                        case .empty:
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                .frame(height: 120)
-                        case .success(let img):
-                            img
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(maxHeight: 150)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        case .failure:
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                .frame(height: 120)
-                        @unknown default:
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                .frame(height: 120)
-                        }
-                    }
-                    .padding(.top, 3)
+                    CachedAsyncImage(url: imageURL, cacheType: .post)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 150)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .padding(.top, 3)
                 }
                 
                 HStack(spacing: 12) {
@@ -458,12 +376,12 @@ struct ReplyView: View {
                         HStack(spacing: 3) {
                             Image(systemName: isLiked ? "heart.fill" : "heart")
                                 .font(.system(size: 11))
-                                .foregroundColor(isLiked ? .red : Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(isLiked ? .red : Color.themeTextSecondary)
                             
                             if likesCount > 0 {
                                 Text("\(likesCount)")
                                     .font(.system(size: 10))
-                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                    .foregroundColor(Color.themeTextSecondary)
                             }
                         }
                     }
@@ -477,10 +395,10 @@ struct ReplyView: View {
                             HStack(spacing: 3) {
                                 Image(systemName: "arrowshape.turn.up.left")
                                     .font(.system(size: 11))
-                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                    .foregroundColor(Color.themeTextSecondary)
                                 Text("Ответить")
                                     .font(.system(size: 10))
-                                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                    .foregroundColor(Color.themeTextSecondary)
                             }
                         }
                         .buttonStyle(PlainButtonStyle())

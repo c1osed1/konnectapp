@@ -78,11 +78,12 @@ struct EditProfileView: View {
     @ViewBuilder
     private var mediaSection: some View {
         let appAccent = Color.appAccent
+        let themeTextPrimary = Color.themeTextPrimary
         
         VStack(alignment: .leading, spacing: 16) {
             Text("Медиа")
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             // Превью аватара и баннера
             HStack(spacing: 16) {
@@ -180,7 +181,7 @@ struct EditProfileView: View {
                     ) {
                         Label("Изменить аватар", systemImage: "photo")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(themeTextPrimary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                     }
@@ -204,7 +205,7 @@ struct EditProfileView: View {
                     ) {
                         Label("Изменить баннер", systemImage: "photo.on.rectangle")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(themeTextPrimary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                     }
@@ -228,7 +229,7 @@ struct EditProfileView: View {
                     ) {
                         Label("Изменить аватар", systemImage: "photo")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(themeTextPrimary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(
@@ -245,7 +246,7 @@ struct EditProfileView: View {
                     ) {
                         Label("Изменить баннер", systemImage: "photo.on.rectangle")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(themeTextPrimary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(
@@ -266,11 +267,11 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Имя")
                 .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             TextField("Введите имя", text: $name)
                 .font(.system(size: 16))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
                 .focused($focusedField, equals: .name)
                 .padding(14)
                 .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
@@ -284,11 +285,11 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Юзернейм")
                 .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             TextField("Введите юзернейм", text: $username)
                 .font(.system(size: 16))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
                 .focused($focusedField, equals: .username)
                 .padding(14)
                 .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 12))
@@ -302,7 +303,7 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Стиль профиля")
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -353,7 +354,7 @@ struct EditProfileView: View {
                     }
                     Text(isUploading ? "Сохранение..." : "Сохранить изменения")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
@@ -389,7 +390,7 @@ struct EditProfileView: View {
                     }
                     Text(isUploading ? "Сохранение..." : "Сохранить изменения")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
@@ -584,20 +585,20 @@ struct ProfileStyleButton: View {
                     HStack {
                         Text(title)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                         
                         Spacer()
                         
                         if isSelected {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                         }
                     }
                     
                     Text(description)
                         .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(Color.themeTextSecondary)
                 }
                 .frame(width: 160)
                 .padding(16)
@@ -627,20 +628,20 @@ struct ProfileStyleButton: View {
                     HStack {
                         Text(title)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                         
                         Spacer()
                         
                         if isSelected {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                         }
                     }
                     
                     Text(description)
                         .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(Color.themeTextSecondary)
                 }
                 .frame(width: 160)
                 .padding(16)

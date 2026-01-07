@@ -15,13 +15,13 @@ struct ProfileAboutContent: View {
                 VStack(spacing: 12) {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 48))
-                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                        .foregroundColor(Color.themeTextSecondary)
                     Text("Приватный профиль")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color(red: 0.83, green: 0.83, blue: 0.83))
+                        .foregroundColor(Color.themeTextPrimary)
                     Text("Подпишитесь друг на друга для просмотра информации")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(red: 0.7, green: 0.7, blue: 0.7))
+                        .foregroundColor(Color.themeTextSecondary)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.top, 40)
@@ -76,7 +76,7 @@ struct ProfileAboutContent: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("О себе")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             Text(about)
                 .font(.system(size: 14))
@@ -93,7 +93,7 @@ struct ProfileAboutContent: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("О себе")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             Text(about)
                 .font(.system(size: 14))
@@ -125,13 +125,13 @@ struct ProfileAboutContent: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Интересы")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             FlowLayout(spacing: 8) {
                 ForEach(interests, id: \.self) { interest in
                     Text(interest)
                         .font(.system(size: 13))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .background(
@@ -173,10 +173,10 @@ struct ProfileAboutContent: View {
             HStack {
                 Image(systemName: "at")
                     .font(.system(size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 Text("Купленные юзернеймы")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
             }
             
             FlowLayout(spacing: 8) {
@@ -184,7 +184,7 @@ struct ProfileAboutContent: View {
                     HStack(spacing: 4) {
                         Text("@\(username.username)")
                             .font(.system(size: 13))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                         if username.is_active {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 12))
@@ -210,10 +210,10 @@ struct ProfileAboutContent: View {
             HStack {
                 Image(systemName: "at")
                     .font(.system(size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 Text("Купленные юзернеймы")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
             }
             
             FlowLayout(spacing: 8) {
@@ -221,7 +221,7 @@ struct ProfileAboutContent: View {
                     HStack(spacing: 4) {
                         Text("@\(username.username)")
                             .font(.system(size: 13))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                         if username.is_active {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 12))
@@ -273,12 +273,12 @@ struct ProfileAboutContent: View {
         HStack(spacing: 12) {
             Image(systemName: "calendar")
                 .font(.system(size: 16))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Дата регистрации")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 
                 Text(formatDate(date) ?? date)
                     .font(.system(size: 13))
@@ -296,12 +296,12 @@ struct ProfileAboutContent: View {
         HStack(spacing: 12) {
             Image(systemName: "calendar")
                 .font(.system(size: 16))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Дата регистрации")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 
                 Text(formatDate(date) ?? date)
                     .font(.system(size: 13))
@@ -346,7 +346,7 @@ struct ProfileAboutContent: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Социальные сети")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             ForEach(socials, id: \.name) { social in
                 if let url = URL(string: social.link) {
@@ -360,18 +360,18 @@ struct ProfileAboutContent: View {
                                 .overlay(
                                     Text(String(social.name.prefix(1).uppercased()))
                                         .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Color.themeTextPrimary)
                                 )
                             
                             Text(social.name)
                                 .font(.system(size: 14))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                             
                             Spacer()
                             
                             Image(systemName: "arrow.up.right.square")
                                 .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                         }
                         .padding(12)
                         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
@@ -388,7 +388,7 @@ struct ProfileAboutContent: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Социальные сети")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
             
             ForEach(socials, id: \.name) { social in
                 if let url = URL(string: social.link) {
@@ -402,18 +402,18 @@ struct ProfileAboutContent: View {
                                 .overlay(
                                     Text(String(social.name.prefix(1).uppercased()))
                                         .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Color.themeTextPrimary)
                                 )
                             
                             Text(social.name)
                                 .font(.system(size: 14))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.themeTextPrimary)
                             
                             Spacer()
                             
                             Image(systemName: "arrow.up.right.square")
                                 .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                         }
                         .padding(12)
                         .background(

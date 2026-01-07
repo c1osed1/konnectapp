@@ -84,7 +84,7 @@ struct CacheSettingsModalView: View {
                     }) {
                         Text(selectedSegments.isEmpty ? "Выберите элементы" : "Очистить выбранное (\(selectedSegments.count))")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
@@ -122,7 +122,7 @@ struct CacheSettingsModalView: View {
                     Button("Готово") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 }
             }
             .onAppear {
@@ -203,17 +203,30 @@ struct CachePieChart: View {
     
     var body: some View {
         ZStack {
+            // Background circle
             Circle()
                 .fill(Color.themeBlockBackgroundSecondary)
                 .frame(width: 220, height: 220)
             
-            ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
-                Circle()
-                    .trim(from: segment.start, to: segment.end)
-                    .stroke(segment.color, style: StrokeStyle(lineWidth: 32, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .frame(width: 220, height: 220)
-                    .animation(.easeInOut(duration: 0.2), value: selectedSegments)
+            // Segments using Path for proper rendering
+            GeometryReader { geometry in
+                let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                let radius = min(geometry.size.width, geometry.size.height) / 2 - 16
+                
+                ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
+                    Path { path in
+                        let startAngle = Angle(radians: Double(segment.start) * 2 * .pi - .pi / 2)
+                        let endAngle = Angle(radians: Double(segment.end) * 2 * .pi - .pi / 2)
+                        
+                        path.addArc(
+                            center: center,
+                            radius: radius,
+                            startAngle: startAngle,
+                            endAngle: endAngle,
+                            clockwise: false
+                        )
+                    }
+                    .stroke(segment.color, style: StrokeStyle(lineWidth: 32, lineCap: .round, lineJoin: .round))
                     .onTapGesture {
                         if selectedSegments.contains(segment.segment) {
                             selectedSegments.remove(segment.segment)
@@ -221,19 +234,22 @@ struct CachePieChart: View {
                             selectedSegments.insert(segment.segment)
                         }
                     }
+                }
             }
+            .frame(width: 220, height: 220)
             
+            // Inner circle
             Circle()
-                .fill(Color.black)
+                .fill(Color.themeBackgroundStart)
                 .frame(width: 140, height: 140)
             
             VStack(spacing: 4) {
                 Text(cacheSize.formatted())
                     .font(.system(size: 26, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 Text("Всего")
                     .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(Color.themeTextSecondary)
             }
         }
     }
@@ -255,24 +271,24 @@ struct CacheInfoRow: View {
                     if isSelected {
                         Image(systemName: "checkmark")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 }
                 
                 Text(title)
                     .font(.system(size: 16))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 
                 Spacer()
                 
                 Text(size)
                     .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.6))
+                    .foregroundColor(Color.themeTextSecondary)
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? Color.appAccent.opacity(0.15) : Color(red: 0.13, green: 0.13, blue: 0.13))
+                    .fill(isSelected ? Color.appAccent.opacity(0.15) : Color.themeBlockBackground)
             )
         }
         .buttonStyle(PlainButtonStyle())

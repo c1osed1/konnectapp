@@ -67,11 +67,11 @@ struct CreatePostView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(track.title)
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                         if let artist = track.artist {
                             Text(artist)
                                 .font(.system(size: 12))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                         }
                     }
                     
@@ -81,7 +81,7 @@ struct CreatePostView: View {
                         selectedTrack = nil
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(Color.themeTextSecondary.opacity(0.6))
                             .font(.system(size: 20))
                     }
                 }
@@ -169,11 +169,11 @@ struct CreatePostView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(track.title)
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                         if let artist = track.artist {
                             Text(artist)
                                 .font(.system(size: 12))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                                .foregroundColor(Color.themeTextSecondary)
                         }
                     }
                     
@@ -183,7 +183,7 @@ struct CreatePostView: View {
                         selectedTrack = nil
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(Color.themeTextSecondary.opacity(0.6))
                             .font(.system(size: 20))
                     }
                 }

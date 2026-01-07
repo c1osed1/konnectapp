@@ -9,7 +9,7 @@ struct CreatePostTextField: View {
         ZStack(alignment: .topLeading) {
             TextEditor(text: $text)
                 .font(.system(size: 15))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
                 .focused($isFocused)
@@ -33,8 +33,8 @@ struct CreatePostTextField: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(
-                            Color.appAccent.opacity(0.2),
-                            lineWidth: 1
+                            Color.themeBorder.opacity(0.6),
+                            lineWidth: 0.5
                         )
                 )
         )

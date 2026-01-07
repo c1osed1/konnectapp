@@ -14,6 +14,7 @@ struct MainView: View {
     @StateObject private var deepLinkHandler = DeepLinkHandler.shared
     @StateObject private var themeManager = ThemeManager.shared
     @StateObject private var notificationChecker = NotificationChecker.shared
+    @Environment(\.colorScheme) private var colorScheme
     @State private var selectedTab: TabItem = .feed
     @State private var navigationPath = NavigationPath()
     @State private var showPostDetail: Post?
@@ -136,6 +137,12 @@ struct MainView: View {
                 if authManager.isAuthenticated {
                     notificationChecker.startChecking()
                 }
+                // Обновляем системную тему в ThemeManager
+                themeManager.updateSystemColorScheme(colorScheme)
+            }
+            .onChange(of: colorScheme) { oldValue, newValue in
+                // Обновляем системную тему при её изменении
+                themeManager.updateSystemColorScheme(newValue)
             }
             .onDisappear {
                 notificationChecker.stopChecking()

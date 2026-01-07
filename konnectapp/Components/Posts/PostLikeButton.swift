@@ -16,12 +16,12 @@ struct PostLikeButton: View {
                 HStack(spacing: 4) {
                     Image(systemName: isLiked ? "heart.fill" : "heart")
                         .font(.system(size: 16))
-                        .foregroundColor(isLiked ? .red : .white)
+                        .foregroundColor(isLiked ? .red : Color.themeTextPrimary)
                     
                     if likesCount > 0 {
                         Text("\(likesCount)")
                             .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -42,12 +42,12 @@ struct PostLikeButton: View {
                 HStack(spacing: 4) {
                     Image(systemName: isLiked ? "heart.fill" : "heart")
                         .font(.system(size: 16))
-                        .foregroundColor(isLiked ? .red : .white)
+                        .foregroundColor(isLiked ? .red : Color.themeTextPrimary)
                     
                     if likesCount > 0 {
                         Text("\(likesCount)")
                             .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 }
                 .padding(.horizontal, 16)

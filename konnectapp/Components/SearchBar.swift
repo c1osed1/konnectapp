@@ -31,6 +31,12 @@ struct SearchBar: UIViewRepresentable {
             textField.backgroundColor = .clear
             textField.background = UIImage()
             textField.borderStyle = .none
+            // Use adaptive text color
+            textField.textColor = UIColor.label
+            textField.attributedPlaceholder = NSAttributedString(
+                string: textField.placeholder ?? "",
+                attributes: [NSAttributedString.Key.foregroundColor: UIColor.secondaryLabel]
+            )
             // Remove background from text field's subviews
             for subview in textField.subviews {
                 subview.backgroundColor = .clear
@@ -54,6 +60,12 @@ struct SearchBar: UIViewRepresentable {
             textField.backgroundColor = .clear
             textField.background = UIImage()
             textField.borderStyle = .none
+            // Use adaptive text color
+            textField.textColor = UIColor.label
+            textField.attributedPlaceholder = NSAttributedString(
+                string: textField.placeholder ?? "",
+                attributes: [NSAttributedString.Key.foregroundColor: UIColor.secondaryLabel]
+            )
             for subview in textField.subviews {
                 subview.backgroundColor = .clear
             }

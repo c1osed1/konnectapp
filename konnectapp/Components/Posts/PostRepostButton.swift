@@ -6,7 +6,7 @@ struct PostRepostButton: View {
             Button(action: {}) {
                 Image(systemName: "arrow.2.squarepath")
                     .font(.system(size: 16))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
             }
@@ -27,7 +27,7 @@ struct PostRepostButton: View {
             Button(action: {}) {
                 Image(systemName: "arrow.2.squarepath")
                     .font(.system(size: 16))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
                     .background(

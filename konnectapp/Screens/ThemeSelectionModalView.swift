@@ -21,12 +21,12 @@ struct ThemeSelectionModalView: View {
                     VStack(spacing: 20) {
                         Text("Выбор темы")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                             .padding(.top, 20)
                         
                         Text("Выберите цветовую схему приложения")
                             .font(.system(size: 16))
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                             .padding(.bottom, 20)
                         
                         VStack(spacing: 16) {
@@ -49,7 +49,7 @@ struct ThemeSelectionModalView: View {
                     Button("Готово") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 }
             }
         }
@@ -72,18 +72,18 @@ struct ThemeOptionRow: View {
                     if isSelected {
                         Image(systemName: "checkmark")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.themeTextPrimary)
                     }
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(theme.name)
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                     
                     Text(themeDescription(theme))
                         .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(Color.themeTextSecondary)
                 }
                 
                 Spacer()

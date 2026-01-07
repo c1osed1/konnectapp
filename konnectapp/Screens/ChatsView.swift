@@ -138,21 +138,23 @@ struct ChatRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Avatar
-            AsyncImage(url: URL(string: chat.fullAvatarURL ?? "")) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Circle()
-                    .fill(Color.themeBlockBackground)
-                    .overlay(
-                        Text(chat.title.prefix(1).uppercased())
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(Color.appAccent)
-                    )
+            Group {
+                if let avatarURL = URL(string: chat.fullAvatarURL ?? "") {
+                    CachedAsyncImage(url: avatarURL, cacheType: .avatar)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 56, height: 56)
+                        .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(Color.themeBlockBackground)
+                        .overlay(
+                            Text(chat.title.prefix(1).uppercased())
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(Color.appAccent)
+                        )
+                        .frame(width: 56, height: 56)
+                }
             }
-            .frame(width: 56, height: 56)
-            .clipShape(Circle())
             
             // Content
             VStack(alignment: .leading, spacing: 4) {

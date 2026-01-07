@@ -11,6 +11,7 @@ struct CachedAsyncImage: View {
     let cacheType: ImageCacheType
     @StateObject private var themeManager = ThemeManager.shared
     @State private var loadedImage: UIImage?
+    @State private var isLoading: Bool = false
     
     var body: some View {
         Group {
@@ -28,6 +29,7 @@ struct CachedAsyncImage: View {
         .onChange(of: url) { oldValue, newValue in
             if newValue != oldValue {
                 loadedImage = nil
+                isLoading = false
                 loadImage()
             }
         }
@@ -38,8 +40,6 @@ struct CachedAsyncImage: View {
             print("⚠️ CachedAsyncImage: URL is nil")
             return
         }
-        
-        print("🟢 CachedAsyncImage: Loading image from \(url.absoluteString)")
         
         var cachedData: Data?
         switch cacheType {
@@ -54,9 +54,11 @@ struct CachedAsyncImage: View {
         if let data = cachedData, let image = UIImage(data: data) {
             print("✅ CachedAsyncImage: Using cached image for \(url.absoluteString)")
             loadedImage = image
+            isLoading = false
             return
         }
         
+        isLoading = true
         print("📥 CachedAsyncImage: Fetching image from network: \(url.absoluteString)")
         Task {
             do {
@@ -73,12 +75,19 @@ struct CachedAsyncImage: View {
                     }
                     await MainActor.run {
                         loadedImage = image
+                        isLoading = false
                     }
                 } else {
                     print("❌ CachedAsyncImage: Failed to create UIImage from data for \(url.absoluteString)")
+                    await MainActor.run {
+                        isLoading = false
+                    }
                 }
             } catch {
                 print("❌ CachedAsyncImage: Error loading image from \(url.absoluteString): \(error)")
+                await MainActor.run {
+                    isLoading = false
+                }
             }
         }
     }

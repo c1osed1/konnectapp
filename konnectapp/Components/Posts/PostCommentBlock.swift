@@ -18,7 +18,7 @@ struct PostCommentBlock: View {
             HStack(spacing: 8) {
                 Image(systemName: "bubble.right")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                    .foregroundColor(Color.themeTextSecondary)
                 
                 if let lastComment = lastComment, let commentUser = lastComment.user {
                     HStack(spacing: 6) {
@@ -63,14 +63,14 @@ struct PostCommentBlock: View {
                         
                         Text(lastComment.content ?? "")
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                             .lineLimit(1)
                     }
                 } else {
                     Text("тут пусто")
                         .font(.system(size: 14))
                         .italic()
-                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                        .foregroundColor(Color.themeTextSecondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -81,7 +81,7 @@ struct PostCommentBlock: View {
                     .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                            .fill(Color.themeBlockBackground.opacity(0.5))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
@@ -95,7 +95,7 @@ struct PostCommentBlock: View {
             HStack(spacing: 8) {
                 Image(systemName: "bubble.right")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                    .foregroundColor(Color.themeTextSecondary)
                 
                 if let lastComment = lastComment, let commentUser = lastComment.user {
                     HStack(spacing: 6) {
@@ -140,14 +140,14 @@ struct PostCommentBlock: View {
                         
                         Text(lastComment.content ?? "")
                             .font(.system(size: 14))
-                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                            .foregroundColor(Color.themeTextSecondary)
                             .lineLimit(1)
                     }
                 } else {
                     Text("Комментарий")
                         .font(.system(size: 14))
                         .italic()
-                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                        .foregroundColor(Color.themeTextSecondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,7 +158,7 @@ struct PostCommentBlock: View {
                     .fill(.ultraThinMaterial.opacity(0.1))
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                            .fill(Color.themeBlockBackground.opacity(0.5))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)

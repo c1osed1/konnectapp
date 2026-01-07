@@ -7,7 +7,15 @@ struct AboutAppView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                LinearGradient(
+                    colors: [
+                        Color.themeBackgroundStart,
+                        Color.themeBackgroundEnd
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
                 
                 VStack(spacing: 24) {
                     Group {
@@ -46,7 +54,7 @@ struct AboutAppView: View {
                     
                     Text("KonnectApp")
                         .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                     
                     VStack(spacing: 12) {
                         InfoRow(title: "Версия приложения", value: "1.0")
@@ -66,7 +74,7 @@ struct AboutAppView: View {
                     Button("Готово") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 }
             }
         }
@@ -81,13 +89,13 @@ struct InfoRow: View {
         HStack {
             Text(title)
                 .font(.system(size: 16))
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(Color.themeTextSecondary)
             
             Spacer()
             
             Text(value)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color.themeTextPrimary)
         }
         .padding(16)
         .background(

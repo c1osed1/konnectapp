@@ -23,6 +23,7 @@ struct MusicView: View {
                     if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
                         Picker("", selection: $selectedTab) {
                             Text("Общее").tag(MusicMainTab.general)
+                            Text("Любимые").tag(MusicMainTab.liked)
                             Text("Поиск").tag(MusicMainTab.search)
                         }
                         .pickerStyle(.segmented)
@@ -33,6 +34,7 @@ struct MusicView: View {
                     } else {
                         Picker("", selection: $selectedTab) {
                             Text("Общее").tag(MusicMainTab.general)
+                            Text("Любимые").tag(MusicMainTab.liked)
                             Text("Поиск").tag(MusicMainTab.search)
                         }
                         .pickerStyle(.segmented)
@@ -64,6 +66,8 @@ struct MusicView: View {
                 Group {
                     if selectedTab == .general {
                         generalContent
+                    } else if selectedTab == .liked {
+                        likedContent
                     } else {
                         searchContent
                     }
@@ -87,6 +91,13 @@ struct MusicView: View {
             }
             if viewModel.recentTracks.isEmpty {
                 await viewModel.loadRecentTracks(type: .all)
+            }
+        }
+        .onChange(of: selectedTab) { oldValue, newValue in
+            if newValue == .liked && viewModel.likedTracks.isEmpty {
+                Task {
+                    await viewModel.loadLikedTracks()
+                }
             }
         }
     }
@@ -119,7 +130,7 @@ struct MusicView: View {
                     // Иконка волны
                     Image(systemName: "waveform")
                         .font(.system(size: 50, weight: .bold))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(Color.themeTextPrimary.opacity(0.9))
                         .symbolEffect(.pulse)
                 }
                 .shadow(color: Color.appAccent.opacity(0.5), radius: 20, x: 0, y: 10)
@@ -127,7 +138,7 @@ struct MusicView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Мой Вайб")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                     
                     if viewModel.isLoadingMyVibe {
                         Text("Загрузка...")
@@ -198,6 +209,16 @@ struct MusicView: View {
             }
             .padding(.bottom, player.currentTrack != nil ? 100 : 20)
         }
+        .refreshable {
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    await viewModel.loadCharts(type: viewModel.selectedChartType)
+                }
+                group.addTask {
+                    await viewModel.loadRecentTracks(type: viewModel.selectedTrackListType, offset: 0)
+                }
+            }
+        }
     }
     
     // MARK: - Charts Block
@@ -206,7 +227,7 @@ struct MusicView: View {
             HStack {
                 Text("Чарты")
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 
                 Spacer()
             }
@@ -299,7 +320,7 @@ struct MusicView: View {
                         .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                .fill(Color.themeBlockBackground.opacity(0.5))
                         )
                         .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                 } else {
@@ -307,7 +328,7 @@ struct MusicView: View {
                         .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                .fill(Color.themeBlockBackground.opacity(0.5))
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
@@ -324,7 +345,7 @@ struct MusicView: View {
             HStack {
                 Text("Последнее")
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeTextPrimary)
                 
                 Spacer()
             }
@@ -368,7 +389,7 @@ struct MusicView: View {
                         .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                .fill(Color.themeBlockBackground.opacity(0.5))
                         )
                         .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                 } else {
@@ -376,7 +397,7 @@ struct MusicView: View {
                         .fill(.ultraThinMaterial.opacity(0.1))
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                .fill(Color.themeBlockBackground.opacity(0.5))
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
@@ -387,6 +408,44 @@ struct MusicView: View {
         )
     }
     
+    // MARK: - Liked Content
+    private var likedContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Любимые")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Color.themeTextPrimary)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
+                
+                if viewModel.isLoadingLiked {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                } else if viewModel.likedTracks.isEmpty {
+                    emptyStateView(
+                        icon: "heart",
+                        title: "Нет любимых треков",
+                        message: "Лайкайте треки, чтобы они появились здесь"
+                    )
+                } else {
+                    ForEach(viewModel.likedTracks) { track in
+                        trackRow(track: track, playlist: viewModel.likedTracks)
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.bottom, player.currentTrack != nil ? 100 : 20)
+        }
+        .refreshable {
+            await viewModel.loadLikedTracks(page: 1, perPage: 20)
+        }
+    }
+    
     // MARK: - Search Content
     private var searchContent: some View {
         ScrollView {
@@ -394,11 +453,11 @@ struct MusicView: View {
                 // Поисковая строка (кастомный стиль)
                     HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
+                        .foregroundColor(Color.themeTextSecondary)
                     
                     TextField("Поиск треков...", text: $viewModel.searchQuery)
                         .textFieldStyle(PlainTextFieldStyle())
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.themeTextPrimary)
                         .onChange(of: viewModel.searchQuery) { oldValue, newValue in
                             viewModel.search(query: newValue)
                         }
@@ -422,7 +481,7 @@ struct MusicView: View {
                                 .fill(.ultraThinMaterial.opacity(0.2))
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                        .fill(Color.themeBlockBackground.opacity(0.5))
                                 )
                                 .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
                         } else {
@@ -430,7 +489,7 @@ struct MusicView: View {
                                 .fill(.ultraThinMaterial.opacity(0.2))
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
+                                        .fill(Color.themeBlockBackground.opacity(0.5))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 16)
@@ -469,6 +528,12 @@ struct MusicView: View {
                 }
             }
             .padding(.bottom, player.currentTrack != nil ? 100 : 20)
+        }
+        .refreshable {
+            // При обновлении в поиске - повторяем поиск, если есть запрос
+            if viewModel.searchQuery.count >= 2 {
+                viewModel.search(query: viewModel.searchQuery)
+            }
         }
     }
     
@@ -672,6 +737,7 @@ struct MusicView: View {
 // MARK: - Enums
 enum MusicMainTab {
     case general
+    case liked
     case search
 }
 

@@ -50,6 +50,21 @@ struct ProfileCard: View {
         profile.profile_id == 2 || profile.profile_id == 3
     }
     
+    // Определяем, нужен ли темный текст (для profile_id == 1 и белой темы)
+    private var shouldUseDarkText: Bool {
+        profile.profile_id == 1 && 
+        themeManager.currentTheme == .purple && 
+        themeManager.systemColorScheme == .light
+    }
+    
+    private var textColor: Color {
+        shouldUseDarkText ? Color.black : Color.white
+    }
+    
+    private var textSecondaryColor: Color {
+        shouldUseDarkText ? Color(red: 0.3, green: 0.3, blue: 0.3) : Color.white.opacity(0.9)
+    }
+    
     private var statusColor: Color {
         if let statusColor = profile.status_color, let color = Color(hex: statusColor) {
             return color
@@ -99,8 +114,8 @@ struct ProfileCard: View {
                             HStack(spacing: 6) {
                                 Text(profile.name)
                                     .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                    .foregroundColor(textColor)
+                                    .shadow(color: shouldUseDarkText ? Color.white.opacity(0.5) : Color.black.opacity(0.7), radius: 2, x: 0, y: 1)
                                 
                                 if shouldShowVerificationIcon(profile.verification_status) {
                                     if let statusColor = verificationStatusColor(profile.verification_status) {
@@ -128,8 +143,8 @@ struct ProfileCard: View {
                             HStack(spacing: 4) {
                                 Text("@\(profile.username)")
                                     .font(.system(size: 15))
-                                    .foregroundColor(Color.white.opacity(0.9))
-                                    .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                    .foregroundColor(textSecondaryColor)
+                                    .shadow(color: shouldUseDarkText ? Color.white.opacity(0.5) : Color.black.opacity(0.7), radius: 2, x: 0, y: 1)
                                 
                                 if let subscription = profile.subscription, subscription.active {
                                     SubscriptionIcon(subscriptionType: subscription.type, size: 16)
@@ -155,7 +170,8 @@ struct ProfileCard: View {
                         followersCount: profile.followers_count ?? 0,
                         followingCount: profile.following_count ?? 0,
                         onFollowersTap: onFollowersTap,
-                        onFollowingTap: onFollowingTap
+                        onFollowingTap: onFollowingTap,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 6)
@@ -165,7 +181,8 @@ struct ProfileCard: View {
                         isOwnProfile: isOwnProfile,
                         onFollowToggle: onFollowToggle,
                         onEdit: onEdit,
-                        onMessage: onMessage
+                        onMessage: onMessage,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
@@ -191,7 +208,7 @@ struct ProfileCard: View {
                     // }
                     
                     if let socials = socials, !socials.isEmpty {
-                        ProfileSocials(socials: Array(socials.prefix(2)))
+                        ProfileSocials(socials: Array(socials.prefix(2)), useDarkText: shouldUseDarkText)
                             .padding(.horizontal, 16)
                             .padding(.bottom, 8)
                     }
@@ -281,7 +298,7 @@ struct ProfileCard: View {
                             HStack(spacing: 6) {
                                 Text(profile.name)
                                     .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(textColor)
                                 
                                 if shouldShowVerificationIcon(profile.verification_status) {
                                     if let statusColor = verificationStatusColor(profile.verification_status) {
@@ -307,7 +324,7 @@ struct ProfileCard: View {
                             HStack(spacing: 4) {
                                 Text("@\(profile.username)")
                                     .font(.system(size: 15))
-                                    .foregroundColor(Color.themeTextSecondary)
+                                    .foregroundColor(textSecondaryColor)
                                 
                                 if let subscription = profile.subscription, subscription.active {
                                     SubscriptionIcon(subscriptionType: subscription.type, size: 16)
@@ -331,13 +348,19 @@ struct ProfileCard: View {
                         followersCount: profile.followers_count ?? 0,
                         followingCount: profile.following_count ?? 0,
                         onFollowersTap: onFollowersTap,
-                        onFollowingTap: onFollowingTap
+                        onFollowingTap: onFollowingTap,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(
-                        Rectangle()
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.3))
+                        // Затемнение только для profile_id != 1
+                        Group {
+                            if profile.profile_id != 1 {
+                                Rectangle()
+                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.3))
+                            }
+                        }
                     )
                     
                     ProfileActions(
@@ -345,7 +368,8 @@ struct ProfileCard: View {
                         isOwnProfile: isOwnProfile,
                         onFollowToggle: onFollowToggle,
                         onEdit: onEdit,
-                        onMessage: onMessage
+                        onMessage: onMessage,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
@@ -375,7 +399,7 @@ struct ProfileCard: View {
                     // }
                     
                     if let socials = socials, !socials.isEmpty {
-                        ProfileSocials(socials: Array(socials.prefix(2)))
+                        ProfileSocials(socials: Array(socials.prefix(2)), useDarkText: shouldUseDarkText)
                             .padding(.horizontal, 16)
                             .padding(.bottom, 8)
                     }
@@ -395,8 +419,8 @@ struct ProfileCard: View {
                             HStack(spacing: 6) {
                                 Text(profile.name)
                                     .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                    .foregroundColor(textColor)
+                                    .shadow(color: shouldUseDarkText ? Color.white.opacity(0.5) : Color.black.opacity(0.7), radius: 2, x: 0, y: 1)
                                 
                                 if shouldShowVerificationIcon(profile.verification_status) {
                                     if let statusColor = verificationStatusColor(profile.verification_status) {
@@ -424,8 +448,8 @@ struct ProfileCard: View {
                             HStack(spacing: 4) {
                                 Text("@\(profile.username)")
                                     .font(.system(size: 15))
-                                    .foregroundColor(Color.white.opacity(0.9))
-                                    .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
+                                    .foregroundColor(textSecondaryColor)
+                                    .shadow(color: shouldUseDarkText ? Color.white.opacity(0.5) : Color.black.opacity(0.7), radius: 2, x: 0, y: 1)
                                 
                                 if let subscription = profile.subscription, subscription.active {
                                     SubscriptionIcon(subscriptionType: subscription.type, size: 16)
@@ -451,7 +475,8 @@ struct ProfileCard: View {
                         followersCount: profile.followers_count ?? 0,
                         followingCount: profile.following_count ?? 0,
                         onFollowersTap: onFollowersTap,
-                        onFollowingTap: onFollowingTap
+                        onFollowingTap: onFollowingTap,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 6)
@@ -461,7 +486,8 @@ struct ProfileCard: View {
                         isOwnProfile: isOwnProfile,
                         onFollowToggle: onFollowToggle,
                         onEdit: onEdit,
-                        onMessage: onMessage
+                        onMessage: onMessage,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
@@ -492,7 +518,7 @@ struct ProfileCard: View {
                     // }
                     
                     if let socials = socials, !socials.isEmpty {
-                        ProfileSocials(socials: Array(socials.prefix(2)))
+                        ProfileSocials(socials: Array(socials.prefix(2)), useDarkText: shouldUseDarkText)
                             .padding(.horizontal, 16)
                             .padding(.bottom, 8)
                     }
@@ -582,7 +608,7 @@ struct ProfileCard: View {
                             HStack(spacing: 6) {
                                 Text(profile.name)
                                     .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(textColor)
                                 
                                 if shouldShowVerificationIcon(profile.verification_status) {
                                     if let statusColor = verificationStatusColor(profile.verification_status) {
@@ -608,7 +634,7 @@ struct ProfileCard: View {
                             HStack(spacing: 4) {
                                 Text("@\(profile.username)")
                                     .font(.system(size: 15))
-                                    .foregroundColor(Color.themeTextSecondary)
+                                    .foregroundColor(textSecondaryColor)
                                 
                                 if let subscription = profile.subscription, subscription.active {
                                     SubscriptionIcon(subscriptionType: subscription.type, size: 16)
@@ -632,13 +658,19 @@ struct ProfileCard: View {
                         followersCount: profile.followers_count ?? 0,
                         followingCount: profile.following_count ?? 0,
                         onFollowersTap: onFollowersTap,
-                        onFollowingTap: onFollowingTap
+                        onFollowingTap: onFollowingTap,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(
-                        Rectangle()
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.3))
+                        // Затемнение только для profile_id != 1
+                        Group {
+                            if profile.profile_id != 1 {
+                                Rectangle()
+                                    .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.3))
+                            }
+                        }
                     )
                     
                     ProfileActions(
@@ -646,7 +678,8 @@ struct ProfileCard: View {
                         isOwnProfile: isOwnProfile,
                         onFollowToggle: onFollowToggle,
                         onEdit: onEdit,
-                        onMessage: onMessage
+                        onMessage: onMessage,
+                        useDarkText: shouldUseDarkText
                     )
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
@@ -677,7 +710,7 @@ struct ProfileCard: View {
                     // }
                     
                     if let socials = socials, !socials.isEmpty {
-                        ProfileSocials(socials: Array(socials.prefix(2)))
+                        ProfileSocials(socials: Array(socials.prefix(2)), useDarkText: shouldUseDarkText)
                             .padding(.horizontal, 16)
                             .padding(.bottom, 8)
                     }

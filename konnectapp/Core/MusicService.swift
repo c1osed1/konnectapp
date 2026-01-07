@@ -273,6 +273,44 @@ class MusicService {
         return try decoder.decode(TrackDetailResponse.self, from: data)
     }
     
+    // MARK: - Любимые треки
+    func getLikedTracks(page: Int = 1, perPage: Int = 20) async throws -> MusicResponse {
+        guard let url = URL(string: "\(baseURL)/api/music/liked/order") else {
+            throw AuthError.invalidResponse
+        }
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+        components.queryItems = [
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "per_page", value: "\(perPage)")
+        ]
+        
+        guard let finalURL = components.url else {
+            throw AuthError.invalidResponse
+        }
+        
+        let request = try makeRequest(url: finalURL)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            throw AuthError.invalidResponse
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode(MusicResponse.self, from: data)
+    }
+    
     // MARK: - Получение текстов песни
     func getLyrics(trackId: Int64) async throws -> LyricsResponse {
         guard let url = URL(string: "\(baseURL)/api/music/\(trackId)/lyrics") else {
