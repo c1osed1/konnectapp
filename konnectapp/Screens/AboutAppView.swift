@@ -57,7 +57,10 @@ struct AboutAppView: View {
                         .foregroundColor(Color.themeTextPrimary)
                     
                     VStack(spacing: 12) {
-                        InfoRow(title: "Версия приложения", value: "1.0")
+                        InfoRow(
+                            title: "Версия приложения",
+                            value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.2.0"
+                        )
                         InfoRow(title: "Разработчик", value: "qsoul")
                         InfoRow(title: "Правообладателям", value: "verif@k-connect.ru")
                     }
