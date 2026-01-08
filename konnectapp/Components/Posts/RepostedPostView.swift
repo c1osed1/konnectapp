@@ -48,6 +48,16 @@ struct RepostedPostView: View {
             }
             .padding(12)
             
+            // Показываем видео если есть
+            if let videoURL = originalPost.video {
+                PostVideoView(
+                    videoURL: videoURL,
+                    posterURL: originalPost.video_poster,
+                    isNsfw: originalPost.is_nsfw ?? false
+                )
+            }
+            
+            // Показываем изображения если есть
             if !uniqueMedia.isEmpty {
                 PostMediaView(mediaURLs: uniqueMedia, isNsfw: originalPost.is_nsfw ?? false)
             }
@@ -79,6 +89,16 @@ struct RepostedPostView: View {
             }
             .padding(12)
             
+            // Показываем видео если есть
+            if let videoURL = originalPost.video {
+                PostVideoView(
+                    videoURL: videoURL,
+                    posterURL: originalPost.video_poster,
+                    isNsfw: originalPost.is_nsfw ?? false
+                )
+            }
+            
+            // Показываем изображения если есть
             if !uniqueMedia.isEmpty {
                 PostMediaView(mediaURLs: uniqueMedia, isNsfw: originalPost.is_nsfw ?? false)
             }

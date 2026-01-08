@@ -62,7 +62,17 @@ struct CachedAsyncImage: View {
         print("📥 CachedAsyncImage: Fetching image from network: \(url.absoluteString)")
         Task {
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
+                var request = URLRequest(url: url)
+                request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148", forHTTPHeaderField: "User-Agent")
+                let (data, urlResponse) = try await URLSession.shared.data(for: request)
+                
+                if let httpResponse = urlResponse as? HTTPURLResponse {
+                    print("📥 CachedAsyncImage: Response status code: \(httpResponse.statusCode) for \(url.absoluteString)")
+                    if httpResponse.statusCode != 200 {
+                        print("⚠️ CachedAsyncImage: Non-200 status code for \(url.absoluteString)")
+                    }
+                }
+                
                 if let image = UIImage(data: data) {
                     print("✅ CachedAsyncImage: Successfully loaded image from \(url.absoluteString)")
                     switch cacheType {

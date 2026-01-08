@@ -234,12 +234,15 @@ struct Post: Codable, Identifiable {
     let is_nsfw: Bool?
     let music: [MusicTrack]?
     let is_pinned: Bool?
+    let video: String?
+    let video_poster: String?
     
     enum CodingKeys: String, CodingKey {
         case id, content, user, created_at, updated_at, timestamp
         case likes_count, comments_count, reposts_count, views_count
         case is_liked, is_reposted, is_repost, media, images, image
         case type, original_post, fact, edited, last_comment, is_nsfw, music, is_pinned
+        case video, video_poster
     }
 }
 

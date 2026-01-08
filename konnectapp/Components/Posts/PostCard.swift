@@ -116,6 +116,16 @@ struct PostCard: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
             } else {
+                // Показываем видео если есть
+                if let videoURL = post.video {
+                    PostVideoView(
+                        videoURL: videoURL,
+                        posterURL: post.video_poster,
+                        isNsfw: post.is_nsfw ?? false
+                    )
+                }
+                
+                // Показываем изображения если есть
                 if !uniqueMedia.isEmpty {
                     PostMediaView(mediaURLs: uniqueMedia, isNsfw: post.is_nsfw ?? false)
                 }

@@ -1,10 +1,27 @@
 import SwiftUI
 import PhotosUI
+import AVKit
+import UniformTypeIdentifiers
+
+enum PostMediaItem {
+    case image(UIImage)
+    case video(Data, thumbnail: UIImage?)
+    
+    var thumbnail: UIImage? {
+        switch self {
+        case .image(let image):
+            return image
+        case .video(_, let thumbnail):
+            return thumbnail
+        }
+    }
+}
 
 struct CreatePostView: View {
     @StateObject private var themeManager = ThemeManager.shared
     @State private var text: String = ""
-    @State private var images: [UIImage] = []
+    @State private var mediaItems: [PostMediaItem] = []
+    @State private var selectedVideoData: Data? = nil
     @State private var selectedTrack: MusicTrack? = nil
     @State private var isNsfw: Bool = false
     @State private var isPublishing: Bool = false
@@ -32,8 +49,11 @@ struct CreatePostView: View {
                     // Prevent tap from propagating
                 }
             
-            CreatePostMediaPreview(images: images) { index in
-                images.remove(at: index)
+            CreatePostMediaPreview(mediaItems: mediaItems) { index in
+                mediaItems.remove(at: index)
+                if mediaItems.isEmpty {
+                    selectedVideoData = nil
+                }
             }
             
             if let track = selectedTrack {
@@ -94,9 +114,9 @@ struct CreatePostView: View {
             
             CreatePostActions(
                 isNsfw: $isNsfw,
-                hasMedia: !images.isEmpty,
+                hasMedia: !mediaItems.isEmpty,
                 hasMusic: selectedTrack != nil,
-                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !images.isEmpty || selectedTrack != nil,
+                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil,
                 onAddGallery: {
                     showImagePicker = true
                 },
@@ -116,7 +136,7 @@ struct CreatePostView: View {
             isPresented: $showImagePicker,
             selection: $selectedItems,
             maxSelectionCount: 10,
-            matching: .images
+            matching: .any(of: [.images, .videos])
         )
         .sheet(isPresented: $showMusicModal) {
             MusicSelectionModal(isPresented: $showMusicModal, selectedTrack: $selectedTrack)
@@ -134,8 +154,11 @@ struct CreatePostView: View {
             CreatePostTextField(text: $text)
                 .padding(12)
             
-            CreatePostMediaPreview(images: images) { index in
-                images.remove(at: index)
+            CreatePostMediaPreview(mediaItems: mediaItems) { index in
+                mediaItems.remove(at: index)
+                if mediaItems.isEmpty {
+                    selectedVideoData = nil
+                }
             }
             
             if let track = selectedTrack {
@@ -196,9 +219,9 @@ struct CreatePostView: View {
             
             CreatePostActions(
                 isNsfw: $isNsfw,
-                hasMedia: !images.isEmpty,
+                hasMedia: !mediaItems.isEmpty,
                 hasMusic: selectedTrack != nil,
-                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !images.isEmpty || selectedTrack != nil,
+                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil,
                 onAddGallery: {
                     showImagePicker = true
                 },
@@ -228,7 +251,7 @@ struct CreatePostView: View {
             isPresented: $showImagePicker,
             selection: $selectedItems,
             maxSelectionCount: 10,
-            matching: .images
+            matching: .any(of: [.images, .videos])
         )
         .sheet(isPresented: $showMusicModal) {
             MusicSelectionModal(isPresented: $showMusicModal, selectedTrack: $selectedTrack)
@@ -241,23 +264,81 @@ struct CreatePostView: View {
     }
     
     private func loadImages(from items: [PhotosPickerItem]) async {
-        var loadedImages: [UIImage] = []
+        var loadedMedia: [PostMediaItem] = []
         
         for item in items {
-            if let data = try? await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data) {
-                loadedImages.append(image)
+            // Проверяем тип контента - является ли это видео
+            let isVideo = item.supportedContentTypes.contains { contentType in
+                contentType.conforms(to: UTType.movie) || 
+                contentType.conforms(to: UTType.quickTimeMovie) || 
+                contentType.conforms(to: UTType.mpeg4Movie) ||
+                contentType.identifier.hasPrefix("public.movie") ||
+                contentType.identifier.hasPrefix("public.video")
+            }
+            
+            if isVideo {
+                // Загружаем видео
+                if let videoData = try? await item.loadTransferable(type: Data.self) {
+                    // Генерируем thumbnail для видео
+                    let thumbnail = await generateVideoThumbnail(from: videoData)
+                    loadedMedia.append(.video(videoData, thumbnail: thumbnail))
+                    await MainActor.run {
+                        if selectedVideoData == nil {
+                            selectedVideoData = videoData // Сохраняем первое видео для отправки
+                        }
+                    }
+                }
+            } else {
+                // Загружаем изображение
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    loadedMedia.append(.image(image))
+                }
             }
         }
         
         await MainActor.run {
-            images.append(contentsOf: loadedImages)
+            mediaItems.append(contentsOf: loadedMedia)
             selectedItems = []
         }
     }
     
+    private func generateVideoThumbnail(from videoData: Data) async -> UIImage? {
+        return await withCheckedContinuation { continuation in
+            // Создаем временный файл для видео
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
+            
+            do {
+                try videoData.write(to: tempURL)
+                
+                let asset = AVURLAsset(url: tempURL)
+                let imageGenerator = AVAssetImageGenerator(asset: asset)
+                imageGenerator.appliesPreferredTrackTransform = true
+                
+                let time = CMTime(seconds: 0.0, preferredTimescale: 1)
+                
+                Task {
+                    do {
+                        let cgImage = try await imageGenerator.image(at: time).image
+                        let uiImage = UIImage(cgImage: cgImage)
+                        
+                        // Удаляем временный файл
+                        try? FileManager.default.removeItem(at: tempURL)
+                        
+                        continuation.resume(returning: uiImage)
+                    } catch {
+                        try? FileManager.default.removeItem(at: tempURL)
+                        continuation.resume(returning: nil)
+                    }
+                }
+            } catch {
+                continuation.resume(returning: nil)
+            }
+        }
+    }
+    
     private func publishPost() async {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !images.isEmpty || selectedTrack != nil else {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil else {
             await MainActor.run {
                 errorMessage = "Добавьте текст, изображение или музыку"
             }
@@ -274,9 +355,25 @@ struct CreatePostView: View {
         }
         
         do {
+            // Разделяем изображения и видео
+            var images: [UIImage] = []
+            var videoData: Data? = selectedVideoData
+            
+            for item in mediaItems {
+                switch item {
+                case .image(let image):
+                    images.append(image)
+                case .video(let data, _):
+                    if videoData == nil {
+                        videoData = data
+                    }
+                }
+            }
+            
             let createdPost = try await PostService.shared.createPost(
                 content: text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : text,
                 images: images,
+                video: videoData,
                 isNsfw: isNsfw,
                 music: selectedTrack,
                 postType: postType,
@@ -285,7 +382,8 @@ struct CreatePostView: View {
             
             await MainActor.run {
                 text = ""
-                images = []
+                mediaItems = []
+                selectedVideoData = nil
                 selectedTrack = nil
                 isNsfw = false
                 errorMessage = nil

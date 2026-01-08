@@ -1,21 +1,37 @@
 import SwiftUI
 
 struct CreatePostMediaPreview: View {
-    let images: [UIImage]
+    let mediaItems: [PostMediaItem]
     let onRemove: (Int) -> Void
     
     var body: some View {
-        if !images.isEmpty {
+        if !mediaItems.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                    ForEach(Array(mediaItems.enumerated()), id: \.offset) { index, item in
                         ZStack(alignment: .topTrailing) {
-                            Image(uiImage: image)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 100, height: 100)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            if let thumbnail = item.thumbnail {
+                                Image(uiImage: thumbnail)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 100, height: 100)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
                             
+                            // Иконка видео
+                            if case .video = item {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.black.opacity(0.6))
+                                        .frame(width: 32, height: 32)
+                                    Image(systemName: "play.fill")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 12))
+                                }
+                                .padding(8)
+                            }
+                            
+                            // Кнопка удаления
                             Button(action: {
                                 onRemove(index)
                             }) {

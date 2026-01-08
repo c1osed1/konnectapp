@@ -19,6 +19,11 @@ struct PostTextContent: View {
         return String(content.prefix(content.count - truncateLength))
     }
     
+    private var extractedURLs: [String] {
+        let urls = extractURLs(from: content)
+        return groupUrlsByDomain(urls)
+    }
+    
     var body: some View {
         if !content.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
@@ -30,6 +35,12 @@ struct PostTextContent: View {
                 )
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Превью ссылок
+                if !extractedURLs.isEmpty {
+                    GroupedLinkPreviews(urls: extractedURLs, maxCount: 3)
+                        .padding(.top, 4)
+                }
                 
                 if shouldTruncate {
                     Button(action: {
@@ -99,10 +110,10 @@ struct ClickableTextWithMentions: UIViewRepresentable {
         attributedString.addAttribute(.foregroundColor, value: themeTextColor, range: fullRange)
         
         // Находим упоминания
-        let regex = try? NSRegularExpression(pattern: "@(\\w+)", options: [])
-        let matches = regex?.matches(in: text, options: [], range: fullRange) ?? []
+        let mentionRegex = try? NSRegularExpression(pattern: "@(\\w+)", options: [])
+        let mentionMatches = mentionRegex?.matches(in: text, options: [], range: fullRange) ?? []
         
-        for match in matches {
+        for match in mentionMatches {
             // Выделяем упоминание акцентным цветом
             let accentColor = UIColor(Color.appAccent)
             attributedString.addAttribute(.foregroundColor, value: accentColor, range: match.range)
@@ -110,6 +121,33 @@ struct ClickableTextWithMentions: UIViewRepresentable {
             // Добавляем кастомный атрибут для идентификации упоминания
             let username = (text as NSString).substring(with: match.range(at: 1))
             attributedString.addAttribute(.link, value: "mention://\(username)", range: match.range)
+        }
+        
+        // Находим URL и выделяем их акцентным цветом
+        let urlRegex = try? NSRegularExpression(pattern: "(https?://[^\\s]+)", options: [])
+        let urlMatches = urlRegex?.matches(in: text, options: [], range: fullRange) ?? []
+        
+        for match in urlMatches {
+            // Проверяем, не пересекается ли с упоминанием
+            var overlapsWithMention = false
+            for mentionMatch in mentionMatches {
+                if NSIntersectionRange(match.range, mentionMatch.range).length > 0 {
+                    overlapsWithMention = true
+                    break
+                }
+            }
+            
+            if !overlapsWithMention {
+                // Выделяем ссылку акцентным цветом
+                let accentColor = UIColor(Color.appAccent)
+                attributedString.addAttribute(.foregroundColor, value: accentColor, range: match.range)
+                
+                // Добавляем обычную ссылку
+                let urlString = (text as NSString).substring(with: match.range)
+                if let url = URL(string: urlString) {
+                    attributedString.addAttribute(.link, value: url, range: match.range)
+                }
+            }
         }
         
         return attributedString
@@ -122,12 +160,24 @@ struct ClickableTextWithMentions: UIViewRepresentable {
             self.onMentionTap = onMentionTap
         }
         
-        func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
-            if URL.scheme == "mention", let username = URL.host {
+        @available(iOS, introduced: 10.0, deprecated: 17.0, message: "Use textView(_:primaryActionFor:defaultAction:) instead")
+        func textView(_ textView: UITextView, shouldInteractWith url: URL, in characterRange: NSRange) -> Bool {
+            if url.scheme == "mention", let username = url.host {
                 onMentionTap(username)
                 return false // Предотвращаем открытие URL
             }
             return true
+        }
+        
+        @available(iOS 17.0, *)
+        func textView(_ textView: UITextView, primaryActionFor textItem: UITextItem, defaultAction: UIAction) -> UIAction? {
+            if case .link(let url) = textItem.content {
+                if url.scheme == "mention", let username = url.host {
+                    onMentionTap(username)
+                    return UIAction { _ in } // Предотвращаем открытие URL
+                }
+            }
+            return nil // Используем дефолтное поведение для обычных ссылок
         }
     }
 }

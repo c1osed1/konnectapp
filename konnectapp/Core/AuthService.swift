@@ -14,7 +14,7 @@ class AuthService {
         } else {
             scale = 3.0
         }
-        return "KConnect-iOS/1.2.2 (iPhone; iOS \(systemVersion); Scale/\(scale))"
+        return "KConnect-iOS/1.2.3 (iPhone; iOS \(systemVersion); Scale/\(scale))"
     }
     
     private init() {}
