@@ -406,7 +406,17 @@ struct ProfileCard: View {
                 }
             }
         }
-        .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 20))
+        .background(
+            ZStack {
+                // Более темный фоновый слой
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.themeBlockBackground.opacity(0.95))
+                
+                // Блюр эффект с затемнением
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.thinMaterial.opacity(0.3))
+            }
+        )
     }
     
     @ViewBuilder
@@ -719,18 +729,13 @@ struct ProfileCard: View {
         }
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.1))
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1).opacity(0.5))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
                 
+                // Блюр эффект с затемнением
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
+                    .fill(.thinMaterial.opacity(0.3))
             }
         )
     }

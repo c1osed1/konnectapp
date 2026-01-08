@@ -52,10 +52,21 @@ class MusicPlayer: ObservableObject {
     // MARK: - Setup
     private func setupAudioSession() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.allowAirPlay])
-            try AVAudioSession.sharedInstance().setActive(true)
+            let audioSession = AVAudioSession.sharedInstance()
+            // Сначала деактивируем сессию, если она активна
+            if audioSession.isOtherAudioPlaying {
+                try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+            }
+            // Устанавливаем категорию
+            try audioSession.setCategory(.playback, mode: .default, options: [.allowAirPlay, .mixWithOthers])
+            // Активируем сессию
+            try audioSession.setActive(true, options: [])
         } catch {
+            // Ошибка -50 (kAudioSessionInvalidPropertyError) может возникать если сессия уже настроена
+            // Это не критично, просто логируем
+            if (error as NSError).code != -50 {
             print("❌ Failed to setup audio session: \(error)")
+            }
         }
     }
     

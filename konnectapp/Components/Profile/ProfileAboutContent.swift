@@ -104,18 +104,13 @@ struct ProfileAboutContent: View {
         .padding(16)
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.themeBlockBackground.opacity(0.9))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
                 
+                // Блюр эффект с затемнением
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
+                    .fill(.thinMaterial.opacity(0.3))
             }
         )
     }
@@ -240,18 +235,13 @@ struct ProfileAboutContent: View {
         .padding(16)
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.themeBlockBackground.opacity(0.9))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
                 
+                // Блюр эффект с затемнением
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
+                    .fill(.thinMaterial.opacity(0.3))
             }
         )
     }
@@ -313,18 +303,13 @@ struct ProfileAboutContent: View {
         .padding(16)
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.themeBlockBackground.opacity(0.9))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
                 
+                // Блюр эффект с затемнением
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
+                    .fill(.thinMaterial.opacity(0.3))
             }
         )
     }
@@ -439,18 +424,13 @@ struct ProfileAboutContent: View {
         .padding(16)
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.themeBlockBackground.opacity(0.9))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
                 
+                // Блюр эффект с затемнением
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
+                    .fill(.thinMaterial.opacity(0.3))
             }
         )
     }

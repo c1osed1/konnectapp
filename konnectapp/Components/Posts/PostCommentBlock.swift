@@ -86,7 +86,7 @@ struct PostCommentBlock: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(
-                                Color.appAccent.opacity(0.15),
+                                Color.themeBorder.opacity(0.6),
                                 lineWidth: 0.5
                             )
                     )
@@ -163,7 +163,7 @@ struct PostCommentBlock: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(
-                                Color.appAccent.opacity(0.15),
+                                Color.themeBorder.opacity(0.6),
                                 lineWidth: 0.5
                             )
                     )

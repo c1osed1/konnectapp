@@ -43,7 +43,7 @@ struct RepostedPostView: View {
                 }
                 
                 if let content = originalPost.content, !content.isEmpty {
-                    PostTextContent(content: content)
+                    PostTextContent(content: content, navigationPath: $navigationPath)
                 }
             }
             .padding(12)
@@ -74,7 +74,7 @@ struct RepostedPostView: View {
                 }
                 
                 if let content = originalPost.content, !content.isEmpty {
-                    PostTextContent(content: content)
+                    PostTextContent(content: content, navigationPath: $navigationPath)
                 }
             }
             .padding(12)

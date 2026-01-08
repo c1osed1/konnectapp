@@ -11,70 +11,75 @@ struct MusicView: View {
         ZStack {
             AppBackgroundView(backgroundURL: AuthManager.shared.currentUser?.profile_background_url)
             
-            VStack(spacing: 0) {
-                // Блок "Мой Вайб" сверху
-                myVibeBlock
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
-                
-                // Стандартные iOS табы
-                Group {
-                    if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
-                        Picker("", selection: $selectedTab) {
-                            Text("Общее").tag(MusicMainTab.general)
-                            Text("Любимые").tag(MusicMainTab.liked)
-                            Text("Поиск").tag(MusicMainTab.search)
-                        }
-                        .pickerStyle(.segmented)
-                        .controlSize(.large)
-                        .font(.system(size: 16, weight: .medium))
-                        .frame(height: 48)
-                        .glassEffect(in: RoundedRectangle(cornerRadius: 24))
-                    } else {
-                        Picker("", selection: $selectedTab) {
-                            Text("Общее").tag(MusicMainTab.general)
-                            Text("Любимые").tag(MusicMainTab.liked)
-                            Text("Поиск").tag(MusicMainTab.search)
-                        }
-                        .pickerStyle(.segmented)
-                        .controlSize(.large)
-                        .font(.system(size: 16, weight: .medium))
-                        .frame(height: 48)
-                        .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(.ultraThinMaterial.opacity(0.3))
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(Color.themeBlockBackground.opacity(0.9))
-                                    )
-                                
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(
-                                        Color.appAccent.opacity(0.15),
-                                        lineWidth: 0.5
-                                    )
+            ScrollView {
+                VStack(spacing: 0) {
+                    myVibeBlock
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 16)
+                    
+                    Group {
+                        if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
+                            Picker("", selection: $selectedTab) {
+                                Text("Общее").tag(MusicMainTab.general)
+                                Text("Любимые").tag(MusicMainTab.liked)
+                                Text("Поиск").tag(MusicMainTab.search)
                             }
-                        )
+                            .pickerStyle(.segmented)
+                            .controlSize(.large)
+                            .font(.system(size: 16, weight: .medium))
+                            .frame(height: 48)
+                            .glassEffect(in: RoundedRectangle(cornerRadius: 24))
+                        } else {
+                            Picker("", selection: $selectedTab) {
+                                Text("Общее").tag(MusicMainTab.general)
+                                Text("Любимые").tag(MusicMainTab.liked)
+                                Text("Поиск").tag(MusicMainTab.search)
+                            }
+                            .pickerStyle(.segmented)
+                            .controlSize(.large)
+                            .font(.system(size: 16, weight: .medium))
+                            .frame(height: 48)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(.ultraThinMaterial.opacity(0.3))
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(Color.themeBlockBackground.opacity(0.9))
+                                        )
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.appAccent.opacity(0.15), lineWidth: 0.5)
+                                }
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                    
+                    Group {
+                        if selectedTab == .general {
+                            generalContent
+                        } else if selectedTab == .liked {
+                            likedContent
+                        } else {
+                            searchContent
+                        }
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
-                
-                // Контент
-                Group {
-                    if selectedTab == .general {
-                        generalContent
-                    } else if selectedTab == .liked {
-                        likedContent
-                    } else {
-                        searchContent
+                .padding(.bottom, player.currentTrack != nil ? 100 : 20)
+            }
+            .refreshable {
+                if selectedTab == .general {
+                    await withTaskGroup(of: Void.self) { group in
+                        group.addTask { await viewModel.loadCharts(type: viewModel.selectedChartType) }
+                        group.addTask { await viewModel.loadRecentTracks(type: viewModel.selectedTrackListType, offset: 0) }
                     }
+                } else if selectedTab == .liked {
+                    await viewModel.loadLikedTracks(page: 1, perPage: 20)
                 }
             }
             
-            // Мини-плеер внизу
             if let currentTrack = player.currentTrack {
                 miniPlayerView(track: currentTrack)
             }
@@ -102,138 +107,218 @@ struct MusicView: View {
         }
     }
     
-    // MARK: - My Vibe Block
+    @State private var gradientOffset: CGFloat = 0
+    @State private var glowIntensity: Double = 0.5
+    @State private var gradientColors: [Color] = ImageColorExtractor.getDefaultColors()
+    @State private var isExtractingColors: Bool = false
+    @State private var animationTimer: Timer?
+    @State private var isReversing: Bool = false
+    
     private var myVibeBlock: some View {
         Button(action: {
-            // Начинаем воспроизведение "Мой Вайб"
-            if !viewModel.myVibeTracks.isEmpty {
-                player.setPlaylist(viewModel.myVibeTracks, startIndex: 0)
+            if player.isPlaying && player.currentTrack != nil {
+                player.pause()
+            } else if !viewModel.myVibeTracks.isEmpty {
+                if player.currentTrack == nil {
+                    player.setPlaylist(viewModel.myVibeTracks, startIndex: 0)
+                } else {
+                    player.play()
+                }
             }
         }) {
-            HStack(spacing: 16) {
-                // Градиентная обложка
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.appAccent.opacity(0.8),
-                                    Color.appAccent.opacity(0.4),
-                                    Color(red: 0.75, green: 0.65, blue: 0.95).opacity(0.6)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+            ZStack {
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(
+                        RadialGradient(
+                            colors: gradientColors.map { color in
+                                Color(
+                                    red: min(1.0, color.components.red + Foundation.sin(gradientOffset) * 0.1),
+                                    green: min(1.0, color.components.green + Foundation.cos(gradientOffset * 0.7) * 0.1),
+                                    blue: min(1.0, color.components.blue + Foundation.sin(gradientOffset * 1.3) * 0.1)
+                                )
+                            },
+                            center: UnitPoint(
+                                x: 0.5 + Foundation.sin(gradientOffset) * 0.25,
+                                y: 0.5 + Foundation.cos(gradientOffset) * 0.25
+                            ),
+                            startRadius: 50,
+                            endRadius: 250
                         )
-                        .frame(width: 120, height: 120)
-                    
-                    // Иконка волны
-                    Image(systemName: "waveform")
-                        .font(.system(size: 50, weight: .bold))
-                        .foregroundColor(Color.themeTextPrimary.opacity(0.9))
-                        .symbolEffect(.pulse)
-                }
-                .shadow(color: Color.appAccent.opacity(0.5), radius: 20, x: 0, y: 10)
+                    )
+                    .blur(radius: 25)
+                    .overlay(
+                        RadialGradient(
+                            colors: [
+                                gradientColors.first?.opacity(0.8 + glowIntensity * 0.2) ?? Color.white.opacity(0.8),
+                                gradientColors[safe: 1]?.opacity(0.6 + glowIntensity * 0.2) ?? Color.white.opacity(0.6),
+                                Color.clear
+                            ],
+                            center: UnitPoint(
+                                x: 0.5 + Foundation.cos(gradientOffset * 0.6) * 0.3,
+                                y: 0.5 + Foundation.sin(gradientOffset * 0.6) * 0.3
+                            ),
+                            startRadius: 40,
+                            endRadius: 180
+                        )
+                        .blur(radius: 20)
+                    )
+                    .overlay(
+                        RadialGradient(
+                            colors: [
+                                gradientColors[safe: 2]?.opacity(0.5 + glowIntensity * 0.2) ?? Color.white.opacity(0.5),
+                                gradientColors[safe: 3]?.opacity(0.4) ?? Color.white.opacity(0.4),
+                                Color.clear
+                            ],
+                            center: UnitPoint(
+                                x: 0.5 + Foundation.sin(gradientOffset * 0.8) * 0.35,
+                                y: 0.5 + Foundation.cos(gradientOffset * 0.8) * 0.35
+                            ),
+                            startRadius: 60,
+                            endRadius: 220
+                        )
+                        .blur(radius: 30)
+                    )
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Мой Вайб")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color.themeTextPrimary)
-                    
-                    if viewModel.isLoadingMyVibe {
-                        Text("Загрузка...")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.themeTextSecondary)
-                    } else if viewModel.myVibeTracks.isEmpty {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 12) {
+                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 40, height: 40)
+                        Text("Моя волна")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.top, 20)
+                    .padding(.horizontal, 20)
+                    Spacer()
+                    if !viewModel.isLoadingMyVibe && !viewModel.myVibeTracks.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let currentTrack = player.currentTrack ?? viewModel.myVibeTracks.first {
+                                Text(currentTrack.title)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                Text(currentTrack.artist ?? currentTrack.user_name ?? "Unknown Artist")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .lineLimit(1)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                    } else if viewModel.isLoadingMyVibe {
+                        HStack {
+                            ProgressView().tint(.white)
+                            Text("Загрузка...")
+                                .font(.system(size: 15))
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                    } else {
                         Text("Лайкайте треки для рекомендаций")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.themeTextSecondary)
-                    } else {
-                        Text("\(viewModel.myVibeTracks.count) треков")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.themeTextSecondary)
+                            .font(.system(size: 15))
+                            .foregroundColor(.white.opacity(0.8))
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 20)
                     }
-                    
-                    HStack(spacing: 8) {
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(Color.appAccent)
-                        Text("Начать")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(Color.appAccent)
-                    }
-                    .padding(.top, 4)
                 }
-                
-                Spacer()
             }
-            .padding(20)
-            .background(
-                Group {
-                    if #available(iOS 26.0, *) {
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(.ultraThinMaterial.opacity(0.3))
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(Color.themeBlockBackground.opacity(0.6))
-                            )
-                            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 24))
-                    } else {
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(.ultraThinMaterial.opacity(0.3))
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(Color.themeBlockBackground.opacity(0.6))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .stroke(Color.appAccent.opacity(0.2), lineWidth: 1)
-                            )
-                    }
-                }
-            )
+            .frame(height: 240)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
         }
         .buttonStyle(PlainButtonStyle())
+        .onAppear {
+            startGradientAnimation()
+            extractColorsFromCurrentTrack()
+        }
+        .onDisappear {
+            animationTimer?.invalidate()
+            animationTimer = nil
+        }
+        .onChange(of: player.currentTrack?.id) { oldValue, newValue in
+            extractColorsFromCurrentTrack()
+        }
     }
     
-    // MARK: - General Content
+    private func extractColorsFromCurrentTrack() {
+        guard let track = player.currentTrack,
+              let coverPath = track.cover_path,
+              let coverURL = URL(string: coverPath) else {
+            withAnimation(.easeInOut(duration: 1.0)) {
+                gradientColors = ImageColorExtractor.getDefaultColors()
+            }
+            return
+        }
+        isExtractingColors = true
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: coverURL)
+                if let image = UIImage(data: data) {
+                    let extractedColors = ImageColorExtractor.extractDominantColors(from: image, count: 5)
+                    await MainActor.run {
+                        withAnimation(.easeInOut(duration: 1.5)) {
+                            gradientColors = extractedColors.isEmpty ? ImageColorExtractor.getDefaultColors() : extractedColors
+                        }
+                        isExtractingColors = false
+                    }
+                } else {
+                    await MainActor.run {
+                        withAnimation(.easeInOut(duration: 1.0)) {
+                            gradientColors = ImageColorExtractor.getDefaultColors()
+                        }
+                        isExtractingColors = false
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    withAnimation(.easeInOut(duration: 1.0)) {
+                        gradientColors = ImageColorExtractor.getDefaultColors()
+                    }
+                    isExtractingColors = false
+                }
+            }
+        }
+    }
+    
+    private func startGradientAnimation() {
+        withAnimation(Animation.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
+            glowIntensity = 0.6
+        }
+        animationTimer?.invalidate()
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [self] _ in
+            let step: CGFloat = 0.015
+            if isReversing {
+                gradientOffset -= step
+                if gradientOffset <= 0 {
+                    gradientOffset = 0
+                    isReversing = false
+                }
+            } else {
+                gradientOffset += step
+                if gradientOffset >= .pi * 2 {
+                    gradientOffset = .pi * 2
+                    isReversing = true
+                }
+            }
+        }
+        if let timer = animationTimer {
+            RunLoop.current.add(timer, forMode: .common)
+        }
+    }
+    
     private var generalContent: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                // Блок "Чарты"
-                chartsBlock
-                    .padding(.bottom, 24)
-                
-                // Блок "Последнее"
-                recentBlock
-            }
-            .padding(.bottom, player.currentTrack != nil ? 100 : 20)
-        }
-        .refreshable {
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask {
-                    await viewModel.loadCharts(type: viewModel.selectedChartType)
-                }
-                group.addTask {
-                    await viewModel.loadRecentTracks(type: viewModel.selectedTrackListType, offset: 0)
-                }
-            }
+        LazyVStack(spacing: 0) {
+            chartsBlock.padding(.bottom, 24)
+            recentBlock
         }
     }
     
-    // MARK: - Charts Block
     private var chartsBlock: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Чарты")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(Color.themeTextPrimary)
-                
-                Spacer()
-            }
-            .padding(.horizontal, 8)
-            .padding(.top, 8)
-            
             // Табы для выбора типа чарта
             chartTypeSelector
                 .padding(.horizontal, 8)
@@ -339,7 +424,6 @@ struct MusicView: View {
         )
     }
     
-    // MARK: - Recent Block
     private var recentBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -408,136 +492,88 @@ struct MusicView: View {
         )
     }
     
-    // MARK: - Liked Content
     private var likedContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Любимые")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(Color.themeTextPrimary)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
-                
-                if viewModel.isLoadingLiked {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
-                } else if viewModel.likedTracks.isEmpty {
-                    emptyStateView(
-                        icon: "heart",
-                        title: "Нет любимых треков",
-                        message: "Лайкайте треки, чтобы они появились здесь"
-                    )
-                } else {
-                    ForEach(viewModel.likedTracks) { track in
-                        trackRow(track: track, playlist: viewModel.likedTracks)
-                    }
-                }
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Любимые")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(Color.themeTextPrimary)
+                Spacer()
             }
             .padding(.horizontal, 8)
-            .padding(.bottom, player.currentTrack != nil ? 100 : 20)
+            .padding(.top, 8)
+            if viewModel.isLoadingLiked {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+            } else if viewModel.likedTracks.isEmpty {
+                emptyStateView(icon: "heart", title: "Нет любимых треков", message: "Лайкайте треки, чтобы они появились здесь")
+            } else {
+                ForEach(viewModel.likedTracks) { track in
+                    trackRow(track: track, playlist: viewModel.likedTracks)
+                }
+            }
         }
-        .refreshable {
-            await viewModel.loadLikedTracks(page: 1, perPage: 20)
-        }
+        .padding(.horizontal, 8)
     }
     
-    // MARK: - Search Content
     private var searchContent: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Поисковая строка (кастомный стиль)
-                    HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(Color.themeTextSecondary)
-                    
-                    TextField("Поиск треков...", text: $viewModel.searchQuery)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .foregroundColor(Color.themeTextPrimary)
-                        .onChange(of: viewModel.searchQuery) { oldValue, newValue in
-                            viewModel.search(query: newValue)
-                        }
-                    
-                    if !viewModel.searchQuery.isEmpty {
-                        Button(action: {
-                            viewModel.searchQuery = ""
-                            viewModel.searchResults = []
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(Color.themeTextSecondary)
-                        }
+        VStack(spacing: 16) {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(Color.themeTextSecondary)
+                TextField("Поиск треков...", text: $viewModel.searchQuery)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .foregroundColor(Color.themeTextPrimary)
+                    .onChange(of: viewModel.searchQuery) { oldValue, newValue in
+                        viewModel.search(query: newValue)
                     }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(
-                    Group {
-                        if #available(iOS 26.0, *) {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(.ultraThinMaterial.opacity(0.2))
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.themeBlockBackground.opacity(0.5))
-                                )
-                                .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
-                        } else {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(.ultraThinMaterial.opacity(0.2))
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.themeBlockBackground.opacity(0.5))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.appAccent.opacity(0.15), lineWidth: 0.5)
-                                )
-                        }
+                if !viewModel.searchQuery.isEmpty {
+                    Button(action: {
+                        viewModel.searchQuery = ""
+                        viewModel.searchResults = []
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(Color.themeTextSecondary)
                     }
-                )
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
-                
-                // Результаты поиска
-                if viewModel.isSearching {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 100)
-                } else if viewModel.searchQuery.count < 2 {
-                    emptyStateView(
-                        icon: "magnifyingglass",
-                        title: "Начните поиск",
-                        message: "Введите минимум 2 символа"
-                    )
-                } else if viewModel.searchResults.isEmpty {
-                    emptyStateView(
-                        icon: "music.note",
-                        title: "Ничего не найдено",
-                        message: "Попробуйте другой запрос"
-                    )
-                } else {
-                    LazyVStack(spacing: 4) {
-                        ForEach(viewModel.searchResults) { track in
-                            trackRow(track: track, playlist: viewModel.searchResults)
-                        }
-                    }
-                    .padding(.horizontal, 8)
                 }
             }
-            .padding(.bottom, player.currentTrack != nil ? 100 : 20)
-        }
-        .refreshable {
-            // При обновлении в поиске - повторяем поиск, если есть запрос
-            if viewModel.searchQuery.count >= 2 {
-                viewModel.search(query: viewModel.searchQuery)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                Group {
+                    if #available(iOS 26.0, *) {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial.opacity(0.2))
+                            .background(RoundedRectangle(cornerRadius: 16).fill(Color.themeBlockBackground.opacity(0.5)))
+                            .glassEffect(GlassEffectStyle.regular, in: RoundedRectangle(cornerRadius: 16))
+                    } else {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial.opacity(0.2))
+                            .background(RoundedRectangle(cornerRadius: 16).fill(Color.themeBlockBackground.opacity(0.5)))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.appAccent.opacity(0.15), lineWidth: 0.5))
+                    }
+                }
+            )
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+            if viewModel.isSearching {
+                ProgressView().frame(maxWidth: .infinity).padding(.top, 100)
+            } else if viewModel.searchQuery.count < 2 {
+                emptyStateView(icon: "magnifyingglass", title: "Начните поиск", message: "Введите минимум 2 символа")
+            } else if viewModel.searchResults.isEmpty {
+                emptyStateView(icon: "music.note", title: "Ничего не найдено", message: "Попробуйте другой запрос")
+            } else {
+                LazyVStack(spacing: 4) {
+                    ForEach(viewModel.searchResults) { track in
+                        trackRow(track: track, playlist: viewModel.searchResults)
+                    }
+                }
+                .padding(.horizontal, 8)
             }
         }
     }
     
-    // MARK: - Mini Player
     private func miniPlayerView(track: MusicTrack) -> some View {
         VStack(spacing: 0) {
             Spacer()
@@ -560,7 +596,6 @@ struct MusicView: View {
     @ViewBuilder
     private func liquidGlassMiniPlayer(track: MusicTrack) -> some View {
         HStack(spacing: 10) {
-            // Маленькая обложка
             Button(action: {
                 showFullScreenPlayer = true
             }) {
@@ -588,21 +623,14 @@ struct MusicView: View {
             }
             .buttonStyle(PlainButtonStyle())
             .padding(.leading, 8)
-            
-            // Название трека
-            Button(action: {
-                showFullScreenPlayer = true
-            }) {
+            Button(action: { showFullScreenPlayer = true }) {
                 Text(track.title)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white)
                     .lineLimit(1)
             }
             .buttonStyle(PlainButtonStyle())
-            
             Spacer()
-            
-            // Кнопка Play/Pause
             Button(action: {
                 withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                     player.togglePlayPause()
@@ -614,8 +642,6 @@ struct MusicView: View {
                     .frame(width: 28, height: 28)
             }
             .buttonStyle(PlainButtonStyle())
-            
-            // Кнопка следующий трек
             Button(action: {
                 withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                     player.nextTrack()
@@ -636,7 +662,6 @@ struct MusicView: View {
     @ViewBuilder
     private func fallbackMiniPlayer(track: MusicTrack) -> some View {
         HStack(spacing: 10) {
-            // Маленькая обложка
             Button(action: {
                 showFullScreenPlayer = true
             }) {
@@ -664,21 +689,14 @@ struct MusicView: View {
             }
             .buttonStyle(PlainButtonStyle())
             .padding(.leading, 8)
-            
-            // Название трека
-            Button(action: {
-                showFullScreenPlayer = true
-            }) {
+            Button(action: { showFullScreenPlayer = true }) {
                 Text(track.title)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white)
                     .lineLimit(1)
             }
             .buttonStyle(PlainButtonStyle())
-            
             Spacer()
-            
-            // Кнопка Play/Pause
             Button(action: {
                 withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                     player.togglePlayPause()
@@ -690,8 +708,6 @@ struct MusicView: View {
                     .frame(width: 28, height: 28)
             }
             .buttonStyle(PlainButtonStyle())
-            
-            // Кнопка следующий трек
             Button(action: {
                 withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                     player.nextTrack()

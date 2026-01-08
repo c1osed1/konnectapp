@@ -32,14 +32,9 @@ struct PostCard: View {
     }
     
     var body: some View {
-        Group {
-            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
-                liquidGlassPostCard
-            } else {
-                fallbackPostCard
-            }
-        }
-        .layoutPriority(1)
+        // Используем fallback версию для всех, чтобы иметь контроль над затемнением
+        fallbackPostCard
+            .layoutPriority(1)
         .onChange(of: toastMessage) { oldValue, newValue in
             if let message = newValue {
                 ToastHelper.showToast(message: message)
@@ -69,14 +64,16 @@ struct PostCard: View {
             postContent
             postActions
         }
+        .frame(maxWidth: .infinity)
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.themeBlockBackground.opacity(0.9))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
+                
+                // Блюр эффект с затемнением
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.thinMaterial.opacity(0.3))
                 
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(
@@ -85,6 +82,7 @@ struct PostCard: View {
                     )
             }
         )
+        .clipped()
     }
     
     @ViewBuilder
@@ -108,7 +106,7 @@ struct PostCard: View {
                 }
                 
                 if let content = post.content, !content.isEmpty {
-                    PostTextContent(content: content)
+                    PostTextContent(content: content, navigationPath: $navigationPath)
                 }
             }
             .padding(16)

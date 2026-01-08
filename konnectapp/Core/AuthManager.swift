@@ -83,6 +83,9 @@ class AuthManager: ObservableObject {
                     Task {
                         await loadFullProfile(username: user.username)
                     }
+                    
+                    // Загружаем список каналов сразу после авторизации
+                    AccountSwitchManager.shared.ensureLoaded()
                 } else {
                     print("⚠️ AuthManager: response.user is nil")
                 }

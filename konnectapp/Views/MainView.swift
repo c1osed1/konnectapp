@@ -10,6 +10,7 @@ enum TabItem: String {
 
 struct MainView: View {
     @StateObject private var authManager = AuthManager.shared
+    @StateObject private var accountManager = AccountSwitchManager.shared
     @StateObject private var keyboardObserver = KeyboardObserver()
     @StateObject private var deepLinkHandler = DeepLinkHandler.shared
     @StateObject private var themeManager = ThemeManager.shared
@@ -19,6 +20,10 @@ struct MainView: View {
     @State private var navigationPath = NavigationPath()
     @State private var showPostDetail: Post?
     @State private var showTrack: Int64?
+    
+    private var isChannel: Bool {
+        authManager.currentUser?.account_type == "channel"
+    }
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -35,6 +40,9 @@ struct MainView: View {
                         
                         // Connect WebSocket immediately when MainView appears
                         MessengerWebSocketService.shared.connect()
+                        
+                        // Load account switch data
+                        accountManager.ensureLoaded()
                     }
                     .onChange(of: authManager.currentUser?.profile_background_url) { oldValue, newValue in
                         print("🔄 MainView: backgroundURL changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
@@ -54,11 +62,13 @@ struct MainView: View {
                             Label("Музыка", systemImage: "music.note")
                         }
                     
-                    ChatsView()
-                        .tag(TabItem.chats)
-                        .tabItem {
-                            Label("Чаты", systemImage: "message.fill")
-                        }
+                    if !isChannel {
+                        ChatsView()
+                            .tag(TabItem.chats)
+                            .tabItem {
+                                Label("Чаты", systemImage: "message.fill")
+                            }
+                    }
                     
                     ProfileView()
                         .tag(TabItem.profile)
@@ -68,14 +78,14 @@ struct MainView: View {
                     
                     Group {
                         if notificationChecker.unreadCount > 0 {
-                            MoreView()
+                            MoreView(navigationPath: $navigationPath)
                                 .tag(TabItem.more)
                                 .tabItem {
                                     Label("Еще", systemImage: "ellipsis")
                                 }
                                 .badge(notificationChecker.unreadCount)
                         } else {
-                            MoreView()
+                            MoreView(navigationPath: $navigationPath)
                                 .tag(TabItem.more)
                                 .tabItem {
                                     Label("Еще", systemImage: "ellipsis")
@@ -84,6 +94,7 @@ struct MainView: View {
                     }
                 }
                 .accentColor(Color.appAccent)
+                .id("\(isChannel)") // Force TabView to rebuild when account type changes
             }
             .navigationDestination(for: String.self) { username in
                 UserProfileView(username: username)
@@ -131,6 +142,14 @@ struct MainView: View {
                     notificationChecker.startChecking()
                 } else {
                     notificationChecker.stopChecking()
+                }
+            }
+            .onChange(of: isChannel) { oldValue, newValue in
+                print("🔄 MainView: isChannel changed from \(oldValue) to \(newValue)")
+                // Если переключились на канал и выбрана вкладка "Чаты", переключаемся на другую
+                if newValue && selectedTab == .chats {
+                    print("🟡 MainView: Switching from chats to feed because account is channel")
+                    selectedTab = .feed
                 }
             }
             .onAppear {

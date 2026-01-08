@@ -97,8 +97,8 @@ struct FeedView: View {
             }
             .refreshable {
                 // Запускаем обе задачи параллельно
-                async let feedTask = viewModel.refreshFeed()
-                async let usersTask = onlineUsersViewModel.loadOnlineUsers()
+                async let feedTask: () = viewModel.refreshFeed()
+                async let usersTask: () = onlineUsersViewModel.loadOnlineUsers()
                 _ = await [feedTask, usersTask]
             }
             .onTapGesture {
@@ -132,13 +132,7 @@ struct FeedView: View {
     }
     
     private var onlineUsersBlock: some View {
-        Group {
-            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
-                liquidGlassOnlineBlock
-            } else {
-                fallbackOnlineBlock
-            }
-        }
+        fallbackOnlineBlock
     }
     
     @available(iOS 26.0, *)
@@ -292,62 +286,57 @@ struct FeedView: View {
         }
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.themeBlockBackground.opacity(0.9))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
                 
+                // Блюр эффект с затемнением
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        Color.appAccent.opacity(0.15),
-                        lineWidth: 0.5
-                    )
+                    .fill(.thinMaterial.opacity(0.3))
             }
         )
     }
     
     private var feedTypeTabsView: some View {
-        Group {
-            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
-                Picker("", selection: $selectedFeedType) {
-                    Text("Все").tag(FeedType.all)
-                    Text("Подписки").tag(FeedType.following)
-                }
-                .pickerStyle(.segmented)
-                .controlSize(.large)
-                .font(.system(size: 16, weight: .medium))
-                .frame(height: 48)
-                .padding(.horizontal, 2)
-                .glassEffect(in: RoundedRectangle(cornerRadius: 24))
-            } else {
-                Picker("", selection: $selectedFeedType) {
-                    Text("Все").tag(FeedType.all)
-                    Text("Подписки").tag(FeedType.following)
-                }
-                .pickerStyle(.segmented)
-                .controlSize(.large)
-                .font(.system(size: 16, weight: .medium))
-                .frame(height: 48)
-                .padding(.horizontal, 8)
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.ultraThinMaterial.opacity(0.3))
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.themeBlockBackground.opacity(0.9))
-                            )
-                        
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(
-                                Color.appAccent.opacity(0.15),
-                                lineWidth: 0.5
-                            )
-                    }
-                )
+        HStack(spacing: 0) {
+            Button {
+                selectedFeedType = .all
+            } label: {
+                Text("Все")
+                    .font(.system(size: 16, weight: selectedFeedType == .all ? .semibold : .regular))
+                    .foregroundColor(selectedFeedType == .all ? Color.themeTextPrimary : Color.themeTextSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(selectedFeedType == .all ? Color.themeBlockBackground : Color.clear)
+                    )
+            }
+            
+            Button {
+                selectedFeedType = .following
+            } label: {
+                Text("Подписки")
+                    .font(.system(size: 16, weight: selectedFeedType == .following ? .semibold : .regular))
+                    .foregroundColor(selectedFeedType == .following ? Color.themeTextPrimary : Color.themeTextSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(selectedFeedType == .following ? Color.themeBlockBackground : Color.clear)
+                    )
             }
         }
+        .background(
+            ZStack {
+                // Более темный фоновый слой
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color.themeBlockBackground.opacity(0.95))
+                
+                // Блюр эффект с затемнением
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(.thinMaterial.opacity(0.3))
+            }
+        )
     }
 }

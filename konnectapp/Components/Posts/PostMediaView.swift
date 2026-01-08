@@ -21,6 +21,8 @@ struct PostMediaView: View {
                 gridImagesView(urls: mediaURLs)
             }
         }
+        .frame(maxWidth: .infinity)
+        .clipped()
         .fullScreenCover(isPresented: $showImageViewer) {
             ImageViewer(imageURLs: mediaURLs, initialIndex: selectedImageIndex)
         }
@@ -28,19 +30,19 @@ struct PostMediaView: View {
     
     @ViewBuilder
     private func singleImageView(url: String) -> some View {
-        ZStack {
+        ZStack(alignment: .center) {
             if let imageURL = URL(string: url) {
                 CachedAsyncImage(url: imageURL, cacheType: .post)
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 200)
+                    .frame(minWidth: 0, maxWidth: .infinity)
+                    .frame(maxHeight: 450)
                     .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
                     .clipped()
             } else {
                 Rectangle()
                     .fill(Color.themeBlockBackground)
-                    .frame(minHeight: 200)
-                    .aspectRatio(16/9, contentMode: .fit)
+                    .frame(minWidth: 0, maxWidth: .infinity)
+                    .frame(height: 450)
             }
             
             if isNsfw && !showNsfw {
@@ -63,6 +65,8 @@ struct PostMediaView: View {
                 }
             }
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .clipped()
         .onTapGesture {
             if showNsfw || !isNsfw {
                 selectedImageIndex = 0
@@ -80,13 +84,14 @@ struct PostMediaView: View {
                         CachedAsyncImage(url: imageURL, cacheType: .post)
                             .aspectRatio(contentMode: .fill)
                             .frame(height: 200)
-                            .frame(maxWidth: .infinity)
+                            .frame(minWidth: 0, maxWidth: .infinity)
                             .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
                             .clipped()
                     } else {
                         Rectangle()
                             .fill(Color.themeBlockBackground)
                             .frame(height: 200)
+                            .frame(minWidth: 0, maxWidth: .infinity)
                     }
                     
                     if isNsfw && !showNsfw {
@@ -112,6 +117,8 @@ struct PostMediaView: View {
                 }
             }
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .clipped()
     }
     
     @ViewBuilder
@@ -124,18 +131,20 @@ struct PostMediaView: View {
                         Rectangle()
                             .fill(Color.themeBlockBackground)
                             .frame(height: 200)
+                            .frame(minWidth: 0, maxWidth: .infinity)
                     case .success(let image):
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fit)
+                            .aspectRatio(contentMode: .fill)
                             .frame(height: 200)
-                            .frame(maxWidth: .infinity)
+                            .frame(minWidth: 0, maxWidth: .infinity)
                             .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
                             .clipped()
                     case .failure:
                         Rectangle()
                             .fill(Color.themeBlockBackground)
                             .frame(height: 200)
+                            .frame(minWidth: 0, maxWidth: .infinity)
                     @unknown default:
                         EmptyView()
                     }
@@ -156,6 +165,8 @@ struct PostMediaView: View {
                     }
                 }
             }
+            .frame(minWidth: 0, maxWidth: .infinity)
+            .clipped()
             .onTapGesture {
                 if showNsfw || !isNsfw {
                     selectedImageIndex = 0
@@ -172,18 +183,20 @@ struct PostMediaView: View {
                                 Rectangle()
                                     .fill(Color.themeBlockBackground)
                                     .frame(height: 200)
+                                    .frame(minWidth: 0, maxWidth: .infinity)
                             case .success(let image):
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(height: 200)
-                                    .frame(maxWidth: .infinity)
+                                    .frame(minWidth: 0, maxWidth: .infinity)
                                     .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
                                     .clipped()
                             case .failure:
                                 Rectangle()
                                     .fill(Color.themeBlockBackground)
                                     .frame(height: 200)
+                                    .frame(minWidth: 0, maxWidth: .infinity)
                             @unknown default:
                                 EmptyView()
                             }
@@ -213,6 +226,8 @@ struct PostMediaView: View {
                 }
             }
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .clipped()
     }
     
     @ViewBuilder
@@ -230,13 +245,14 @@ struct PostMediaView: View {
                             CachedAsyncImage(url: imageURL, cacheType: .post)
                                 .aspectRatio(contentMode: .fill)
                                 .frame(height: 150)
-                                .frame(maxWidth: .infinity)
+                                .frame(minWidth: 0, maxWidth: .infinity)
                                 .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
                                 .clipped()
                         } else {
                             Rectangle()
                                 .fill(Color.themeBlockBackground)
                                 .frame(height: 150)
+                                .frame(minWidth: 0, maxWidth: .infinity)
                         }
                         
                         if isNsfw && !showNsfw {
@@ -262,6 +278,7 @@ struct PostMediaView: View {
                     }
                 }
             }
+            .frame(minWidth: 0, maxWidth: .infinity)
             
             // Нижний ряд: следующие 2 фотографии (3-я и 4-я)
             HStack(spacing: 2) {
@@ -276,6 +293,7 @@ struct PostMediaView: View {
                                     Rectangle()
                                         .fill(Color.themeBlockBackground)
                                         .frame(height: 150)
+                                        .frame(minWidth: 0, maxWidth: .infinity)
                                     
                                     // Показываем +N на последней фотографии (4-й)
                                     if isLastImage {
@@ -294,7 +312,7 @@ struct PostMediaView: View {
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
                                         .frame(height: 150)
-                                        .frame(maxWidth: .infinity)
+                                        .frame(minWidth: 0, maxWidth: .infinity)
                                         .blur(radius: (isNsfw && !showNsfw) ? 20 : 0)
                                         .clipped()
                                     
@@ -314,6 +332,7 @@ struct PostMediaView: View {
                                     Rectangle()
                                         .fill(Color.themeBlockBackground)
                                         .frame(height: 150)
+                                        .frame(minWidth: 0, maxWidth: .infinity)
                                     
                                     // Показываем +N на последней фотографии (4-й)
                                     if isLastImage {
@@ -354,7 +373,10 @@ struct PostMediaView: View {
                     }
                 }
             }
+            .frame(minWidth: 0, maxWidth: .infinity)
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .clipped()
     }
 }
 

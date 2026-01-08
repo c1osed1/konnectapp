@@ -74,7 +74,7 @@ struct CheckAuthResponse: Codable {
 }
 
 // MARK: - Comment Model
-struct Comment: Codable, Identifiable {
+struct Comment: Codable, Identifiable, Equatable {
     let id: Int64
     let content: String?
     let image: String?
@@ -84,10 +84,14 @@ struct Comment: Codable, Identifiable {
     let user_liked: Bool?
     let replies_count: Int?
     let replies: [Reply]?
+    
+    static func == (lhs: Comment, rhs: Comment) -> Bool {
+        return lhs.id == rhs.id
+    }
 }
 
 // MARK: - Reply Model
-struct Reply: Codable, Identifiable {
+struct Reply: Codable, Identifiable, Equatable {
     let id: Int64
     let content: String?
     let image: String?
@@ -100,6 +104,10 @@ struct Reply: Codable, Identifiable {
     // Parent reply info (only basic info, not full Reply to avoid recursion)
     let parent_reply_user: PostUser?
     let parent_reply_content: String?
+    
+    static func == (lhs: Reply, rhs: Reply) -> Bool {
+        return lhs.id == rhs.id
+    }
     
     enum CodingKeys: String, CodingKey {
         case id, content, image, timestamp, parent_reply_id
@@ -926,6 +934,49 @@ struct NotificationsResponse: Codable {
     let unread_count: Int?
 }
 
+// MARK: - Search Models
+struct Decoration: Codable {
+    let background: String?
+    let item_path: String?
+}
+
+struct SearchUser: Codable, Identifiable {
+    let id: Int64
+    let username: String
+    let name: String?
+    let photo: String?
+    let avatar_url: String?
+    let about: String?
+    let is_verified: Bool?
+    let verification_status: String?
+    let decoration: Decoration?
+}
+
+struct UsersSearchResponse: Codable {
+    let has_next: Bool
+    let users: [SearchUser]
+}
+
+struct SearchChannel: Codable, Identifiable {
+    let id: Int64
+    let username: String
+    let name: String?
+    let photo: String?
+    let avatar_url: String?
+    let about: String?
+    let is_verified: Bool?
+    let verification_status: String?
+    let decoration: Decoration?
+    let followers_count: Int?
+    let is_following: Bool?
+}
+
+struct ChannelsSearchResponse: Codable {
+    let channels: [SearchChannel]
+    let has_next: Bool
+    let total: Int
+}
+
 // MARK: - Auth Errors
 enum AuthError: Error, LocalizedError {
     case invalidCredentials
@@ -962,3 +1013,21 @@ enum AuthError: Error, LocalizedError {
     }
 }
 
+// MARK: - Account Switch Models
+struct MyChannelsResponse: Codable {
+    let success: Bool
+    let current_account: User?
+    let main_account: User?
+    let channels: [User]
+    let error: String?
+}
+
+struct SwitchAccountRequest: Codable {
+    let account_id: Int64
+}
+
+struct SwitchAccountResponse: Codable {
+    let success: Bool
+    let account: User?
+    let error: String?
+}

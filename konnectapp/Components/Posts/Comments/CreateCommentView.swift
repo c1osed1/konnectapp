@@ -7,6 +7,7 @@ struct CreateCommentView: View {
     @Binding var replyingToComment: Comment?
     @Binding var replyingToReply: Reply?
     @Binding var replyingToReplyCommentId: Int64?
+    @Binding var isTextFieldFocused: Bool
     @StateObject private var themeManager = ThemeManager.shared
     @State private var commentText: String = ""
     @State private var selectedImage: UIImage?
@@ -15,7 +16,7 @@ struct CreateCommentView: View {
     @State private var errorMessage: String?
     var onCommentCreated: (() -> Void)?
     
-    @FocusState private var isTextFieldFocused: Bool
+    @FocusState private var internalTextFieldFocused: Bool
     
     private var placeholder: String {
         if let replyingTo = replyingToReply, let username = replyingTo.user?.username {
@@ -28,19 +29,116 @@ struct CreateCommentView: View {
     }
     
     var body: some View {
-        let appAccent = Color.appAccent
-        let themeBlockBackground = Color.themeBlockBackground
-        
-        return VStack(spacing: 12) {
+        VStack(spacing: 12) {
+            replyToCommentBadge
+            replyToReplyBadge
+            
+            inputFieldRow
+            
+            if let image = selectedImage {
+                HStack {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 60, height: 60)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    
+                    Spacer()
+                    
+                    Button {
+                        selectedImage = nil
+                        selectedImageItem = nil
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 13))
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 12)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .onChange(of: selectedImageItem) { oldValue, newValue in
+            Task {
+                if let data = try? await newValue?.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    await MainActor.run {
+                        selectedImage = image
+                    }
+                }
+            }
+        }
+        .onChange(of: replyingToComment) { oldValue, newValue in
+            if newValue != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    internalTextFieldFocused = true
+                }
+            }
+        }
+        .onChange(of: replyingToReply) { oldValue, newValue in
+            if newValue != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    internalTextFieldFocused = true
+                }
+            }
+        }
+        .onChange(of: isTextFieldFocused) { oldValue, newValue in
+            // Синхронизация внешнего состояния с внутренним
+            if newValue != internalTextFieldFocused {
+                internalTextFieldFocused = newValue
+            }
+        }
+        .onChange(of: internalTextFieldFocused) { oldValue, newValue in
+            // Синхронизация внутреннего состояния с внешним
+            if newValue != isTextFieldFocused {
+                Task { @MainActor in
+                    isTextFieldFocused = newValue
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var replyToCommentBadge: some View {
             if let replyingTo = replyingToComment {
-                Group {
+            replyBadgeView(
+                username: replyingTo.user?.username,
+                onDismiss: {
+                    replyingToComment = nil
+                }
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private var replyToReplyBadge: some View {
+        if let replyingTo = replyingToReply {
+            replyBadgeView(
+                username: replyingTo.user?.username,
+                onDismiss: {
+                    replyingToReply = nil
+                    replyingToReplyCommentId = nil
+                }
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private func replyBadgeView(username: String?, onDismiss: @escaping () -> Void) -> some View {
                     if #available(iOS 26.0, *) {
                         HStack {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrowshape.turn.up.left")
                                     .font(.system(size: 14))
                                     .foregroundColor(Color.appAccent)
-                                if let username = replyingTo.user?.username {
+                    if let username = username {
                                     Text("Ответ @\(username)")
                                         .font(.system(size: 13))
                                         .foregroundColor(Color.appAccent)
@@ -53,7 +151,7 @@ struct CreateCommentView: View {
                             Spacer()
                             
                             Button {
-                                replyingToComment = nil
+                    onDismiss()
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.system(size: 18))
@@ -67,7 +165,7 @@ struct CreateCommentView: View {
                                 Image(systemName: "arrowshape.turn.up.left")
                                     .font(.system(size: 14))
                                     .foregroundColor(Color.appAccent)
-                                if let username = replyingTo.user?.username {
+                    if let username = username {
                                     Text("Ответ @\(username)")
                                         .font(.system(size: 13))
                                         .foregroundColor(Color.appAccent)
@@ -87,7 +185,7 @@ struct CreateCommentView: View {
                             Spacer()
                             
                             Button {
-                                replyingToComment = nil
+                    onDismiss()
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.system(size: 18))
@@ -97,11 +195,21 @@ struct CreateCommentView: View {
                         .padding(.bottom, 8)
                     }
                 }
-            }
-            
+    
+    @ViewBuilder
+    private var inputFieldRow: some View {
             HStack(alignment: .bottom, spacing: 8) {
-                // Скрепка слева
-                Group {
+            attachmentButton
+            textInputField
+            sendButton
+        }
+    }
+    
+    @ViewBuilder
+    private var attachmentButton: some View {
+        let appAccent = Color.appAccent
+        let themeBlockBackground = Color.themeBlockBackground
+        
                     if #available(iOS 26.0, *) {
                         PhotosPicker(
                             selection: $selectedImageItem,
@@ -147,8 +255,11 @@ struct CreateCommentView: View {
                     }
                 }
                 
-                // Поле ввода по центру
-                Group {
+    @ViewBuilder
+    private var textInputField: some View {
+        let appAccent = Color.appAccent
+        let themeBlockBackground = Color.themeBlockBackground
+        
                     if #available(iOS 26.0, *) {
                         TextField(placeholder, text: $commentText, axis: .vertical)
                             .font(.system(size: 15))
@@ -156,7 +267,7 @@ struct CreateCommentView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
                             .glassEffect(.regularInteractive, in: RoundedRectangle(cornerRadius: 20))
-                            .focused($isTextFieldFocused)
+                .focused($internalTextFieldFocused)
                             .lineLimit(1...5)
                     } else {
                         TextField(placeholder, text: $commentText, axis: .vertical)
@@ -169,23 +280,27 @@ struct CreateCommentView: View {
                                     .fill(.ultraThinMaterial.opacity(0.3))
                                     .background(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .fill(Color.themeBlockBackground.opacity(0.8))
+                                .fill(themeBlockBackground.opacity(0.8))
                                     )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
                                             .stroke(
-                                                Color.appAccent.opacity(0.15),
+                                    appAccent.opacity(0.15),
                                                 lineWidth: 0.5
                                             )
                                     )
                             )
-                            .focused($isTextFieldFocused)
+                            .focused($internalTextFieldFocused)
                             .lineLimit(1...5)
                     }
                 }
                 
-                // Самолетик справа
-                Group {
+    @ViewBuilder
+    private var sendButton: some View {
+        let appAccent = Color.appAccent
+        let themeBlockBackground = Color.themeBlockBackground
+        let isDisabled = commentText.isEmpty && selectedImage == nil
+        
                     if #available(iOS 26.0, *) {
                         Button {
                             Task {
@@ -202,9 +317,9 @@ struct CreateCommentView: View {
                                 Image(systemName: "paperplane.fill")
                                     .font(.system(size: 18))
                                     .foregroundColor(
-                                        (commentText.isEmpty && selectedImage == nil) ?
+                            isDisabled ?
                                         Color(red: 0.4, green: 0.4, blue: 0.4) :
-                                        Color.appAccent
+                            appAccent
                                     )
                                     .frame(minWidth: 40, minHeight: 40)
                                     .padding(.horizontal, 8)
@@ -212,7 +327,7 @@ struct CreateCommentView: View {
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .disabled(isPosting || (commentText.isEmpty && selectedImage == nil))
+            .disabled(isPosting || isDisabled)
                     } else {
                         Button {
                             Task {
@@ -228,9 +343,9 @@ struct CreateCommentView: View {
                                 Image(systemName: "paperplane.fill")
                                     .font(.system(size: 18))
                                     .foregroundColor(
-                                        (commentText.isEmpty && selectedImage == nil) ?
+                            isDisabled ?
                                         Color(red: 0.4, green: 0.4, blue: 0.4) :
-                                        Color.appAccent
+                            appAccent
                                     )
                                     .frame(minWidth: 40, minHeight: 40)
                                     .padding(.horizontal, 8)
@@ -239,12 +354,12 @@ struct CreateCommentView: View {
                                             .fill(.ultraThinMaterial.opacity(0.3))
                                             .background(
                                                 Capsule()
-                                                    .fill(Color.themeBlockBackground.opacity(0.9))
+                                        .fill(themeBlockBackground.opacity(0.9))
                                             )
                                             .overlay(
                                                 Capsule()
                                                     .stroke(
-                                                        Color.appAccent.opacity(0.15),
+                                            appAccent.opacity(0.15),
                                                         lineWidth: 0.5
                                                     )
                                             )
@@ -252,50 +367,7 @@ struct CreateCommentView: View {
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .disabled(isPosting || (commentText.isEmpty && selectedImage == nil))
-                    }
-                }
-            }
-            
-            if let image = selectedImage {
-                HStack {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 60, height: 60)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    
-                    Spacer()
-                    
-                    Button {
-                        selectedImage = nil
-                        selectedImageItem = nil
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-            
-            if let errorMessage = errorMessage {
-                Text(errorMessage)
-                    .font(.system(size: 13))
-                    .foregroundColor(.red)
-                    .padding(.horizontal, 12)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .onChange(of: selectedImageItem) { oldValue, newValue in
-            Task {
-                if let data = try? await newValue?.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    await MainActor.run {
-                        selectedImage = image
-                    }
-                }
-            }
+            .disabled(isPosting || isDisabled)
         }
     }
     
@@ -327,6 +399,7 @@ struct CreateCommentView: View {
                         commentText = ""
                         selectedImage = nil
                         selectedImageItem = nil
+                        internalTextFieldFocused = false
                         isTextFieldFocused = false
                         replyingToReply = nil
                         replyingToReplyCommentId = nil
@@ -352,6 +425,7 @@ struct CreateCommentView: View {
                         commentText = ""
                         selectedImage = nil
                         selectedImageItem = nil
+                        internalTextFieldFocused = false
                         isTextFieldFocused = false
                         replyingToComment = nil
                         onCommentCreated?()
@@ -375,6 +449,7 @@ struct CreateCommentView: View {
                         commentText = ""
                         selectedImage = nil
                         selectedImageItem = nil
+                        internalTextFieldFocused = false
                         isTextFieldFocused = false
                         onCommentCreated?()
                     }

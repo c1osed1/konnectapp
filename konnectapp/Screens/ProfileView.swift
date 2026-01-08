@@ -50,6 +50,10 @@ struct ProfileView: View {
                         .padding(.horizontal, 8)
                         .padding(.top, 8)
                         
+                        // Табы для переключения между постами и стеной
+                        ProfileTabsView(selectedTab: $viewModel.selectedTab)
+                            .padding(.horizontal, 8)
+                        
                         // CreatePost для владельца профиля (на вкладке "Посты")
                         if isOwnProfile && viewModel.selectedTab == .posts {
                             CreatePostView(
@@ -83,10 +87,6 @@ struct ProfileView: View {
                             )
                                     .padding(.horizontal, 8)
                             }
-                            
-                        // Табы для переключения между постами и стеной
-                        ProfileTabsView(selectedTab: $viewModel.selectedTab)
-                            .padding(.horizontal, 8)
                         
                         // Контент в зависимости от выбранного таба
                         if viewModel.selectedTab == .posts {

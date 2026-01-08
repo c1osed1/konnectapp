@@ -39,10 +39,11 @@ extension View {
         } else {
             self.background(
                 ZStack {
-                    shape.fill(.ultraThinMaterial.opacity(0.3))
-                        .background(
-                            shape.fill(Color.themeBlockBackground.opacity(0.9))
-                        )
+                    // Более темный фоновый слой
+                    shape.fill(Color.themeBlockBackground.opacity(0.95))
+                    
+                    // Блюр эффект с затемнением
+                    shape.fill(.thinMaterial.opacity(0.3))
                     
                     shape.stroke(
                         Color.appAccent.opacity(0.15),

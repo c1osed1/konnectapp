@@ -24,7 +24,7 @@ struct CommentsListView: View {
     }
     
     var body: some View {
-        List {
+        VStack(spacing: 0) {
             if comments.isEmpty && isLoading {
                 HStack {
                     Spacer()
@@ -32,8 +32,7 @@ struct CommentsListView: View {
                         .padding()
                     Spacer()
                 }
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+                .padding(.vertical, 40)
             } else if comments.isEmpty && !isLoading {
                 VStack(spacing: 8) {
                     Image(systemName: "bubble.right")
@@ -45,8 +44,6 @@ struct CommentsListView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
             } else {
                 ForEach(comments) { comment in
                     CommentView(
@@ -66,9 +63,8 @@ struct CommentsListView: View {
                             comments.removeAll { $0.id == comment.id }
                         }
                     )
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 1, leading: 8, bottom: 1, trailing: 8))
-                    .listRowBackground(Color.clear)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 1)
                 }
                 
                 if hasNext {
@@ -89,15 +85,9 @@ struct CommentsListView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .frame(maxWidth: .infinity)
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
+                    .padding(.vertical, 16)
                 }
             }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .refreshable {
-            await loadComments(refresh: true)
         }
         .task {
             await loadComments()

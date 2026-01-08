@@ -18,13 +18,8 @@ struct CreatePostView: View {
     var recipientId: Int64? = nil
     
     var body: some View {
-        Group {
-            if #available(iOS 26.0, *), themeManager.isGlassEffectEnabled {
-                liquidGlassCreatePost
-            } else {
-                fallbackCreatePost
-            }
-        }
+        // Используем fallback версию для всех, чтобы иметь контроль над затемнением
+        fallbackCreatePost
     }
     
     @available(iOS 26.0, *)
@@ -220,18 +215,13 @@ struct CreatePostView: View {
         }
         .background(
             ZStack {
+                // Более темный фоновый слой
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.themeBlockBackground.opacity(0.9))
-                    )
+                    .fill(Color.themeBlockBackground.opacity(0.95))
                 
+                // Блюр эффект с затемнением
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        Color.appAccent.opacity(0.3),
-                        lineWidth: 1
-                    )
+                    .fill(.thinMaterial.opacity(0.3))
             }
         )
         .photosPicker(

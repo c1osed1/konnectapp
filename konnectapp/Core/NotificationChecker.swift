@@ -12,6 +12,7 @@ class NotificationChecker: ObservableObject {
     private var checkTimer: Timer?
     private var isAppActive: Bool = true
     private var lastCheckTime: Date?
+    private var isChecking: Bool = false
     
     private init() {
         requestNotificationPermission()
@@ -46,6 +47,10 @@ class NotificationChecker: ObservableObject {
     
     func startChecking() {
         guard isAppActive else { return }
+        guard !isChecking else {
+            print("🔵 NotificationChecker: Already checking, skipping duplicate start")
+            return
+        }
         stopChecking()
         
         let timeSinceLastCheck = lastCheckTime.map { Date().timeIntervalSince($0) } ?? 0
@@ -96,6 +101,13 @@ class NotificationChecker: ObservableObject {
     
     private func checkForNewNotifications() async {
         guard isAppActive else { return }
+        guard !isChecking else {
+            print("🔵 NotificationChecker: Check already in progress, skipping")
+            return
+        }
+        
+        isChecking = true
+        defer { isChecking = false }
         
         do {
             let response = try await NotificationService.shared.getNotifications()

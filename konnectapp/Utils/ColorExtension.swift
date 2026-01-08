@@ -24,5 +24,21 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
+    
+    var components: (red: Double, green: Double, blue: Double, alpha: Double) {
+        let uiColor = UIColor(self)
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        return (Double(red), Double(green), Double(blue), Double(alpha))
+    }
+}
+
+extension Array {
+    subscript(safe index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
 }
 

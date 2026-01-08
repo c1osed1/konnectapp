@@ -12,6 +12,7 @@ struct PostDetailView: View {
     @State private var replyingToComment: Comment?
     @State private var replyingToReply: Reply?
     @State private var replyingToReplyCommentId: Int64?
+    @State private var isTextFieldFocused: Bool = false
     
     var body: some View {
         NavigationView {
@@ -60,10 +61,19 @@ struct PostDetailView: View {
                                 replyingToReply: $replyingToReply,
                                 replyingToReplyCommentId: $replyingToReplyCommentId
                             )
-                            .frame(minHeight: 400)
                             .padding(.bottom, 80)
                         }
                     }
+                    .refreshable {
+                        shouldRefreshComments = true
+                    }
+                    .scrollDismissesKeyboard(.interactively)
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            // Hide keyboard when tapping on ScrollView
+                            isTextFieldFocused = false
+                        }
+                    )
                     
                     CreateCommentView(
                         postId: post.id,
@@ -71,6 +81,7 @@ struct PostDetailView: View {
                         replyingToComment: $replyingToComment,
                         replyingToReply: $replyingToReply,
                         replyingToReplyCommentId: $replyingToReplyCommentId,
+                        isTextFieldFocused: $isTextFieldFocused,
                         onCommentCreated: {
                             shouldRefreshComments.toggle()
                             replyingToComment = nil
@@ -79,6 +90,10 @@ struct PostDetailView: View {
                         }
                     )
                 }
+            }
+            .onTapGesture {
+                // Hide keyboard when tapping outside
+                isTextFieldFocused = false
             }
             .navigationTitle("Пост")
             .navigationBarTitleDisplayMode(.inline)

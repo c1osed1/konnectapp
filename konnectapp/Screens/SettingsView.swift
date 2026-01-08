@@ -71,6 +71,34 @@ struct SettingsView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     .padding(.horizontal, 16)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Аккаунт")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Color.themeTextPrimary)
+                            .padding(.horizontal, 16)
+                        
+                        Button(action: {
+                            Task {
+                                try? await authManager.logout()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.right.square")
+                                Text("Выйти")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(red: 0.96, green: 0.26, blue: 0.21))
+                            )
+                        }
+                        .padding(.horizontal, 12)
+                    }
+                    .padding(.horizontal, 16)
                 }
                     .padding(.bottom, 100)
                 }

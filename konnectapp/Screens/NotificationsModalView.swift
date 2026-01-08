@@ -9,6 +9,8 @@ struct NotificationsModalView: View {
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
     @State private var showPostDetail: Post?
+    @State private var allRead: Bool = false
+    @State private var isMarkingAsRead: Bool = false
     
     var body: some View {
         NavigationView {
@@ -77,7 +79,7 @@ struct NotificationsModalView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    if !notifications.isEmpty {
+                    if !notifications.isEmpty && allRead {
                         Button {
                             Task {
                                 await deleteAllNotifications()
@@ -86,10 +88,36 @@ struct NotificationsModalView: View {
                             Image(systemName: "trash")
                                 .foregroundColor(Color.themeTextPrimary)
                         }
+                    } else if !notifications.isEmpty && !allRead {
+                        Button {
+                            Task {
+                                await markAllAsRead()
+                            }
+                        } label: {
+                            if isMarkingAsRead {
+                                ProgressView()
+                                    .tint(Color.themeTextPrimary)
+                            } else {
+                                Text("Прочитать все")
+                                    .foregroundColor(Color.themeTextPrimary)
+                            }
+                        }
+                        .disabled(isMarkingAsRead)
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Готово") {
+                        // Обновляем счетчик при закрытии модалки
+                        Task {
+                            do {
+                                let response = try await NotificationService.shared.getNotifications()
+                                await MainActor.run {
+                                    notificationChecker.unreadCount = response.unread_count ?? 0
+                                }
+                            } catch {
+                                print("❌ Error loading unread count on dismiss: \(error)")
+                            }
+                        }
                         dismiss()
                     }
                     .foregroundColor(Color.themeTextPrimary)
@@ -109,26 +137,43 @@ struct NotificationsModalView: View {
             let response = try await NotificationService.shared.getNotifications()
             await MainActor.run {
                 notifications = response.notifications
-                notificationChecker.unreadCount = response.unread_count ?? 0
+                // Проверяем, все ли уведомления прочитаны
+                allRead = notifications.allSatisfy { $0.is_read == true }
+                // Не обновляем счетчик здесь, чтобы не вызвать перерисовку родительского view
+                // Счетчик будет обновлен при закрытии модалки
                 isLoading = false
-            }
-            
-            Task {
-                do {
-                    let markReadResponse = try await NotificationService.shared.markAllAsRead()
-                    await MainActor.run {
-                        notificationChecker.unreadCount = markReadResponse.unread_count ?? 0
-                    }
-                    print("✅ All notifications marked as read")
-                } catch {
-                    print("❌ Error marking notifications as read: \(error)")
-                }
             }
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
                 isLoading = false
             }
+        }
+    }
+    
+    private func markAllAsRead() async {
+        guard !isMarkingAsRead else { return }
+        
+        isMarkingAsRead = true
+        defer { isMarkingAsRead = false }
+        
+        do {
+            _ = try await NotificationService.shared.markAllAsRead()
+            
+            // Перезагружаем уведомления, чтобы получить актуальное состояние с сервера
+            let response = try await NotificationService.shared.getNotifications()
+            await MainActor.run {
+                notifications = response.notifications
+                allRead = notifications.allSatisfy { $0.is_read == true }
+                // Обновляем счетчик только после обновления уведомлений, но не вызываем перерисовку родительского view
+                // Обновим счетчик при закрытии модалки
+            }
+            print("✅ All notifications marked as read")
+        } catch {
+            await MainActor.run {
+                errorMessage = "Ошибка при пометке как прочитанные: \(error.localizedDescription)"
+            }
+            print("❌ Error marking notifications as read: \(error)")
         }
     }
     
