@@ -14,7 +14,7 @@ struct PostVideoView: View {
     var body: some View {
         ZStack(alignment: .center) {
             if showNsfw || !isNsfw {
-                if let url = URL(string: videoURL) {
+                if URL(string: videoURL) != nil {
                     if let player = player {
                         VideoPlayer(player: player)
                             .aspectRatio(contentMode: .fit)
@@ -189,7 +189,7 @@ struct FullScreenVideoPlayerView: View {
                     .onDisappear {
                         player.pause()
                     }
-            } else if let url = URL(string: videoURL) {
+            } else if URL(string: videoURL) != nil {
                 // Показываем постер или placeholder пока загружается
                 ZStack {
                     if let posterURL = posterURL, let posterImageURL = URL(string: posterURL) {

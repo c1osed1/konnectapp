@@ -53,19 +53,21 @@ class MusicPlayer: ObservableObject {
     private func setupAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            // Сначала деактивируем сессию, если она активна
-            if audioSession.isOtherAudioPlaying {
-                try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
-            }
-            // Устанавливаем категорию
+            // Устанавливаем категорию перед активацией
             try audioSession.setCategory(.playback, mode: .default, options: [.allowAirPlay, .mixWithOthers])
             // Активируем сессию
             try audioSession.setActive(true, options: [])
+            print("✅ [MusicPlayer] Audio session setup successfully")
         } catch {
-            // Ошибка -50 (kAudioSessionInvalidPropertyError) может возникать если сессия уже настроена
-            // Это не критично, просто логируем
-            if (error as NSError).code != -50 {
-            print("❌ Failed to setup audio session: \(error)")
+            print("❌ [MusicPlayer] Failed to setup audio session: \(error)")
+            // Пробуем еще раз с другой стратегией
+            do {
+                let audioSession = AVAudioSession.sharedInstance()
+                try audioSession.setCategory(.playback, mode: .default, options: [.allowAirPlay])
+                try audioSession.setActive(true, options: [])
+                print("✅ [MusicPlayer] Audio session setup on retry")
+            } catch {
+                print("❌ [MusicPlayer] Failed to setup audio session on retry: \(error)")
             }
         }
     }
@@ -244,9 +246,6 @@ class MusicPlayer: ObservableObject {
             // Настраиваем observer только после создания player
             setupTimeObserver()
             
-            // Обновляем Now Playing Info
-            updateNowPlayingInfo()
-            
             // Если playerItem уже готов, запускаем воспроизведение
             if newPlayerItem.status == .readyToPlay {
                 print("✅ [MusicPlayer] PlayerItem is ready, starting playback")
@@ -254,6 +253,9 @@ class MusicPlayer: ObservableObject {
             } else {
                 print("⏳ [MusicPlayer] PlayerItem status: \(newPlayerItem.status.rawValue), waiting for ready state...")
             }
+            
+            // Обновляем Now Playing Info после создания player
+            updateNowPlayingInfo()
             
             // Регистрируем проигрывание в API
             Task {
@@ -335,6 +337,11 @@ class MusicPlayer: ObservableObject {
         duration = 0
         isPlayingTrack = false
         retryCount.removeAll()
+        
+        // Очищаем Now Playing Info
+        DispatchQueue.main.async {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        }
     }
     
     private func handlePlayerItemStatusChange(item: AVPlayerItem, trackId: Int64) {
@@ -432,11 +439,16 @@ class MusicPlayer: ObservableObject {
             retryCount.removeValue(forKey: trackId)
         }
         
+        // Обновляем Now Playing Info при начале воспроизведения
+        updateNowPlayingInfo()
+        
         // Проверяем через небольшую задержку, действительно ли началось воспроизведение
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self = self else { return }
             if let rate = self.player?.rate, rate > 0 {
                 print("✅ [MusicPlayer] Playback started successfully, rate: \(rate)")
+                // Обновляем Now Playing Info еще раз после подтверждения
+                self.updateNowPlayingInfo()
             } else {
                 print("❌ [MusicPlayer] Playback failed to start, player rate: \(self.player?.rate ?? 0)")
                 if let error = self.player?.error {
@@ -451,36 +463,53 @@ class MusicPlayer: ObservableObject {
     
     // MARK: - Now Playing Info
     private func updateNowPlayingInfo() {
-        guard let track = currentTrack else { return }
-        
-        var nowPlayingInfo = [String: Any]()
-        
-        nowPlayingInfo[MPMediaItemPropertyTitle] = track.title
-        nowPlayingInfo[MPMediaItemPropertyArtist] = track.artist ?? track.user_name ?? "Unknown Artist"
-        
-        if let album = track.album {
-            nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = album
+        guard let track = currentTrack else {
+            // Очищаем информацию если трека нет
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+            return
         }
         
-        if duration > 0 {
-            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = duration
-        } else {
-            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = TimeInterval(track.duration)
-        }
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? playbackRate : 0.0
-        
-        // Загружаем обложку
-        if let coverPath = track.cover_path, let coverURL = URL(string: coverPath) {
-            Task {
-                if let image = await loadImage(from: coverURL) {
-                    nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            var nowPlayingInfo = [String: Any]()
+            
+            nowPlayingInfo[MPMediaItemPropertyTitle] = track.title
+            nowPlayingInfo[MPMediaItemPropertyArtist] = track.artist ?? track.user_name ?? "Unknown Artist"
+            
+            if let album = track.album {
+                nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = album
+            }
+            
+            let trackDuration = self.duration > 0 ? self.duration : TimeInterval(track.duration)
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = trackDuration
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime
+            nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = self.isPlaying ? self.playbackRate : 0.0
+            
+            // Устанавливаем базовую информацию сразу
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+            
+            // Загружаем обложку асинхронно
+            if let coverPath = track.cover_path, let coverURL = URL(string: coverPath) {
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    if let image = await self.loadImage(from: coverURL) {
+                        await MainActor.run {
+                            // Обновляем информацию с обложкой, сохраняя остальные данные
+                            var updatedInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+                            updatedInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                            // Обновляем также остальные поля на случай если они изменились
+                            updatedInfo[MPMediaItemPropertyTitle] = track.title
+                            updatedInfo[MPMediaItemPropertyArtist] = track.artist ?? track.user_name ?? "Unknown Artist"
+                            updatedInfo[MPMediaItemPropertyPlaybackDuration] = trackDuration
+                            updatedInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime
+                            updatedInfo[MPNowPlayingInfoPropertyPlaybackRate] = self.isPlaying ? self.playbackRate : 0.0
+                            MPNowPlayingInfoCenter.default().nowPlayingInfo = updatedInfo
+                        }
+                    }
                 }
             }
         }
-        
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
     private func loadImage(from url: URL) async -> UIImage? {
@@ -523,10 +552,16 @@ class MusicPlayer: ObservableObject {
                 self.duration = duration
             }
             
-            // Обновляем Now Playing Info
+            // Обновляем Now Playing Info - обновляем все поля для надежности
             var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
             nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime
             nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = self.isPlaying ? self.playbackRate : 0.0
+            if let track = self.currentTrack {
+                nowPlayingInfo[MPMediaItemPropertyTitle] = track.title
+                nowPlayingInfo[MPMediaItemPropertyArtist] = track.artist ?? track.user_name ?? "Unknown Artist"
+                let trackDuration = self.duration > 0 ? self.duration : TimeInterval(track.duration)
+                nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = trackDuration
+            }
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         }
         
