@@ -285,6 +285,7 @@ struct PostUser: Codable {
     let account_type: String?
     let last_active_utc: String?
     let time_diff_seconds: Double?
+    let achievement: PostUserAchievement?
     
     enum CodingKeys: String, CodingKey {
         case id, username, name, photo
@@ -294,6 +295,7 @@ struct PostUser: Codable {
         case account_type = "account_type"
         case last_active_utc = "last_active_utc"
         case time_diff_seconds = "time_diff_seconds"
+        case achievement
     }
     
     init(from decoder: Decoder) throws {
@@ -308,7 +310,14 @@ struct PostUser: Codable {
         account_type = try container.decodeIfPresent(String.self, forKey: .account_type)
         last_active_utc = try container.decodeIfPresent(String.self, forKey: .last_active_utc)
         time_diff_seconds = try container.decodeIfPresent(Double.self, forKey: .time_diff_seconds)
+        achievement = try container.decodeIfPresent(PostUserAchievement.self, forKey: .achievement)
     }
+}
+
+// MARK: - Post User Achievement Model
+struct PostUserAchievement: Codable {
+    let bage: String?
+    let image_path: String?
 }
 
 // MARK: - Fact Model
@@ -780,6 +789,38 @@ struct Achievement: Codable {
     let color_upgrade: String?
 }
 
+// MARK: - Achievement List Models
+struct UserAchievement: Codable, Identifiable {
+    let id: Int64
+    let bage: String
+    let image_path: String
+    let date_awarded: String?
+    let is_active: Bool
+    let is_active_badge: Bool
+    let profile_name: String?
+    let upgrade: String?
+    let color_upgrade: String?
+}
+
+struct AchievementsResponse: Codable {
+    let achievements: [UserAchievement]
+}
+
+struct ActivateAchievementRequest: Codable {
+    let achievement_id: Int64
+}
+
+struct ActivateAchievementResponse: Codable {
+    let success: Bool
+    let message: String?
+    let achievement: Achievement?
+}
+
+struct DeactivateAchievementResponse: Codable {
+    let success: Bool
+    let message: String?
+}
+
 struct PurchasedUsername: Codable {
     let id: Int
     let username: String
@@ -1033,4 +1074,26 @@ struct SwitchAccountResponse: Codable {
     let success: Bool
     let account: User?
     let error: String?
+}
+
+// MARK: - Session Models
+struct Session: Codable, Identifiable {
+    let id: Int64
+    let browser: String
+    let device: String
+    let ip_address: String
+    let created_at: String
+    let expires_at: String
+    let last_activity: String
+    let is_current: Bool
+    let session_key: String
+}
+
+struct SessionsResponse: Codable {
+    let sessions: [Session]
+}
+
+struct DeleteSessionResponse: Codable {
+    let success: Bool
+    let message: String
 }

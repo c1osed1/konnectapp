@@ -5,6 +5,7 @@ struct ProfileCard: View {
     let socials: [Social]?
     let isFollowing: Bool
     let isOwnProfile: Bool
+    let achievement: Achievement?
     let onFollowToggle: () -> Void
     let onEdit: () -> Void
     let onMessage: () -> Void
@@ -306,6 +307,10 @@ struct ProfileCard: View {
                                             .foregroundColor(statusColor)
                                             .font(.system(size: 18, weight: .semibold))
                                     }
+                                }
+                                
+                                if let achievement = achievement ?? profile.achievement {
+                                    AchievementBadgeView(imagePath: achievement.image_path, size: 22)
                                 }
                                 
                                 if let scam = profile.scam, scam.isScam {
@@ -626,6 +631,10 @@ struct ProfileCard: View {
                                             .foregroundColor(statusColor)
                                             .font(.system(size: 18, weight: .semibold))
                                     }
+                                }
+                                
+                                if let achievement = achievement ?? profile.achievement {
+                                    AchievementBadgeView(imagePath: achievement.image_path, size: 22)
                                 }
                                 
                                 if let scam = profile.scam, scam.isScam {

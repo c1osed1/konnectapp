@@ -26,6 +26,10 @@ class CacheManager {
         cacheDirectory.appendingPathComponent("Tracks")
     }
     
+    private var badgesCacheDirectory: URL {
+        cacheDirectory.appendingPathComponent("Badges")
+    }
+    
     private init() {
         createDirectoriesIfNeeded()
     }
@@ -36,6 +40,7 @@ class CacheManager {
         try? fileManager.createDirectory(at: avatarsCacheDirectory, withIntermediateDirectories: true)
         try? fileManager.createDirectory(at: bannersCacheDirectory, withIntermediateDirectories: true)
         try? fileManager.createDirectory(at: tracksCacheDirectory, withIntermediateDirectories: true)
+        try? fileManager.createDirectory(at: badgesCacheDirectory, withIntermediateDirectories: true)
     }
     
     func cachePostImage(url: URL, data: Data) {
@@ -113,8 +118,9 @@ class CacheManager {
         let avatarsSize = getDirectorySize(url: avatarsCacheDirectory)
         let bannersSize = getDirectorySize(url: bannersCacheDirectory)
         let tracksSize = getDirectorySize(url: tracksCacheDirectory)
-        let totalSize = postsImagesSize + avatarsSize + bannersSize + tracksSize
-        return CacheSize(postsImages: postsImagesSize, avatars: avatarsSize, banners: bannersSize, tracks: tracksSize, total: totalSize)
+        let badgesSize = getDirectorySize(url: badgesCacheDirectory)
+        let totalSize = postsImagesSize + avatarsSize + bannersSize + tracksSize + badgesSize
+        return CacheSize(postsImages: postsImagesSize, avatars: avatarsSize, banners: bannersSize, tracks: tracksSize, badges: badgesSize, total: totalSize)
     }
     
     private func getDirectorySize(url: URL) -> Int64 {
@@ -151,11 +157,36 @@ class CacheManager {
         createDirectoriesIfNeeded()
     }
     
+    func cacheBadge(url: URL, data: Data) {
+        // Используем полный URL как имя файла (хешируем для безопасности)
+        let fileName = url.absoluteString.data(using: .utf8)?.base64EncodedString()
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "=", with: "") ?? url.lastPathComponent
+        let fileURL = badgesCacheDirectory.appendingPathComponent(fileName)
+        try? data.write(to: fileURL)
+    }
+    
+    func getCachedBadge(url: URL) -> Data? {
+        let fileName = url.absoluteString.data(using: .utf8)?.base64EncodedString()
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "=", with: "") ?? url.lastPathComponent
+        let fileURL = badgesCacheDirectory.appendingPathComponent(fileName)
+        return try? Data(contentsOf: fileURL)
+    }
+    
+    func clearBadgesCache() {
+        try? fileManager.removeItem(at: badgesCacheDirectory)
+        createDirectoriesIfNeeded()
+    }
+    
     func clearAllCache() {
         clearPostsImagesCache()
         clearAvatarsCache()
         clearBannersCache()
         clearTracksCache()
+        clearBadgesCache()
     }
 }
 
@@ -164,6 +195,7 @@ struct CacheSize {
     let avatars: Int64
     let banners: Int64
     let tracks: Int64
+    let badges: Int64
     let total: Int64
     
     func formatted() -> String {
@@ -184,6 +216,10 @@ struct CacheSize {
     
     func formattedTracks() -> String {
         return ByteCountFormatter.string(fromByteCount: tracks, countStyle: .file)
+    }
+    
+    func formattedBadges() -> String {
+        return ByteCountFormatter.string(fromByteCount: badges, countStyle: .file)
     }
 }
 

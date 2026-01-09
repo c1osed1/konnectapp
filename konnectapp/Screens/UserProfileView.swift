@@ -28,6 +28,7 @@ struct UserProfileView: View {
                             socials: profile.socials,
                             isFollowing: profile.is_following ?? false,
                             isOwnProfile: isOwnProfile,
+                            achievement: profile.achievement,
                             onFollowToggle: {
                                 Task {
                                     await viewModel.toggleFollow()

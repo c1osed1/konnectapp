@@ -58,11 +58,16 @@ struct PostHeader: View {
                         Text(user.name ?? user.username)
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(Color.themeTextPrimary)
+                            .lineLimit(1)
                         
                         if user.is_verified == true {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color.appAccent)
+                        }
+                        
+                        if let achievement = user.achievement, let imagePath = achievement.image_path {
+                            AchievementBadgeView(imagePath: imagePath, size: 18)
                         }
                     }
                     

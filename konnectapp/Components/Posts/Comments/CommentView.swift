@@ -75,8 +75,19 @@ struct CommentContentView: View {
                             Text(user.name ?? user.username)
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(Color.themeTextPrimary)
+                                .lineLimit(1)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        
+                        if user.is_verified == true {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(Color.appAccent)
+                        }
+                        
+                        if let achievement = user.achievement, let imagePath = achievement.image_path {
+                            AchievementBadgeView(imagePath: imagePath, size: 16)
+                        }
                         
                         Text("@\(user.username)")
                             .font(.system(size: 11))
@@ -401,6 +412,16 @@ struct ReplyView: View {
                                 .foregroundColor(Color.themeTextPrimary)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        
+                        if user.is_verified == true {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 9))
+                                .foregroundColor(Color.appAccent)
+                        }
+                        
+                        if let achievement = user.achievement, let imagePath = achievement.image_path {
+                            AchievementBadgeView(imagePath: imagePath, size: 15)
+                        }
                         
                         Text("@\(user.username)")
                             .font(.system(size: 10))

@@ -106,7 +106,7 @@ open konnectapp.xcodeproj
 - **Release Notes** - список изменений
 - **Версия** - номер версии приложения
 
-### Текущая версия: 1.2.3
+### Текущая версия: 1.2.4
 
 ---
 
@@ -146,7 +146,7 @@ open konnectapp.xcodeproj
 **qsoul**
 
 - Email: verif@k-connect.ru
-- Версия: 1.2.3
+- Версия: 1.2.4
 
 <div align="center">
 

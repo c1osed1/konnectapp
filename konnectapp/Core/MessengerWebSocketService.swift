@@ -109,7 +109,7 @@ class MessengerWebSocketService: NSObject, ObservableObject {
             device_id: deviceId,
             client_info: ClientInfo(
                 platform: "iOS",
-                version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.2.3",
+                version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.2.4",
                 device: UIDevice.current.model
             )
         )

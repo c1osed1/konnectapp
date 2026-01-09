@@ -656,9 +656,8 @@ struct MusicView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .glassEffect(.regularInteractive, in: RoundedRectangle(cornerRadius: 30))
+        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 30))
     }
-    
     @ViewBuilder
     private func fallbackMiniPlayer(track: MusicTrack) -> some View {
         HStack(spacing: 10) {

@@ -3,7 +3,7 @@ import SwiftUI
 struct CacheSettingsModalView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var themeManager = ThemeManager.shared
-    @State private var cacheSize: CacheSize = CacheSize(postsImages: 0, avatars: 0, banners: 0, tracks: 0, total: 0)
+    @State private var cacheSize: CacheSize = CacheSize(postsImages: 0, avatars: 0, banners: 0, tracks: 0, badges: 0, total: 0)
     @State private var selectedSegments: Set<CacheSegment> = []
     
     var body: some View {
@@ -73,6 +73,19 @@ struct CacheSettingsModalView: View {
                                     selectedSegments.remove(.tracks)
                                 } else {
                                     selectedSegments.insert(.tracks)
+                                }
+                            }
+                        )
+                        
+                        CacheInfoRow(
+                            title: "Бейджи",
+                            size: cacheSize.formattedBadges(),
+                            isSelected: selectedSegments.contains(.badges),
+                            action: {
+                                if selectedSegments.contains(.badges) {
+                                    selectedSegments.remove(.badges)
+                                } else {
+                                    selectedSegments.insert(.badges)
                                 }
                             }
                         )
@@ -146,6 +159,8 @@ struct CacheSettingsModalView: View {
                 CacheManager.shared.clearBannersCache()
             case .tracks:
                 CacheManager.shared.clearTracksCache()
+            case .badges:
+                CacheManager.shared.clearBadgesCache()
             }
         }
         selectedSegments.removeAll()
@@ -158,6 +173,7 @@ enum CacheSegment {
     case avatars
     case banners
     case tracks
+    case badges
 }
 
 struct CachePieChart: View {
@@ -171,6 +187,7 @@ struct CachePieChart: View {
         let avatarsRatio = CGFloat(cacheSize.avatars) / CGFloat(max(cacheSize.total, 1))
         let bannersRatio = CGFloat(cacheSize.banners) / CGFloat(max(cacheSize.total, 1))
         let tracksRatio = CGFloat(cacheSize.tracks) / CGFloat(max(cacheSize.total, 1))
+        let badgesRatio = CGFloat(cacheSize.badges) / CGFloat(max(cacheSize.total, 1))
         
         var result: [(start: CGFloat, end: CGFloat, ratio: CGFloat, segment: CacheSegment, color: Color)] = []
         var currentStart: CGFloat = 0
@@ -195,7 +212,13 @@ struct CachePieChart: View {
         
         if tracksRatio > 0 {
             let isSelected = selectedSegments.contains(.tracks)
-            result.append((currentStart, 1.0, tracksRatio, .tracks, isSelected ? Color(red: 0.2, green: 0.6, blue: 1.0) : Color(red: 0.2, green: 0.6, blue: 1.0).opacity(0.6)))
+            result.append((currentStart, currentStart + tracksRatio, tracksRatio, .tracks, isSelected ? Color(red: 0.2, green: 0.6, blue: 1.0) : Color(red: 0.2, green: 0.6, blue: 1.0).opacity(0.6)))
+            currentStart += tracksRatio
+        }
+        
+        if badgesRatio > 0 {
+            let isSelected = selectedSegments.contains(.badges)
+            result.append((currentStart, 1.0, badgesRatio, .badges, isSelected ? Color(red: 0.8, green: 0.4, blue: 0.9) : Color(red: 0.8, green: 0.4, blue: 0.9).opacity(0.6)))
         }
         
         return result

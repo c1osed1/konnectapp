@@ -1,8 +1,15 @@
+//
+//  SessionService.swift
+//  konnectapp
+//
+//  Service for managing user sessions
+//
+
 import Foundation
 import UIKit
 
-class SearchService {
-    static let shared = SearchService()
+class SessionService {
+    static let shared = SessionService()
     private let baseURL = "https://k-connect.ru"
     
     private var userAgent: String {
@@ -19,12 +26,11 @@ class SearchService {
     
     private init() {}
     
-    private func makeRequest(url: URL, method: String = "GET") throws -> URLRequest {
+    private func makeRequest(url: URL, method: String = "GET", body: Data? = nil) throws -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
-        request.setValue("application/json, text/plain, */*", forHTTPHeaderField: "accept")
         
         guard let token = try? KeychainManager.getToken() else {
             throw AuthError.unauthorized
@@ -35,27 +41,28 @@ class SearchService {
             request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
         }
         
+        if method == "POST" || method == "DELETE" {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if let body = body {
+                request.httpBody = body
+            } else if method == "DELETE" {
+                // Для DELETE запроса отправляем пустой JSON объект
+                request.httpBody = "{}".data(using: .utf8)
+            }
+        }
+        
         return request
     }
     
-    // MARK: - Search Users
-    func searchUsers(query: String, perPage: Int = 5) async throws -> UsersSearchResponse {
-        guard let url = URL(string: "\(baseURL)/api/search/") else {
+    // MARK: - Get Sessions
+    
+    func getSessions() async throws -> [Session] {
+        guard let url = URL(string: "\(baseURL)/api/auth/sessions") else {
             throw AuthError.invalidResponse
         }
         
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        components.queryItems = [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "type", value: "users"),
-            URLQueryItem(name: "per_page", value: "\(perPage)")
-        ]
+        let request = try makeRequest(url: url)
         
-        guard let finalURL = components.url else {
-            throw AuthError.invalidResponse
-        }
-        
-        let request = try makeRequest(url: finalURL)
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -71,26 +78,19 @@ class SearchService {
         }
         
         let decoder = JSONDecoder()
-        return try decoder.decode(UsersSearchResponse.self, from: data)
+        let sessionsResponse = try decoder.decode(SessionsResponse.self, from: data)
+        return sessionsResponse.sessions
     }
     
-    // MARK: - Search Channels
-    func searchChannels(query: String, perPage: Int = 5) async throws -> ChannelsSearchResponse {
-        guard let url = URL(string: "\(baseURL)/api/search/channels") else {
+    // MARK: - Delete Session
+    
+    func deleteSession(sessionId: Int64) async throws {
+        guard let url = URL(string: "\(baseURL)/api/auth/sessions/\(sessionId)") else {
             throw AuthError.invalidResponse
         }
         
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        components.queryItems = [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "per_page", value: "\(perPage)")
-        ]
+        let request = try makeRequest(url: url, method: "DELETE")
         
-        guard let finalURL = components.url else {
-            throw AuthError.invalidResponse
-        }
-        
-        let request = try makeRequest(url: finalURL)
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -105,8 +105,11 @@ class SearchService {
             throw AuthError.invalidResponse
         }
         
-        let decoder = JSONDecoder()
-        return try decoder.decode(ChannelsSearchResponse.self, from: data)
+        // Проверяем ответ
+        if let deleteResponse = try? JSONDecoder().decode(DeleteSessionResponse.self, from: data) {
+            if !deleteResponse.success {
+                throw AuthError.invalidResponse
+            }
+        }
     }
 }
-

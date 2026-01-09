@@ -7,6 +7,8 @@ struct SettingsView: View {
     @State private var showBackgroundModal = false
     @State private var showCacheModal = false
     @State private var showThemeModal = false
+    @State private var showAchievementsModal = false
+    @State private var showSessionsModal = false
     
     var body: some View {
         NavigationView {
@@ -54,6 +56,13 @@ struct SettingsView: View {
                             MoreRow(icon: "photo.fill", title: "Фон профиля")
                         }
                         .buttonStyle(PlainButtonStyle())
+                        
+                        Button {
+                            showAchievementsModal = true
+                        } label: {
+                            MoreRow(icon: "rosette", title: "Бейджи")
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .padding(.horizontal, 16)
                     
@@ -67,6 +76,21 @@ struct SettingsView: View {
                             showCacheModal = true
                         } label: {
                             MoreRow(icon: "internaldrive", title: "Управление кешем")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.horizontal, 16)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Безопасность")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Color.themeTextPrimary)
+                            .padding(.horizontal, 16)
+                        
+                        Button {
+                            showSessionsModal = true
+                        } label: {
+                            MoreRow(icon: "desktopcomputer", title: "Подключенные устройства")
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -120,6 +144,12 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showThemeModal) {
                 ThemeSelectionModalView()
+            }
+            .sheet(isPresented: $showAchievementsModal) {
+                AchievementsModalView()
+            }
+            .sheet(isPresented: $showSessionsModal) {
+                SessionsModalView()
             }
         }
     }
