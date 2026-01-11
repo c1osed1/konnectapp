@@ -7,7 +7,7 @@
 **Будущее за нами**
 
 [![iOS](https://img.shields.io/badge/iOS-18.0+-blue.svg)](https://www.apple.com/ios/)
-[![Swift](https://img.shields.io/badge/Swift-5.0-orange.svg)](https://swift.org/)
+[![Swift](https://img.shields.io/badge/Swift-6.2-orange.svg)](https://swift.org/)
 [![License](https://img.shields.io/badge/License-Proprietary-red.svg)]()
 
 </div>
