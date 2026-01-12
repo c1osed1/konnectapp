@@ -114,6 +114,11 @@ struct PostMoreMenuContent: View {
                 factsButton
             }
             
+            // Change vote button for polls
+            if let poll = post.poll, (poll.user_voted ?? false) && !(poll.is_expired ?? false) {
+                changeVoteButton
+            }
+            
             if isCurrentUserPost {
                 editButton
                 deleteButton
@@ -204,6 +209,16 @@ struct PostMoreMenuContent: View {
         }
     }
     
+    private var changeVoteButton: some View {
+        Button(action: {
+            Task {
+                await performChangeVote()
+            }
+        }) {
+            Label("Изменить голос", systemImage: "arrow.uturn.backward")
+        }
+    }
+    
     private func checkBlockStatus() async {
         guard post.user?.id != nil else { return }
         isLoadingBlockStatus = true
@@ -256,6 +271,26 @@ struct PostMoreMenuContent: View {
         // TODO: Implement block/unblock API call
         await MainActor.run {
             isUserBlocked.toggle()
+        }
+    }
+    
+    private func performChangeVote() async {
+        guard let poll = post.poll else { return }
+        
+        do {
+            let updatedPoll = try await PollService.shared.removeVote(pollId: poll.id)
+            await MainActor.run {
+                toastMessage = "Голос отменен"
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("PollVoteChanged"),
+                    object: nil,
+                    userInfo: ["postId": post.id, "poll": updatedPoll]
+                )
+            }
+        } catch {
+            await MainActor.run {
+                toastMessage = "Ошибка: \(error.localizedDescription)"
+            }
         }
     }
 }

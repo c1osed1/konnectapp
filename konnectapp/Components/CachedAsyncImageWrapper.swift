@@ -4,6 +4,7 @@ enum ImageCacheType {
     case post
     case avatar
     case banner
+    case musicCover
 }
 
 struct CachedAsyncImage: View {
@@ -12,6 +13,29 @@ struct CachedAsyncImage: View {
     @StateObject private var themeManager = ThemeManager.shared
     @State private var loadedImage: UIImage?
     @State private var isLoading: Bool = false
+    
+    init(url: URL?, cacheType: ImageCacheType) {
+        self.url = url
+        self.cacheType = cacheType
+        // Проверяем кеш синхронно при инициализации для мгновенного отображения
+        if let imageURL = url {
+            var cachedData: Data?
+            switch cacheType {
+            case .post:
+                cachedData = CacheManager.shared.getCachedPostImage(url: imageURL)
+            case .avatar:
+                cachedData = CacheManager.shared.getCachedAvatar(url: imageURL)
+            case .banner:
+                cachedData = CacheManager.shared.getCachedBanner(url: imageURL)
+            case .musicCover:
+                cachedData = CacheManager.shared.getCachedMusicCover(url: imageURL)
+            }
+            
+            if let data = cachedData, let image = UIImage(data: data) {
+                _loadedImage = State(initialValue: image)
+            }
+        }
+    }
     
     var body: some View {
         Group {
@@ -23,58 +47,68 @@ struct CachedAsyncImage: View {
                     .fill(Color.themeBlockBackground)
             }
         }
-        .onAppear {
-            loadImage()
+        .task(priority: .background) {
+            await loadImageFromNetwork()
         }
         .onChange(of: url) { oldValue, newValue in
             if newValue != oldValue {
                 loadedImage = nil
                 isLoading = false
-                loadImage()
+                // Проверяем кеш для нового URL
+                if let imageURL = newValue {
+                    var cachedData: Data?
+                    switch cacheType {
+                    case .post:
+                        cachedData = CacheManager.shared.getCachedPostImage(url: imageURL)
+                    case .avatar:
+                        cachedData = CacheManager.shared.getCachedAvatar(url: imageURL)
+                    case .banner:
+                        cachedData = CacheManager.shared.getCachedBanner(url: imageURL)
+                    case .musicCover:
+                        cachedData = CacheManager.shared.getCachedMusicCover(url: imageURL)
+                    }
+                    
+                    if let data = cachedData, let image = UIImage(data: data) {
+                        loadedImage = image
+                        return
+                    }
+                }
+                Task(priority: .background) {
+                    await loadImageFromNetwork()
+                }
             }
         }
     }
     
-    private func loadImage() {
+    private func loadImageFromNetwork() async {
         guard let url = url else {
-            print("⚠️ CachedAsyncImage: URL is nil")
             return
         }
         
-        var cachedData: Data?
-        switch cacheType {
-        case .post:
-            cachedData = CacheManager.shared.getCachedPostImage(url: url)
-        case .avatar:
-            cachedData = CacheManager.shared.getCachedAvatar(url: url)
-        case .banner:
-            cachedData = CacheManager.shared.getCachedBanner(url: url)
-        }
-        
-        if let data = cachedData, let image = UIImage(data: data) {
-            print("✅ CachedAsyncImage: Using cached image for \(url.absoluteString)")
-            loadedImage = image
-            isLoading = false
+        // Если уже загружено из кеша, не загружаем снова
+        if loadedImage != nil {
             return
         }
         
         isLoading = true
-        print("📥 CachedAsyncImage: Fetching image from network: \(url.absoluteString)")
-        Task {
-            do {
-                var request = URLRequest(url: url)
-                request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148", forHTTPHeaderField: "User-Agent")
-                let (data, urlResponse) = try await URLSession.shared.data(for: request)
-                
-                if let httpResponse = urlResponse as? HTTPURLResponse {
-                    print("📥 CachedAsyncImage: Response status code: \(httpResponse.statusCode) for \(url.absoluteString)")
-                    if httpResponse.statusCode != 200 {
-                        print("⚠️ CachedAsyncImage: Non-200 status code for \(url.absoluteString)")
+        
+        do {
+            var request = URLRequest(url: url)
+            request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148", forHTTPHeaderField: "User-Agent")
+            let (data, urlResponse) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = urlResponse as? HTTPURLResponse {
+                if httpResponse.statusCode != 200 {
+                    await MainActor.run {
+                        isLoading = false
                     }
+                    return
                 }
-                
-                if let image = UIImage(data: data) {
-                    print("✅ CachedAsyncImage: Successfully loaded image from \(url.absoluteString)")
+            }
+            
+            if let image = UIImage(data: data) {
+                // Сохраняем в кеш в фоне
+                Task.detached(priority: .background) {
                     switch cacheType {
                     case .post:
                         CacheManager.shared.cachePostImage(url: url, data: data)
@@ -82,22 +116,23 @@ struct CachedAsyncImage: View {
                         CacheManager.shared.cacheAvatar(url: url, data: data)
                     case .banner:
                         CacheManager.shared.cacheBanner(url: url, data: data)
-                    }
-                    await MainActor.run {
-                        loadedImage = image
-                        isLoading = false
-                    }
-                } else {
-                    print("❌ CachedAsyncImage: Failed to create UIImage from data for \(url.absoluteString)")
-                    await MainActor.run {
-                        isLoading = false
+                    case .musicCover:
+                        CacheManager.shared.cacheMusicCover(url: url, data: data)
                     }
                 }
-            } catch {
-                print("❌ CachedAsyncImage: Error loading image from \(url.absoluteString): \(error)")
+                
+                await MainActor.run {
+                    loadedImage = image
+                    isLoading = false
+                }
+            } else {
                 await MainActor.run {
                     isLoading = false
                 }
+            }
+        } catch {
+            await MainActor.run {
+                isLoading = false
             }
         }
     }

@@ -59,7 +59,7 @@ struct AboutAppView: View {
                     VStack(spacing: 12) {
                         InfoRow(
                             title: "Версия приложения",
-                            value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.2.4"
+                            value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.2.5"
                         )
                         InfoRow(title: "Разработчик", value: "qsoul")
                         InfoRow(title: "Правообладателям", value: "verif@k-connect.ru")

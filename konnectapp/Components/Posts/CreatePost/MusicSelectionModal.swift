@@ -149,19 +149,13 @@ struct MusicTrackRow: View {
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: 10) {
-                AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                    switch phase {
-                    case .empty:
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
-                            .frame(width: 48, height: 48)
-                    case .success(let image):
-                        image
-                            .resizable()
+                Group {
+                    if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
+                        CachedAsyncImage(url: coverURL, cacheType: .musicCover)
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 48, height: 48)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
-                    case .failure:
+                    } else {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
                             .frame(width: 48, height: 48)
@@ -170,8 +164,6 @@ struct MusicTrackRow: View {
                                     .font(.system(size: 16))
                                     .foregroundColor(.white.opacity(0.5))
                             )
-                    @unknown default:
-                        EmptyView()
                     }
                 }
                 

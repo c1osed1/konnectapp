@@ -11,30 +11,13 @@ struct TrackRowView: View {
         Button(action: onPlay) {
             HStack(spacing: 12) {
                 // Обложка
-                AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                    switch phase {
-                    case .empty:
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.appAccent.opacity(0.3),
-                                        Color.appAccent.opacity(0.1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(
-                                Image(systemName: "music.note")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(Color.appAccent)
-                            )
-                    case .success(let image):
-                        image
-                            .resizable()
+                Group {
+                    if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
+                        CachedAsyncImage(url: coverURL, cacheType: .musicCover)
                             .aspectRatio(contentMode: .fill)
-                    case .failure:
+                            .frame(width: 60, height: 60)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(
                                 LinearGradient(
@@ -51,12 +34,9 @@ struct TrackRowView: View {
                                     .font(.system(size: 20))
                                     .foregroundColor(Color.appAccent)
                             )
-                    @unknown default:
-                        EmptyView()
+                            .frame(width: 60, height: 60)
                     }
                 }
-                .frame(width: 60, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
                 
                 // Информация о треке
                 VStack(alignment: .leading, spacing: 4) {

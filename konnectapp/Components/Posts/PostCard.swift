@@ -9,6 +9,7 @@ struct PostCard: View {
     @State private var isLiking: Bool = false
     @State private var toastMessage: String?
     @State private var showPostDetail: Bool = false
+    @State private var updatedPoll: Poll?
     
     init(post: Post, navigationPath: Binding<NavigationPath>) {
         self.post = post
@@ -45,6 +46,14 @@ struct PostCard: View {
         }
         .sheet(isPresented: $showPostDetail) {
             PostDetailView(post: post, navigationPath: $navigationPath)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PollVoteChanged"))) { notification in
+            if let userInfo = notification.userInfo,
+               let postId = userInfo["postId"] as? Int64,
+               postId == post.id,
+               let updatedPollData = userInfo["poll"] as? Poll {
+                updatedPoll = updatedPollData
+            }
         }
     }
     
@@ -134,6 +143,12 @@ struct PostCard: View {
                     PostMusicView(tracks: music)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 8)
+                }
+                
+                if let poll = updatedPoll ?? post.poll {
+                    PollView(poll: poll, postId: post.id)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
                 }
             }
         }

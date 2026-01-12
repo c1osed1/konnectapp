@@ -30,6 +30,10 @@ class CacheManager {
         cacheDirectory.appendingPathComponent("Badges")
     }
     
+    private var musicCoversCacheDirectory: URL {
+        cacheDirectory.appendingPathComponent("MusicCovers")
+    }
+    
     private init() {
         createDirectoriesIfNeeded()
     }
@@ -41,6 +45,7 @@ class CacheManager {
         try? fileManager.createDirectory(at: bannersCacheDirectory, withIntermediateDirectories: true)
         try? fileManager.createDirectory(at: tracksCacheDirectory, withIntermediateDirectories: true)
         try? fileManager.createDirectory(at: badgesCacheDirectory, withIntermediateDirectories: true)
+        try? fileManager.createDirectory(at: musicCoversCacheDirectory, withIntermediateDirectories: true)
     }
     
     func cachePostImage(url: URL, data: Data) {
@@ -113,14 +118,27 @@ class CacheManager {
         }
     }
     
+    func cacheMusicCover(url: URL, data: Data) {
+        let fileName = url.lastPathComponent
+        let fileURL = musicCoversCacheDirectory.appendingPathComponent(fileName)
+        try? data.write(to: fileURL)
+    }
+    
+    func getCachedMusicCover(url: URL) -> Data? {
+        let fileName = url.lastPathComponent
+        let fileURL = musicCoversCacheDirectory.appendingPathComponent(fileName)
+        return try? Data(contentsOf: fileURL)
+    }
+    
     func getCacheSize() -> CacheSize {
         let postsImagesSize = getDirectorySize(url: postsImagesCacheDirectory)
         let avatarsSize = getDirectorySize(url: avatarsCacheDirectory)
         let bannersSize = getDirectorySize(url: bannersCacheDirectory)
         let tracksSize = getDirectorySize(url: tracksCacheDirectory)
         let badgesSize = getDirectorySize(url: badgesCacheDirectory)
-        let totalSize = postsImagesSize + avatarsSize + bannersSize + tracksSize + badgesSize
-        return CacheSize(postsImages: postsImagesSize, avatars: avatarsSize, banners: bannersSize, tracks: tracksSize, badges: badgesSize, total: totalSize)
+        let musicCoversSize = getDirectorySize(url: musicCoversCacheDirectory)
+        let totalSize = postsImagesSize + avatarsSize + bannersSize + tracksSize + badgesSize + musicCoversSize
+        return CacheSize(postsImages: postsImagesSize, avatars: avatarsSize, banners: bannersSize, tracks: tracksSize, badges: badgesSize, musicCovers: musicCoversSize, total: totalSize)
     }
     
     private func getDirectorySize(url: URL) -> Int64 {
@@ -181,12 +199,18 @@ class CacheManager {
         createDirectoriesIfNeeded()
     }
     
+    func clearMusicCoversCache() {
+        try? fileManager.removeItem(at: musicCoversCacheDirectory)
+        createDirectoriesIfNeeded()
+    }
+    
     func clearAllCache() {
         clearPostsImagesCache()
         clearAvatarsCache()
         clearBannersCache()
         clearTracksCache()
         clearBadgesCache()
+        clearMusicCoversCache()
     }
 }
 
@@ -196,6 +220,7 @@ struct CacheSize {
     let banners: Int64
     let tracks: Int64
     let badges: Int64
+    let musicCovers: Int64
     let total: Int64
     
     func formatted() -> String {
@@ -220,6 +245,10 @@ struct CacheSize {
     
     func formattedBadges() -> String {
         return ByteCountFormatter.string(fromByteCount: badges, countStyle: .file)
+    }
+    
+    func formattedMusicCovers() -> String {
+        return ByteCountFormatter.string(fromByteCount: musicCovers, countStyle: .file)
     }
 }
 

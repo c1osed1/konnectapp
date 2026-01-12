@@ -32,6 +32,18 @@ struct SVGBadgeView: View {
     @State private var svgContent: String?
     @State private var hasError: Bool = false
     
+    init(url: String, size: CGFloat) {
+        self.url = url
+        self.size = size
+        // Проверяем кеш синхронно при инициализации для мгновенного отображения
+        if let badgeURL = URL(string: url),
+           let cachedData = CacheManager.shared.getCachedBadge(url: badgeURL),
+           let cachedString = String(data: cachedData, encoding: .utf8) {
+            let cleanedSVG = cachedString.replacingOccurrences(of: ".webp", with: "", options: .caseInsensitive)
+            _svgContent = State(initialValue: cleanedSVG)
+        }
+    }
+    
     var body: some View {
         Group {
             if hasError {
@@ -41,72 +53,62 @@ struct SVGBadgeView: View {
                 SVGView(svgString: svgContent)
                     .frame(width: size, height: size)
             } else {
-                ProgressView()
+                // Не показываем ProgressView, чтобы не блокировать UI
+                // Просто пустое место, бейдж загрузится в фоне
+                Color.clear
                     .frame(width: size, height: size)
-                    .onAppear {
-                        loadSVG()
+                    .task(priority: .background) {
+                        await loadSVGFromNetwork()
                     }
             }
         }
     }
     
-    private func loadSVG() {
-        guard let url = URL(string: url) else {
-            DispatchQueue.main.async {
+    private func loadSVGFromNetwork() async {
+        guard let badgeURL = URL(string: url) else {
+            await MainActor.run {
                 self.hasError = true
             }
             return
         }
         
-        // Проверяем кеш
-        if let cachedData = CacheManager.shared.getCachedBadge(url: url),
-           let cachedString = String(data: cachedData, encoding: .utf8) {
-            // Очищаем SVG от потенциальных внешних ресурсов WEBP
-            let cleanedSVG = cachedString.replacingOccurrences(of: ".webp", with: "", options: .caseInsensitive)
-            DispatchQueue.main.async {
-                self.svgContent = cleanedSVG
-            }
-            return
-        }
-        
-        // Загружаем из сети с таймаутом
-        var request = URLRequest(url: url)
+        // Загружаем из сети с таймаутом в фоновом потоке
+        var request = URLRequest(url: badgeURL)
         request.timeoutInterval = 5.0
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ SVG Badge load error: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.hasError = true
-                }
-                return
-            }
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode) else {
-                print("❌ SVG Badge HTTP error: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.hasError = true
                 }
                 return
             }
             
-            if let data = data, let svgString = String(data: data, encoding: .utf8) {
+            if let svgString = String(data: data, encoding: .utf8) {
                 // Очищаем SVG от потенциальных внешних ресурсов WEBP
                 let cleanedSVG = svgString.replacingOccurrences(of: ".webp", with: "", options: .caseInsensitive)
                 
-                // Сохраняем в кеш оригинальные данные
-                CacheManager.shared.cacheBadge(url: url, data: data)
+                // Сохраняем в кеш оригинальные данные в фоне
+                Task.detached(priority: .background) {
+                    CacheManager.shared.cacheBadge(url: badgeURL, data: data)
+                }
                 
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.svgContent = cleanedSVG
                 }
             } else {
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.hasError = true
                 }
             }
-        }.resume()
+        } catch {
+            await MainActor.run {
+                self.hasError = true
+            }
+        }
     }
 }
 
@@ -116,6 +118,17 @@ struct CachedBadgeImageView: View {
     let size: CGFloat
     @State private var cachedImage: UIImage?
     @State private var hasError: Bool = false
+    
+    init(url: String, size: CGFloat) {
+        self.url = url
+        self.size = size
+        // Проверяем кеш синхронно при инициализации для мгновенного отображения
+        if let imageURL = URL(string: url),
+           let cachedData = CacheManager.shared.getCachedBadge(url: imageURL),
+           let image = UIImage(data: cachedData) {
+            _cachedImage = State(initialValue: image)
+        }
+    }
     
     var body: some View {
         Group {
@@ -128,66 +141,58 @@ struct CachedBadgeImageView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: size, height: size)
             } else {
-                ProgressView()
+                // Не показываем ProgressView, чтобы не блокировать UI
+                // Просто пустое место, бейдж загрузится в фоне
+                Color.clear
                     .frame(width: size, height: size)
-                    .onAppear {
-                        loadImage()
+                    .task(priority: .background) {
+                        await loadImageFromNetwork()
                     }
             }
         }
     }
     
-    private func loadImage() {
+    private func loadImageFromNetwork() async {
         guard let imageURL = URL(string: url) else {
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.hasError = true
             }
             return
         }
         
-        // Проверяем кеш
-        if let cachedData = CacheManager.shared.getCachedBadge(url: imageURL),
-           let image = UIImage(data: cachedData) {
-            DispatchQueue.main.async {
-                self.cachedImage = image
-            }
-            return
-        }
-        
-        // Загружаем из сети с таймаутом
+        // Загружаем из сети с таймаутом в фоновом потоке
         var request = URLRequest(url: imageURL)
         request.timeoutInterval = 5.0
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Badge Image load error: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.hasError = true
-                }
-                return
-            }
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode) else {
-                print("❌ Badge Image HTTP error: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.hasError = true
                 }
                 return
             }
             
-            if let data = data, let image = UIImage(data: data) {
-                // Сохраняем в кеш
-                CacheManager.shared.cacheBadge(url: imageURL, data: data)
+            if let image = UIImage(data: data) {
+                // Сохраняем в кеш в фоне
+                Task.detached(priority: .background) {
+                    CacheManager.shared.cacheBadge(url: imageURL, data: data)
+                }
                 
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.cachedImage = image
                 }
             } else {
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.hasError = true
                 }
             }
-        }.resume()
+        } catch {
+            await MainActor.run {
+                self.hasError = true
+            }
+        }
     }
 }

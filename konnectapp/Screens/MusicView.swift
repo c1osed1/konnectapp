@@ -599,9 +599,13 @@ struct MusicView: View {
             Button(action: {
                 showFullScreenPlayer = true
             }) {
-                AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                    switch phase {
-                    case .empty, .failure:
+                Group {
+                    if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
+                        CachedAsyncImage(url: coverURL, cacheType: .musicCover)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.appAccent.opacity(0.3))
                             .frame(width: 40, height: 40)
@@ -610,14 +614,6 @@ struct MusicView: View {
                                     .font(.system(size: 16))
                                     .foregroundColor(Color.appAccent.opacity(0.7))
                             )
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 40, height: 40)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    @unknown default:
-                        EmptyView()
                     }
                 }
             }
@@ -664,9 +660,13 @@ struct MusicView: View {
             Button(action: {
                 showFullScreenPlayer = true
             }) {
-                AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                    switch phase {
-                    case .empty, .failure:
+                Group {
+                    if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
+                        CachedAsyncImage(url: coverURL, cacheType: .musicCover)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.appAccent.opacity(0.3))
                             .frame(width: 40, height: 40)
@@ -675,14 +675,6 @@ struct MusicView: View {
                                     .font(.system(size: 16))
                                     .foregroundColor(Color.appAccent.opacity(0.7))
                             )
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 40, height: 40)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    @unknown default:
-                        EmptyView()
                     }
                 }
             }

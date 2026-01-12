@@ -23,10 +23,12 @@ struct CreatePostView: View {
     @State private var mediaItems: [PostMediaItem] = []
     @State private var selectedVideoData: Data? = nil
     @State private var selectedTrack: MusicTrack? = nil
+    @State private var pollData: CreatePollData? = nil
     @State private var isNsfw: Bool = false
     @State private var isPublishing: Bool = false
     @State private var showImagePicker: Bool = false
     @State private var showMusicModal: Bool = false
+    @State private var showPollModal: Bool = false
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var errorMessage: String?
     
@@ -58,24 +60,16 @@ struct CreatePostView: View {
             
             if let track = selectedTrack {
                 HStack(spacing: 12) {
-                    AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                        switch phase {
-                        case .empty:
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.themeBlockBackground)
-                                .frame(width: 50, height: 50)
-                        case .success(let image):
-                            image
-                                .resizable()
+                    Group {
+                        if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
+                            CachedAsyncImage(url: coverURL, cacheType: .musicCover)
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 50, height: 50)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                        case .failure:
+                        } else {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color.themeBlockBackground)
                                 .frame(width: 50, height: 50)
-                        @unknown default:
-                            EmptyView()
                         }
                     }
                     
@@ -104,6 +98,54 @@ struct CreatePostView: View {
                 .padding(.vertical, 8)
             }
             
+            if let poll = pollData {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "chart.bar")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color.appAccent)
+                        Text("Опрос")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(Color.themeTextPrimary)
+                        Spacer()
+                        Button(action: {
+                            pollData = nil
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(Color.themeTextSecondary.opacity(0.6))
+                                .font(.system(size: 20))
+                        }
+                    }
+                    
+                    Text(poll.question)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color.themeTextPrimary)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(0..<poll.options.count, id: \.self) { index in
+                            HStack {
+                                Circle()
+                                    .fill(Color.appAccent.opacity(0.3))
+                                    .frame(width: 8, height: 8)
+                                Text(poll.options[index])
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Color.themeTextSecondary)
+                            }
+                        }
+                    }
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.themeBlockBackground.opacity(0.5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.appAccent.opacity(0.3), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 12)
+            }
+            
             if let errorMessage = errorMessage {
                 Text(errorMessage)
                     .font(.system(size: 13))
@@ -116,12 +158,16 @@ struct CreatePostView: View {
                 isNsfw: $isNsfw,
                 hasMedia: !mediaItems.isEmpty,
                 hasMusic: selectedTrack != nil,
-                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil,
+                hasPoll: pollData != nil,
+                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil || pollData != nil,
                 onAddGallery: {
                     showImagePicker = true
                 },
                 onAddMusic: {
                     showMusicModal = true
+                },
+                onAddPoll: {
+                    showPollModal = true
                 },
                 onPublish: {
                     Task {
@@ -140,6 +186,9 @@ struct CreatePostView: View {
         )
         .sheet(isPresented: $showMusicModal) {
             MusicSelectionModal(isPresented: $showMusicModal, selectedTrack: $selectedTrack)
+        }
+        .sheet(isPresented: $showPollModal) {
+            CreatePollView(isPresented: $showPollModal, pollData: $pollData)
         }
         .onChange(of: selectedItems) { oldValue, newValue in
             Task { @MainActor in
@@ -163,24 +212,16 @@ struct CreatePostView: View {
             
             if let track = selectedTrack {
                 HStack(spacing: 12) {
-                    AsyncImage(url: URL(string: track.cover_path ?? "")) { phase in
-                        switch phase {
-                        case .empty:
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
-                                .frame(width: 50, height: 50)
-                        case .success(let image):
-                            image
-                                .resizable()
+                    Group {
+                        if let coverPath = track.cover_path, !coverPath.isEmpty, let coverURL = URL(string: coverPath) {
+                            CachedAsyncImage(url: coverURL, cacheType: .musicCover)
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 50, height: 50)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                        case .failure:
+                        } else {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color(red: 0.13, green: 0.13, blue: 0.13))
                                 .frame(width: 50, height: 50)
-                        @unknown default:
-                            EmptyView()
                         }
                     }
                     
@@ -221,12 +262,16 @@ struct CreatePostView: View {
                 isNsfw: $isNsfw,
                 hasMedia: !mediaItems.isEmpty,
                 hasMusic: selectedTrack != nil,
-                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil,
+                hasPoll: pollData != nil,
+                canPublish: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil || pollData != nil,
                 onAddGallery: {
                     showImagePicker = true
                 },
                 onAddMusic: {
                     showMusicModal = true
+                },
+                onAddPoll: {
+                    showPollModal = true
                 },
                 onPublish: {
                     Task {
@@ -255,6 +300,9 @@ struct CreatePostView: View {
         )
         .sheet(isPresented: $showMusicModal) {
             MusicSelectionModal(isPresented: $showMusicModal, selectedTrack: $selectedTrack)
+        }
+        .sheet(isPresented: $showPollModal) {
+            CreatePollView(isPresented: $showPollModal, pollData: $pollData)
         }
         .onChange(of: selectedItems) { oldValue, newValue in
             Task { @MainActor in
@@ -338,9 +386,9 @@ struct CreatePostView: View {
     }
     
     private func publishPost() async {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil else {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !mediaItems.isEmpty || selectedTrack != nil || pollData != nil else {
             await MainActor.run {
-                errorMessage = "Добавьте текст, изображение или музыку"
+                errorMessage = "Добавьте текст, изображение, музыку или опрос"
             }
             return
         }
@@ -370,12 +418,32 @@ struct CreatePostView: View {
                 }
             }
             
+            let contentText = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : text
+            print("🚀 PUBLISH POST DEBUG:")
+            print("  Content: '\(contentText ?? "nil")'")
+            print("  Images count: \(images.count)")
+            print("  Video: \(videoData != nil ? "present" : "nil")")
+            print("  isNsfw: \(isNsfw)")
+            print("  Music: \(selectedTrack != nil ? "present" : "nil")")
+            print("  Poll: \(pollData != nil ? "present" : "nil")")
+            if let poll = pollData {
+                print("    Poll question: '\(poll.question)'")
+                print("    Poll options count: \(poll.options.count)")
+                print("    Poll options: \(poll.options)")
+                print("    Poll isMultipleChoice: \(poll.isMultipleChoice)")
+                print("    Poll isAnonymous: \(poll.isAnonymous)")
+                print("    Poll isTemporary: \(poll.isTemporary)")
+            }
+            print("  PostType: \(postType ?? "post")")
+            print("  RecipientId: \(recipientId?.description ?? "nil")")
+            
             let createdPost = try await PostService.shared.createPost(
-                content: text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : text,
+                content: contentText,
                 images: images,
                 video: videoData,
                 isNsfw: isNsfw,
                 music: selectedTrack,
+                poll: pollData,
                 postType: postType,
                 recipientId: recipientId
             )
@@ -385,6 +453,7 @@ struct CreatePostView: View {
                 mediaItems = []
                 selectedVideoData = nil
                 selectedTrack = nil
+                pollData = nil
                 isNsfw = false
                 errorMessage = nil
                 onPostCreated(createdPost)

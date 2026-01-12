@@ -208,6 +208,39 @@ struct PostDetailResponse: Codable {
     let error: String?
 }
 
+// MARK: - Poll Voter Model
+struct PollVoter: Codable, Identifiable {
+    let id: Int64
+    let username: String
+    let name: String?
+    let photo: String?
+    let avatar_url: String?
+    let voted_at: String?
+}
+
+// MARK: - Poll Option Model
+struct PollOption: Codable, Identifiable {
+    let id: Int64
+    let text: String
+    let votes_count: Int?
+    let percentage: Double?
+    let voters: [PollVoter]?
+}
+
+// MARK: - Poll Model
+struct Poll: Codable, Identifiable {
+    let id: Int64
+    let question: String
+    let options: [PollOption]
+    let expires_at: String?
+    let is_anonymous: Bool?
+    let is_expired: Bool?
+    let is_multiple_choice: Bool?
+    let total_votes: Int?
+    let user_vote_option_ids: [Int64]?
+    let user_voted: Bool?
+}
+
 // MARK: - Post Model
 struct Post: Codable, Identifiable {
     let id: Int64
@@ -236,13 +269,14 @@ struct Post: Codable, Identifiable {
     let is_pinned: Bool?
     let video: String?
     let video_poster: String?
+    let poll: Poll?
     
     enum CodingKeys: String, CodingKey {
         case id, content, user, created_at, updated_at, timestamp
         case likes_count, comments_count, reposts_count, views_count
         case is_liked, is_reposted, is_repost, media, images, image
         case type, original_post, fact, edited, last_comment, is_nsfw, music, is_pinned
-        case video, video_poster
+        case video, video_poster, poll
     }
 }
 
@@ -271,6 +305,7 @@ struct OriginalPost: Codable {
     let music: [MusicTrack]?
     let video: String?
     let video_poster: String?
+    let poll: Poll?
 }
 
 // MARK: - Post User Model
@@ -832,9 +867,10 @@ struct PurchasedUsername: Codable {
 struct Subscription: Codable {
     let type: String
     let subscription_date: String
-    let expires_at: String
+    let expires_at: String?
     let total_duration_months: Double
     let active: Bool
+    let is_lifetime: Bool?
 }
 
 struct ProfileMusic: Codable {

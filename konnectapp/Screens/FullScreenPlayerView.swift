@@ -58,15 +58,10 @@ struct FullScreenPlayerView: View {
             Group {
                 if let coverPath = viewModel.trackDetail?.cover_path ?? player.currentTrack?.cover_path,
                    let coverURL = URL(string: coverPath) {
-                    AsyncImage(url: coverURL) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().aspectRatio(contentMode: .fill)
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .blur(radius: 80)
-                        default: Color.black
-                        }
-                    }
+                    CachedAsyncImage(url: coverURL, cacheType: .musicCover)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .blur(radius: 80)
                 } else { Color.black }
             }
             LinearGradient(
@@ -102,20 +97,11 @@ struct FullScreenPlayerView: View {
         return Group {
             if let coverPath = viewModel.trackDetail?.cover_path ?? player.currentTrack?.cover_path,
                let coverURL = URL(string: coverPath) {
-                AsyncImage(url: coverURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().aspectRatio(contentMode: .fill)
-                            .frame(width: size, height: size)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .shadow(color: .black.opacity(0.5), radius: 30, x: 0, y: 20)
-                    default:
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(LinearGradient(colors: [Color.appAccent.opacity(0.4), Color.appAccent.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: size, height: size)
-                            .overlay(Image(systemName: "music.note").font(.system(size: 60)).foregroundColor(Color.appAccent))
-                    }
-                }
+                CachedAsyncImage(url: coverURL, cacheType: .musicCover)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size, height: size)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .shadow(color: .black.opacity(0.5), radius: 30, x: 0, y: 20)
             } else {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(LinearGradient(colors: [Color.appAccent.opacity(0.4), Color.appAccent.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))

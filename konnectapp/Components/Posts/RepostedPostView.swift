@@ -67,6 +67,12 @@ struct RepostedPostView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 8)
             }
+            
+            if let poll = originalPost.poll {
+                PollView(poll: poll, postId: originalPost.id)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
+            }
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 16))
     }
@@ -107,6 +113,12 @@ struct RepostedPostView: View {
                 PostMusicView(tracks: music)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 8)
+            }
+            
+            if let poll = originalPost.poll {
+                PollView(poll: poll, postId: originalPost.id)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
             }
         }
         .background(
