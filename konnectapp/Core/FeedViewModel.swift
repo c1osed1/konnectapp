@@ -157,5 +157,13 @@ class FeedViewModel: ObservableObject {
             posts.removeAll { $0.id == postId }
         }
     }
+    
+    func updatePost(_ updated: Post) {
+        Task { @MainActor in
+            if let idx = posts.firstIndex(where: { $0.id == updated.id }) {
+                posts[idx] = updated
+            }
+        }
+    }
 }
 

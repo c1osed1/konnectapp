@@ -6,6 +6,9 @@ struct PostMoreButton: View {
     @State private var showRepostModal = false
     @State private var showFactsModal = false
     @State private var showReportModal = false
+    @State private var showDeleteConfirmation = false
+    @State private var showEditModal = false
+    @State private var editDraft: String = ""
     
     var body: some View {
         Menu {
@@ -14,7 +17,10 @@ struct PostMoreButton: View {
                 toastMessage: $toastMessage,
                 showRepostModal: $showRepostModal,
                 showFactsModal: $showFactsModal,
-                showReportModal: $showReportModal
+                showReportModal: $showReportModal,
+                showDeleteConfirmation: $showDeleteConfirmation,
+                showEditModal: $showEditModal,
+                editDraft: $editDraft
             )
         } label: {
             Group {
@@ -77,6 +83,39 @@ struct PostMoreButton: View {
         .sheet(isPresented: $showReportModal) {
             ReportModalView(post: post, toastMessage: $toastMessage)
         }
+        .sheet(isPresented: $showEditModal) {
+            NavigationStack {
+                EditPostModalView(
+                    postId: post.id,
+                    initialContent: editDraft,
+                    toastMessage: $toastMessage
+                )
+            }
+        }
+        .alert("Удалить пост?", isPresented: $showDeleteConfirmation) {
+            Button("Отмена", role: .cancel) {}
+            Button("Удалить", role: .destructive) {
+                Task {
+                    await performDelete()
+                }
+            }
+        } message: {
+            Text("Вы уверены, что хотите удалить этот пост? Это действие нельзя отменить.")
+        }
+    }
+    
+    private func performDelete() async {
+        do {
+            let _ = try await PostActionService.shared.deletePost(postId: post.id)
+            await MainActor.run {
+                toastMessage = "Пост удален"
+                NotificationCenter.default.post(name: NSNotification.Name("PostDeleted"), object: nil, userInfo: ["postId": post.id])
+            }
+        } catch {
+            await MainActor.run {
+                toastMessage = "Ошибка: \(error.localizedDescription)"
+            }
+        }
     }
 }
 
@@ -86,6 +125,9 @@ struct PostMoreMenuContent: View {
     @Binding var showRepostModal: Bool
     @Binding var showFactsModal: Bool
     @Binding var showReportModal: Bool
+    @Binding var showDeleteConfirmation: Bool
+    @Binding var showEditModal: Bool
+    @Binding var editDraft: String
     @StateObject private var authManager = AuthManager.shared
     @State private var isUserBlocked = false
     @State private var isLoadingBlockStatus = false
@@ -165,7 +207,11 @@ struct PostMoreMenuContent: View {
     
     private var editButton: some View {
         Button(action: {
-            // TODO: Implement edit post
+            editDraft = post.content ?? ""
+            // Откладываем показ модалки, чтобы Menu успел закрыться
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                showEditModal = true
+            }
         }) {
             Label("Редактировать", systemImage: "pencil")
         }
@@ -173,8 +219,9 @@ struct PostMoreMenuContent: View {
     
     private var deleteButton: some View {
         Button(role: .destructive, action: {
-            Task {
-                await performDelete()
+            // Откладываем показ диалога, чтобы Menu успел закрыться
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                showDeleteConfirmation = true
             }
         }) {
             Label("Удалить", systemImage: "trash")
@@ -228,21 +275,6 @@ struct PostMoreMenuContent: View {
         // For now, set to false
         await MainActor.run {
             isUserBlocked = false
-        }
-    }
-    
-    
-    private func performDelete() async {
-        do {
-            let _ = try await PostActionService.shared.deletePost(postId: post.id)
-            await MainActor.run {
-                toastMessage = "Пост удален"
-                NotificationCenter.default.post(name: NSNotification.Name("PostDeleted"), object: nil, userInfo: ["postId": post.id])
-            }
-        } catch {
-            await MainActor.run {
-                toastMessage = "Ошибка: \(error.localizedDescription)"
-            }
         }
     }
     

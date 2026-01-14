@@ -111,13 +111,13 @@ struct CachedAsyncImage: View {
                 Task.detached(priority: .background) {
                     switch cacheType {
                     case .post:
-                        CacheManager.shared.cachePostImage(url: url, data: data)
+                        await CacheManager.shared.cachePostImage(url: url, data: data)
                     case .avatar:
-                        CacheManager.shared.cacheAvatar(url: url, data: data)
+                        await CacheManager.shared.cacheAvatar(url: url, data: data)
                     case .banner:
-                        CacheManager.shared.cacheBanner(url: url, data: data)
+                        await CacheManager.shared.cacheBanner(url: url, data: data)
                     case .musicCover:
-                        CacheManager.shared.cacheMusicCover(url: url, data: data)
+                        await CacheManager.shared.cacheMusicCover(url: url, data: data)
                     }
                 }
                 

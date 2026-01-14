@@ -2,19 +2,25 @@ import SwiftUI
 
 struct ProfilePostsContent: View {
     let posts: [Post]
+    let pinnedPost: Post?
+    let profileUser: ProfileUser?
     let isLoading: Bool
     let hasMore: Bool
     let currentPage: Int
     let userIdentifier: String
     let onLoadMore: () -> Void
+
+    private var profileAccent: Color {
+        Color.accentColor(from: profileUser)
+    }
     
     var body: some View {
         Group {
-            if isLoading && posts.isEmpty {
+            if isLoading && posts.isEmpty && pinnedPost == nil {
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .padding(.top, 20)
-            } else if posts.isEmpty && !isLoading {
+            } else if posts.isEmpty && pinnedPost == nil && !isLoading {
                 VStack(spacing: 12) {
                     Image(systemName: "tray")
                         .font(.system(size: 48))
@@ -25,6 +31,17 @@ struct ProfilePostsContent: View {
                 }
                 .padding(.top, 40)
             } else {
+                // Показываем закрепленный пост первым
+                if let pinned = pinnedPost {
+                    PostCard(
+                        post: pinned,
+                        navigationPath: .constant(NavigationPath()),
+                        forcePinnedStyle: true,
+                        pinnedAccentColor: profileAccent
+                    )
+                        .padding(.horizontal, 8)
+                }
+                
                 ForEach(posts) { post in
                     PostCard(post: post, navigationPath: .constant(NavigationPath()))
                         .padding(.horizontal, 8)

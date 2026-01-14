@@ -48,6 +48,9 @@ class ImageViewerViewController: UIViewController {
     private var panGesture: UIPanGestureRecognizer!
     private var dragOffset: CGFloat = 0
     private var backgroundView: UIView!
+    private var toastLabel: UILabel?
+    private var topShadeView: UIView!
+    private var topShadeGradient: CAGradientLayer?
     
     init(imageURLs: [URL], initialIndex: Int) {
         self.imageURLs = imageURLs
@@ -63,6 +66,11 @@ class ImageViewerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        topShadeGradient?.frame = topShadeView.bounds
     }
     
     private func setupUI() {
@@ -97,6 +105,9 @@ class ImageViewerViewController: UIViewController {
             pageViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+
+        // Плавное затемнение в зоне статус-бара/верхней safe-area (чтобы часы/батарея читались лучше)
+        setupTopShade()
         
         if !imageURLs.isEmpty && initialIndex < imageURLs.count {
             let initialVC = SingleImageViewController(imageURL: imageURLs[initialIndex])
@@ -108,6 +119,34 @@ class ImageViewerViewController: UIViewController {
         view.addGestureRecognizer(panGesture)
         
         setupTopBar()
+    }
+
+    private func setupTopShade() {
+        topShadeView = UIView()
+        topShadeView.backgroundColor = .clear
+        topShadeView.isUserInteractionEnabled = false
+        view.addSubview(topShadeView)
+        topShadeView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Высота включает safe-area + верхнюю панель
+        NSLayoutConstraint.activate([
+            topShadeView.topAnchor.constraint(equalTo: view.topAnchor),
+            topShadeView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            topShadeView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            topShadeView.heightAnchor.constraint(equalToConstant: 140)
+        ])
+
+        let gradient = CAGradientLayer()
+        gradient.colors = [
+            UIColor.black.withAlphaComponent(0.55).cgColor,
+            UIColor.black.withAlphaComponent(0.0).cgColor
+        ]
+        gradient.locations = [0.0, 1.0]
+        gradient.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradient.endPoint = CGPoint(x: 0.5, y: 1.0)
+        gradient.frame = topShadeView.bounds
+        topShadeView.layer.insertSublayer(gradient, at: 0)
+        topShadeGradient = gradient
     }
     
     private func setupTopBar() {
@@ -135,6 +174,21 @@ class ImageViewerViewController: UIViewController {
             closeButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
             closeButton.widthAnchor.constraint(equalToConstant: 40),
             closeButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+
+        let saveButton = UIButton(type: .system)
+        saveButton.setImage(UIImage(systemName: "arrow.down.to.line"), for: .normal)
+        saveButton.tintColor = UIColor.label
+        saveButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        saveButton.layer.cornerRadius = 20
+        saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
+        topBar.addSubview(saveButton)
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            saveButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor, constant: -16),
+            saveButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+            saveButton.widthAnchor.constraint(equalToConstant: 40),
+            saveButton.heightAnchor.constraint(equalToConstant: 40)
         ])
         
         let counterLabel = UILabel()
@@ -164,6 +218,123 @@ class ImageViewerViewController: UIViewController {
     
     @objc private func closeTapped() {
         onDismiss?()
+    }
+
+    @objc private func saveTapped() {
+        Task { [weak self] in
+            await self?.saveCurrentImage()
+        }
+    }
+
+    @MainActor
+    private func showToast(_ text: String) {
+        toastLabel?.removeFromSuperview()
+        
+        let label = UILabel()
+        label.text = text
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        label.textAlignment = .center
+        label.numberOfLines = 2
+        label.layer.cornerRadius = 12
+        label.clipsToBounds = true
+        
+        view.addSubview(label)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
+            label.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.85),
+            label.heightAnchor.constraint(greaterThanOrEqualToConstant: 36)
+        ])
+        
+        toastLabel = label
+        
+        UIView.animate(withDuration: 0.2, delay: 1.4, options: [.curveEaseInOut]) {
+            label.alpha = 0
+        } completion: { _ in
+            label.removeFromSuperview()
+        }
+    }
+
+    private func currentImageFromVisibleController() -> UIImage? {
+        guard let currentVC = pageViewController.viewControllers?.first as? SingleImageViewController else {
+            return nil
+        }
+        return currentVC.imageView.image
+    }
+
+    private func currentImageURL() -> URL? {
+        guard currentIndex >= 0, currentIndex < imageURLs.count else { return nil }
+        return imageURLs[currentIndex]
+    }
+
+    private func saveCurrentImage() async {
+        guard let url = currentImageURL() else { return }
+        
+        // 1) Пытаемся взять уже отображаемую картинку
+        if let img = currentImageFromVisibleController() {
+            await saveToPhotos(img)
+            return
+        }
+        
+        // 2) Пытаемся из кеша
+        if let cachedData = CacheManager.shared.getCachedPostImage(url: url),
+           let img = UIImage(data: cachedData) {
+            await saveToPhotos(img)
+            return
+        }
+        
+        // 3) Качаем
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let img = UIImage(data: data) {
+                CacheManager.shared.cachePostImage(url: url, data: data)
+                await saveToPhotos(img)
+            } else {
+                await MainActor.run { showToast("Не удалось сохранить") }
+            }
+        } catch {
+            await MainActor.run { showToast("Ошибка загрузки") }
+        }
+    }
+
+    private func saveToPhotos(_ image: UIImage) async {
+        await MainActor.run {
+            // Важно: многие картинки приходят как WebP (.webp). UIImage может отрисовываться,
+            // но при сохранении iOS иногда пытается писать в исходном формате (org.webmproject.webp),
+            // и Photos падает с "unsupported output file format".
+            // Поэтому перед сохранением принудительно "перерисовываем" в bitmap (PNG/JPEG-совместимый).
+            let safeImage = self.makeBitmapImage(from: image)
+            UIImageWriteToSavedPhotosAlbum(safeImage, self, #selector(imageSaveFinished(_:didFinishSavingWithError:contextInfo:)), nil)
+        }
+    }
+
+    private func makeBitmapImage(from image: UIImage) -> UIImage {
+        let targetSize = image.size
+        guard targetSize.width > 0, targetSize.height > 0 else { return image }
+        
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        format.opaque = false
+        
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
+
+    @objc private func imageSaveFinished(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        if let _ = error {
+            Task { @MainActor in
+                showToast("Не удалось сохранить")
+            }
+        } else {
+            Task { @MainActor in
+                showToast("Сохранено в Фото")
+            }
+        }
     }
     
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {

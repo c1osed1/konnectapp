@@ -45,17 +45,33 @@ struct DateFormatterHelper {
             return "\(hours) ч."
         } else if calendar.isDateInYesterday(date) {
             return "вчера"
-        } else {
-            let days = Int(diff / 86400)
-            if days < 7 {
-                return "\(days) д."
             } else {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "d MMM"
-                dateFormatter.locale = Locale(identifier: "ru_RU")
-                return dateFormatter.string(from: date)
+                let days = Int(diff / 86400)
+                if days < 7 {
+                    return "\(days) д."
+                } else {
+                    let dateFormatter = DateFormatter()
+                    // Используем фиксированный формат, не зависящий от системных настроек 12/24 часов
+                    dateFormatter.dateFormat = "d MMM"
+                    // Используем en_US_POSIX для гарантии независимости от системных настроек формата времени
+                    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+                    dateFormatter.timeZone = TimeZone.current
+                    
+                    // Форматируем дату
+                    let formatted = dateFormatter.string(from: date)
+                    
+                    // Переводим названия месяцев на русский
+                    let monthNames = ["Jan": "янв", "Feb": "фев", "Mar": "мар", "Apr": "апр", "May": "май", "Jun": "июн",
+                                     "Jul": "июл", "Aug": "авг", "Sep": "сен", "Oct": "окт", "Nov": "ноя", "Dec": "дек"]
+                    
+                    var result = formatted
+                    for (en, ru) in monthNames {
+                        result = result.replacingOccurrences(of: en, with: ru)
+                    }
+                    
+                    return result
+                }
             }
-        }
     }
     
     static func formatTimeUntil(_ dateString: String) -> String {

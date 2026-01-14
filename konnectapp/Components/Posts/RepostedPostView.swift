@@ -38,7 +38,8 @@ struct RepostedPostView: View {
                     PostHeader(
                         user: user,
                         timestamp: originalPost.created_at ?? originalPost.timestamp,
-                        navigationPath: $navigationPath
+                        navigationPath: $navigationPath,
+                        isPinned: false
                     )
                 }
                 
@@ -85,7 +86,8 @@ struct RepostedPostView: View {
                     PostHeader(
                         user: user,
                         timestamp: originalPost.created_at ?? originalPost.timestamp,
-                        navigationPath: $navigationPath
+                        navigationPath: $navigationPath,
+                        isPinned: false
                     )
                 }
                 

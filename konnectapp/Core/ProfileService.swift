@@ -14,7 +14,7 @@ class ProfileService {
         } else {
             scale = 3.0
         }
-        return "KConnect-iOS/1.2.5 (iPhone; iOS \(systemVersion); Scale/\(scale))"
+        return "KConnect-iOS/1.2.6 (iPhone; iOS \(systemVersion); Scale/\(scale))"
     }
     
     private init() {}
@@ -257,11 +257,73 @@ class ProfileService {
         
         return try decoder.decode(FeedResponse.self, from: data)
     }
+    
+    func getPinnedPost(userIdentifier: String) async throws -> PinnedPostResponse? {
+        guard let url = URL(string: "\(baseURL)/api/profile/pinned_post/\(userIdentifier)") else {
+            throw AuthError.invalidResponse
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("true", forHTTPHeaderField: "X-Mobile-Client")
+        
+        guard let token = try? KeychainManager.getToken() else {
+            throw AuthError.unauthorized
+        }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        if let sessionKey = try? KeychainManager.getSessionKey() {
+            request.setValue(sessionKey, forHTTPHeaderField: "X-Session-Key")
+        }
+        
+        print("🔵 PINNED POST REQUEST:")
+        print("URL: \(url.absoluteString)")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidResponse
+        }
+        
+        print("🟢 PINNED POST RESPONSE: Status Code: \(httpResponse.statusCode)")
+        
+        // Если поста нет, возвращаем nil (404 или пустой ответ)
+        if httpResponse.statusCode == 404 {
+            return nil
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 {
+                try? KeychainManager.deleteTokens()
+                throw AuthError.unauthorized
+            }
+            return nil
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        // Важно: не используем convertFromSnakeCase, потому что модели (Post, etc.)
+        // уже описаны в snake_case (например, is_pinned) и имеют свои CodingKeys.
+        
+        do {
+            let response = try decoder.decode(PinnedPostResponse.self, from: data)
+            return response.success == true ? response : nil
+        } catch {
+            print("⚠️ Failed to decode pinned post: \(error)")
+            return nil
+        }
+    }
 }
 
 struct FollowResponse: Codable {
     let success: Bool
     let is_following: Bool
     let message: String?
+}
+
+struct PinnedPostResponse: Codable {
+    let success: Bool?
+    let post: Post?
 }
 

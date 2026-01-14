@@ -3,10 +3,14 @@ import SwiftUI
 struct PostCommentBlock: View {
     let lastComment: Comment?
     let onTap: (() -> Void)?
+    let isCommentsOpen: Bool
+    let hideEmptyCommentButton: Bool
     
-    init(lastComment: Comment?, onTap: (() -> Void)? = nil) {
+    init(lastComment: Comment?, onTap: (() -> Void)? = nil, isCommentsOpen: Bool = false, hideEmptyCommentButton: Bool = false) {
         self.lastComment = lastComment
         self.onTap = onTap
+        self.isCommentsOpen = isCommentsOpen
+        self.hideEmptyCommentButton = hideEmptyCommentButton
     }
     
     var body: some View {
@@ -67,10 +71,13 @@ struct PostCommentBlock: View {
                             .lineLimit(1)
                     }
                 } else {
-                    Text("тут пусто")
-                        .font(.system(size: 14))
-                        .italic()
-                        .foregroundColor(Color.themeTextSecondary)
+                    // Скрываем текст "тут пусто" в модалке, но оставляем иконку
+                    if !hideEmptyCommentButton {
+                        Text("тут пусто")
+                            .font(.system(size: 14))
+                            .italic()
+                            .foregroundColor(Color.themeTextSecondary)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -144,10 +151,13 @@ struct PostCommentBlock: View {
                             .lineLimit(1)
                     }
                 } else {
-                    Text("Комментарий")
-                        .font(.system(size: 14))
-                        .italic()
-                        .foregroundColor(Color.themeTextSecondary)
+                    // Скрываем текст "Комментарий" в модалке, но оставляем иконку
+                    if !hideEmptyCommentButton {
+                        Text("Комментарий")
+                            .font(.system(size: 14))
+                            .italic()
+                            .foregroundColor(Color.themeTextSecondary)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -172,6 +182,7 @@ struct PostCommentBlock: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .disabled(isCommentsOpen || hideEmptyCommentButton)
     }
 }
 

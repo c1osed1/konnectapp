@@ -4,6 +4,14 @@ struct PostHeader: View {
     let user: PostUser
     let timestamp: String?
     @Binding var navigationPath: NavigationPath
+    let isPinned: Bool
+    
+    init(user: PostUser, timestamp: String?, navigationPath: Binding<NavigationPath>, isPinned: Bool = false) {
+        self.user = user
+        self.timestamp = timestamp
+        self._navigationPath = navigationPath
+        self.isPinned = isPinned
+    }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -59,6 +67,12 @@ struct PostHeader: View {
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(Color.themeTextPrimary)
                             .lineLimit(1)
+                        
+                        if isPinned {
+                            Image(systemName: "pin.fill")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(Color.appAccent)
+                        }
                         
                         if user.is_verified == true {
                             Image(systemName: "checkmark.seal.fill")
@@ -137,16 +151,32 @@ struct PostHeader: View {
             }
         } else if calendar.isDateInYesterday(date) {
             return "вчера"
-        } else {
-            let days = Int(diff / 86400)
-            if days < 7 {
-                return "\(days) \(days == 1 ? "день" : days < 5 ? "дня" : "дней") назад"
             } else {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "d MMM"
-                dateFormatter.locale = Locale(identifier: "ru_RU")
-                return dateFormatter.string(from: date)
+                let days = Int(diff / 86400)
+                if days < 7 {
+                    return "\(days) \(days == 1 ? "день" : days < 5 ? "дня" : "дней") назад"
+                } else {
+                    let dateFormatter = DateFormatter()
+                    // Используем фиксированный формат, не зависящий от системных настроек 12/24 часов
+                    dateFormatter.dateFormat = "d MMM"
+                    // Используем en_US_POSIX для гарантии независимости от системных настроек формата времени
+                    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+                    dateFormatter.timeZone = TimeZone.current
+                    
+                    // Форматируем дату
+                    let formatted = dateFormatter.string(from: date)
+                    
+                    // Переводим названия месяцев на русский
+                    let monthNames = ["Jan": "янв", "Feb": "фев", "Mar": "мар", "Apr": "апр", "May": "май", "Jun": "июн",
+                                     "Jul": "июл", "Aug": "авг", "Sep": "сен", "Oct": "окт", "Nov": "ноя", "Dec": "дек"]
+                    
+                    var result = formatted
+                    for (en, ru) in monthNames {
+                        result = result.replacingOccurrences(of: en, with: ru)
+                    }
+                    
+                    return result
+                }
             }
-        }
     }
 }

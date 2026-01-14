@@ -14,7 +14,7 @@ class AccountSwitchService {
         } else {
             scale = 3.0
         }
-        return "KConnect-iOS/1.2.5 (iPhone; iOS \(systemVersion); Scale/\(scale))"
+        return "KConnect-iOS/1.2.6 (iPhone; iOS \(systemVersion); Scale/\(scale))"
     }
     
     private init() {}

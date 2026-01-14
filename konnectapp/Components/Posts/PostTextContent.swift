@@ -6,17 +6,33 @@ struct PostTextContent: View {
     var navigationPath: Binding<NavigationPath>? = nil
     @State private var isExpanded: Bool = false
     
+    // Обрезаем только действительно длинные тексты (больше 500 символов)
     private var shouldTruncate: Bool {
-        content.count > 200
+        content.count > 500
     }
     
     private var displayContent: String {
-        isExpanded || !shouldTruncate ? content : truncatedContent
+        if isExpanded || !shouldTruncate {
+            return content
+        } else {
+            return truncatedContent
+        }
     }
     
+    // Обрезаем до примерно 450 символов, стараясь не обрезать в середине слова
     private var truncatedContent: String {
-        let truncateLength = Int(Double(content.count) * 0.2)
-        return String(content.prefix(content.count - truncateLength))
+        let maxLength = 450
+        guard content.count > maxLength else {
+            return content
+        }
+        
+        // Обрезаем до maxLength и ищем последний пробел, чтобы не обрезать слово
+        let truncated = String(content.prefix(maxLength))
+        if let lastSpaceIndex = truncated.lastIndex(of: " ") {
+            return String(truncated[..<lastSpaceIndex]) + "..."
+        } else {
+            return truncated + "..."
+        }
     }
     
     private var extractedURLs: [String] {
@@ -36,20 +52,30 @@ struct PostTextContent: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
+                // Кнопка "Показать полностью" / "Скрыть"
+                if shouldTruncate {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isExpanded.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(isExpanded ? "Скрыть" : "Показать полностью")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Color.appAccent)
+                            
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color.appAccent)
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+                
                 // Превью ссылок
                 if !extractedURLs.isEmpty {
                     GroupedLinkPreviews(urls: extractedURLs, maxCount: 3)
                         .padding(.top, 4)
-                }
-                
-                if shouldTruncate {
-                    Button(action: {
-                        isExpanded.toggle()
-                    }) {
-                        Text(isExpanded ? "Скрыть" : "Показать полностью")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color.appAccent)
-                    }
                 }
             }
         }
@@ -58,33 +84,75 @@ struct PostTextContent: View {
 
 // MARK: - ClickableTextWithMentions
 
+// Кастомный UITextView с правильным расчетом размера
+class AutoSizingTextView: UITextView {
+    override var intrinsicContentSize: CGSize {
+        let size = sizeThatFits(CGSize(width: bounds.width, height: .greatestFiniteMagnitude))
+        // Убеждаемся, что высота рассчитывается правильно
+        if size.height > 0 {
+            return CGSize(width: UIView.noIntrinsicMetric, height: size.height)
+        }
+        return super.intrinsicContentSize
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        invalidateIntrinsicContentSize()
+    }
+}
+
 struct ClickableTextWithMentions: UIViewRepresentable {
     let text: String
     let onMentionTap: (String) -> Void
     
-    func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
+    func makeUIView(context: Context) -> AutoSizingTextView {
+        let textView = AutoSizingTextView()
         textView.isEditable = false
         textView.isScrollEnabled = false
         textView.backgroundColor = .clear
         textView.textContainerInset = .zero
         textView.textContainer.lineFragmentPadding = 0
         textView.textContainer.widthTracksTextView = true
+        textView.textContainer.heightTracksTextView = false
         textView.textContainer.maximumNumberOfLines = 0
         textView.textContainer.lineBreakMode = .byWordWrapping
         textView.delegate = context.coordinator
         textView.font = .systemFont(ofSize: 15)
         textView.textColor = UIColor(Color.themeTextPrimary)
         textView.linkTextAttributes = [:]
+        // Устанавливаем приоритеты для правильного расчета размера
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        textView.setContentCompressionResistancePriority(.required, for: .vertical)
+        textView.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return textView
     }
     
-    func updateUIView(_ textView: UITextView, context: Context) {
+    func updateUIView(_ textView: AutoSizingTextView, context: Context) {
         let attributedString = createAttributedString(from: text)
+        
+        // Логируем длину текста для отладки
+        if text.count > 200 {
+            print("📝 PostTextContent: text length = \(text.count), first 100 chars: \(text.prefix(100))")
+        }
+        
+        let oldText = textView.attributedText
         textView.attributedText = attributedString
-        textView.textContainer.widthTracksTextView = true
+        
+        // Обновляем размер только если текст изменился
+        if oldText?.string != attributedString.string {
+            textView.textContainer.widthTracksTextView = true
+            textView.textContainer.heightTracksTextView = false
+            textView.textContainer.maximumNumberOfLines = 0
+            textView.textContainer.lineBreakMode = .byWordWrapping
+            
+            // Принудительно обновляем размер после установки текста
+            DispatchQueue.main.async {
+                textView.invalidateIntrinsicContentSize()
+                textView.setNeedsLayout()
+                textView.layoutIfNeeded()
+            }
+        }
     }
     
     static func dismantleUIView(_ uiView: UITextView, coordinator: Coordinator) {

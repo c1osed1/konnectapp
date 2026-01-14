@@ -22,7 +22,7 @@ struct CacheSettingsModalView: View {
                 VStack(spacing: 24) {
                     CachePieChart(cacheSize: cacheSize, selectedSegments: $selectedSegments)
                         .frame(height: 220)
-                        .padding(.top, 40)
+                        .padding(.top, 250)
                     
                     VStack(spacing: 12) {
                         CacheInfoRow(

@@ -11,6 +11,7 @@ class ProfileViewModel: ObservableObject {
     @Published var profile: ProfileResponse?
     @Published var posts: [Post] = []
     @Published var wallPosts: [Post] = []
+    @Published var pinnedPost: Post?
     @Published var selectedTab: ProfileTabType = .posts
     @Published var isLoading: Bool = false
     @Published var isLoadingPosts: Bool = false
@@ -95,6 +96,36 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
+    func loadPinnedPost(userIdentifier: String) async {
+        do {
+            if let pinnedResponse = try await ProfileService.shared.getPinnedPost(userIdentifier: userIdentifier),
+               let pinned = pinnedResponse.post {
+                await MainActor.run {
+                    self.pinnedPost = pinned
+                }
+            } else {
+                await MainActor.run {
+                    self.pinnedPost = nil
+                }
+            }
+        } catch {
+            // Если Task отменили (например, из-за повторного pull-to-refresh),
+            // не считаем это ошибкой и не сбрасываем уже показанные данные.
+            if error is CancellationError {
+                return
+            }
+            let nsError = error as NSError
+            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+                return
+            }
+            
+            print("⚠️ Failed to load pinned post: \(error.localizedDescription)")
+            await MainActor.run {
+                self.pinnedPost = nil
+            }
+        }
+    }
+    
     func loadProfilePosts(userIdentifier: String, page: Int = 1) async {
         await MainActor.run {
             isLoadingPosts = true
@@ -106,6 +137,11 @@ class ProfileViewModel: ObservableObject {
             }
         }
         
+        // Загружаем закрепленный пост при первой загрузке
+        if page == 1 {
+            await loadPinnedPost(userIdentifier: userIdentifier)
+        }
+        
         do {
             let feedResponse = try await ProfileService.shared.getProfilePosts(
                 userIdentifier: userIdentifier,
@@ -115,7 +151,12 @@ class ProfileViewModel: ObservableObject {
             
             await MainActor.run {
                 if page == 1 {
-                    self.posts = feedResponse.posts
+                    // Исключаем закрепленный пост из обычного списка, если он там есть
+                    var filteredPosts = feedResponse.posts
+                    if let pinned = pinnedPost {
+                        filteredPosts = filteredPosts.filter { $0.id != pinned.id }
+                    }
+                    self.posts = filteredPosts
                 } else {
                     let existingIds = Set(self.posts.map { $0.id })
                     let newPosts = feedResponse.posts.filter { !existingIds.contains($0.id) }
@@ -125,8 +166,31 @@ class ProfileViewModel: ObservableObject {
                 self.currentPage = feedResponse.page
             }
         } catch {
+            // Отмена задачи — нормальная ситуация для SwiftUI (например, если запустили
+            // второй refresh до завершения первого). Не показываем это как ошибку.
+            if error is CancellationError {
+                return
+            }
+            let nsError = error as NSError
+            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+                return
+            }
             await MainActor.run {
                 errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func updatePost(_ updated: Post) {
+        Task { @MainActor in
+            if let idx = posts.firstIndex(where: { $0.id == updated.id }) {
+                posts[idx] = updated
+            }
+            if let idx = wallPosts.firstIndex(where: { $0.id == updated.id }) {
+                wallPosts[idx] = updated
+            }
+            if pinnedPost?.id == updated.id {
+                pinnedPost = updated
             }
         }
     }

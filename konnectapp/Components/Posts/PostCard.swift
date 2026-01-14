@@ -3,6 +3,9 @@ import SwiftUI
 struct PostCard: View {
     let post: Post
     @Binding var navigationPath: NavigationPath
+    let hideEmptyCommentButton: Bool
+    let forcePinnedStyle: Bool
+    let pinnedAccentColor: Color?
     @StateObject private var themeManager = ThemeManager.shared
     @State private var isLiked: Bool
     @State private var likesCount: Int
@@ -11,11 +14,24 @@ struct PostCard: View {
     @State private var showPostDetail: Bool = false
     @State private var updatedPoll: Poll?
     
-    init(post: Post, navigationPath: Binding<NavigationPath>) {
+    init(
+        post: Post,
+        navigationPath: Binding<NavigationPath>,
+        hideEmptyCommentButton: Bool = false,
+        forcePinnedStyle: Bool = false,
+        pinnedAccentColor: Color? = nil
+    ) {
         self.post = post
         self._navigationPath = navigationPath
+        self.hideEmptyCommentButton = hideEmptyCommentButton
+        self.forcePinnedStyle = forcePinnedStyle
+        self.pinnedAccentColor = pinnedAccentColor
         _isLiked = State(initialValue: post.is_liked ?? false)
         _likesCount = State(initialValue: post.likes_count ?? 0)
+    }
+
+    private var isPinnedStyle: Bool {
+        forcePinnedStyle || (post.is_pinned ?? false)
     }
     
     private var uniqueMedia: [String] {
@@ -46,6 +62,14 @@ struct PostCard: View {
         }
         .sheet(isPresented: $showPostDetail) {
             PostDetailView(post: post, navigationPath: $navigationPath)
+        }
+        // Если пост обновился извне (например, в модалке пришёл detailedPost),
+        // синхронизируем локальные @State для лайков.
+        .onChange(of: post.likes_count) { _, _ in
+            syncLikeStateFromPost()
+        }
+        .onChange(of: post.is_liked) { _, _ in
+            syncLikeStateFromPost()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PollVoteChanged"))) { notification in
             if let userInfo = notification.userInfo,
@@ -89,6 +113,14 @@ struct PostCard: View {
                         Color.appAccent.opacity(0.15),
                         lineWidth: 0.5
                     )
+
+                if isPinnedStyle {
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            (pinnedAccentColor ?? Color.appAccent).opacity(0.85),
+                            lineWidth: 1.3
+                        )
+                }
             }
         )
         .clipped()
@@ -109,13 +141,23 @@ struct PostCard: View {
                         PostHeader(
                             user: user,
                             timestamp: post.created_at ?? post.timestamp,
-                            navigationPath: $navigationPath
+                            navigationPath: $navigationPath,
+                            isPinned: isPinnedStyle
                         )
                     }
                 }
                 
                 if let content = post.content, !content.isEmpty {
                     PostTextContent(content: content, navigationPath: $navigationPath)
+                        .onAppear {
+                            // Логируем для отладки обрезки текста
+                            if post.id == 11288 || content.count > 200 {
+                                print("📝 PostCard id=\(post.id): content length=\(content.count), first 150 chars: \(content.prefix(150))")
+                                if content.count > 200 {
+                                    print("📝 PostCard id=\(post.id): last 100 chars: \(content.suffix(100))")
+                                }
+                            }
+                        }
                 }
             }
             .padding(16)
@@ -164,9 +206,14 @@ struct PostCard: View {
                 onToggle: toggleLike
             )
             
-            PostCommentBlock(lastComment: post.last_comment) {
-                showPostDetail = true
-            }
+            PostCommentBlock(
+                lastComment: post.last_comment,
+                onTap: {
+                    showPostDetail = true
+                },
+                isCommentsOpen: showPostDetail,
+                hideEmptyCommentButton: hideEmptyCommentButton
+            )
             
             PostMoreButton(post: post, toastMessage: $toastMessage)
         }
@@ -202,6 +249,17 @@ struct PostCard: View {
                 likesCount = previousCount
             }
             print("❌ Like error: \(error.localizedDescription)")
+        }
+    }
+
+    private func syncLikeStateFromPost() {
+        guard !isLiking else { return }
+        // Если поля отсутствуют в модели — не затираем текущий UI.
+        if let liked = post.is_liked {
+            isLiked = liked
+        }
+        if let cnt = post.likes_count {
+            likesCount = cnt
         }
     }
 }

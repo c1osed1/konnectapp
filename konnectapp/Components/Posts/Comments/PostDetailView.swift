@@ -36,7 +36,8 @@ struct PostDetailView: View {
                                     if detailedPost.original_post == nil && post.original_post != nil {
                                         return post
                                     }
-                                    return detailedPost
+                                    // Объединяем last_comment из исходного поста, если он отсутствует в detailedPost
+                                    return detailedPost.mergingLastComment(from: post)
                                 }
                                 return post
                             }()
@@ -45,7 +46,7 @@ struct PostDetailView: View {
                                 ProgressView()
                                     .padding()
                             } else {
-                                PostCard(post: displayPost, navigationPath: $navigationPath)
+                                PostCard(post: displayPost, navigationPath: $navigationPath, hideEmptyCommentButton: true)
                                     .padding(.horizontal, 8)
                                     .padding(.top, 8)
                             }

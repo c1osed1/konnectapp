@@ -9,6 +9,7 @@ struct CommentContentView: View {
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
     @State private var isDeleting: Bool = false
+    @State private var showDeleteConfirmation = false
     @Binding var showReplies: Bool
     var onReply: ((Comment) -> Void)?
     var onDelete: (() -> Void)?
@@ -197,13 +198,24 @@ struct CommentContentView: View {
             
             if isMyComment {
                 Button(role: .destructive) {
-                    Task {
-                        await deleteComment()
+                    // Откладываем показ диалога, чтобы contextMenu успел закрыться
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        showDeleteConfirmation = true
                     }
                 } label: {
                     Label("Удалить", systemImage: "trash")
                 }
             }
+        }
+        .alert("Удалить комментарий?", isPresented: $showDeleteConfirmation) {
+            Button("Отмена", role: .cancel) {}
+            Button("Удалить", role: .destructive) {
+                Task {
+                    await deleteComment()
+                }
+            }
+        } message: {
+            Text("Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить.")
         }
     }
     
@@ -347,6 +359,7 @@ struct ReplyView: View {
     @State private var likesCount: Int
     @State private var isLiking: Bool = false
     @State private var isDeleting: Bool = false
+    @State private var showDeleteConfirmation = false
     var onDelete: (() -> Void)?
     
     private var isMyReply: Bool {
@@ -512,13 +525,24 @@ struct ReplyView: View {
             
             if isMyReply {
                 Button(role: .destructive) {
-                    Task {
-                        await deleteReply()
+                    // Откладываем показ диалога, чтобы contextMenu успел закрыться
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        showDeleteConfirmation = true
                     }
                 } label: {
                     Label("Удалить", systemImage: "trash")
                 }
             }
+        }
+        .alert("Удалить ответ?", isPresented: $showDeleteConfirmation) {
+            Button("Отмена", role: .cancel) {}
+            Button("Удалить", role: .destructive) {
+                Task {
+                    await deleteReply()
+                }
+            }
+        } message: {
+            Text("Вы уверены, что хотите удалить этот ответ? Это действие нельзя отменить.")
         }
     }
     

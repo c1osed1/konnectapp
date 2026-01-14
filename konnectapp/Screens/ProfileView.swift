@@ -93,6 +93,8 @@ struct ProfileView: View {
                         if viewModel.selectedTab == .posts {
                             ProfilePostsContent(
                                 posts: viewModel.posts,
+                                pinnedPost: viewModel.pinnedPost,
+                                profileUser: viewModel.profile?.user,
                                 isLoading: viewModel.isLoadingPosts,
                                 hasMore: viewModel.hasMore,
                                 currentPage: viewModel.currentPage,
@@ -193,6 +195,11 @@ struct ProfileView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PostDeleted"))) { notification in
             if let postId = notification.userInfo?["postId"] as? Int64 {
                 viewModel.removePost(postId: postId)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PostUpdated"))) { notification in
+            if let post = notification.userInfo?["post"] as? Post {
+                viewModel.updatePost(post)
             }
         }
     }

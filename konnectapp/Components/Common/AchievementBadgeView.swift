@@ -93,7 +93,7 @@ struct SVGBadgeView: View {
                 
                 // Сохраняем в кеш оригинальные данные в фоне
                 Task.detached(priority: .background) {
-                    CacheManager.shared.cacheBadge(url: badgeURL, data: data)
+                    await CacheManager.shared.cacheBadge(url: badgeURL, data: data)
                 }
                 
                 await MainActor.run {
@@ -178,7 +178,7 @@ struct CachedBadgeImageView: View {
             if let image = UIImage(data: data) {
                 // Сохраняем в кеш в фоне
                 Task.detached(priority: .background) {
-                    CacheManager.shared.cacheBadge(url: imageURL, data: data)
+                    await CacheManager.shared.cacheBadge(url: imageURL, data: data)
                 }
                 
                 await MainActor.run {

@@ -125,6 +125,11 @@ struct FeedView: View {
                 viewModel.removePost(postId: postId)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PostUpdated"))) { notification in
+            if let post = notification.userInfo?["post"] as? Post {
+                viewModel.updatePost(post)
+            }
+        }
     }
     
     private func hideKeyboard() {

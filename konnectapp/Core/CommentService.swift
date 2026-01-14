@@ -10,9 +10,9 @@ class CommentService {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
             let scale = window.screen.scale
-            return "KConnect-iOS/1.2.5 (iPhone; iOS \(UIDevice.current.systemVersion); Scale/\(String(format: "%.1f", scale)))"
+            return "KConnect-iOS/1.2.6 (iPhone; iOS \(UIDevice.current.systemVersion); Scale/\(String(format: "%.1f", scale)))"
         }
-        return "KConnect-iOS/1.2.5 (iPhone; iOS \(UIDevice.current.systemVersion); Scale/3.0)"
+        return "KConnect-iOS/1.2.6 (iPhone; iOS \(UIDevice.current.systemVersion); Scale/3.0)"
     }
     
     func getPostDetail(postId: Int64, includeComments: Bool = false) async throws -> PostDetailResponse {
@@ -62,7 +62,8 @@ class CommentService {
         }
         
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // Важно: не используем convertFromSnakeCase, потому что модели (Post/Comment/etc.)
+        // уже описаны в snake_case (likes_count, is_liked, last_comment...) и имеют свои CodingKeys.
         
         do {
             let response = try decoder.decode(PostDetailResponse.self, from: data)

@@ -200,6 +200,13 @@ struct CreateReplyResponse: Codable {
     let error: String?
 }
 
+// MARK: - Edit Post Response
+struct EditPostResponse: Codable {
+    let success: Bool?
+    let post: Post?
+    let error: String?
+}
+
 // MARK: - Post Detail Response
 struct PostDetailResponse: Codable {
     let success: Bool?
@@ -277,6 +284,42 @@ struct Post: Codable, Identifiable {
         case is_liked, is_reposted, is_repost, media, images, image
         case type, original_post, fact, edited, last_comment, is_nsfw, music, is_pinned
         case video, video_poster, poll
+    }
+}
+
+extension Post {
+    /// Объединяет текущий пост с другим, сохраняя last_comment из исходного, если он отсутствует в новом
+    func mergingLastComment(from other: Post) -> Post {
+        // Если у текущего поста нет last_comment, но у другого есть, используем его
+        if self.last_comment == nil && other.last_comment != nil {
+            // Создаем новый Post через JSON для сохранения всех полей
+            do {
+                let encoder = JSONEncoder()
+                encoder.keyEncodingStrategy = .convertToSnakeCase
+                let selfData = try encoder.encode(self)
+                
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                
+                if var selfDict = try JSONSerialization.jsonObject(with: selfData) as? [String: Any] {
+                    // Добавляем last_comment из другого поста
+                    let otherEncoder = JSONEncoder()
+                    otherEncoder.keyEncodingStrategy = .convertToSnakeCase
+                    if let comment = other.last_comment,
+                       let commentData = try? otherEncoder.encode(comment),
+                       let commentDict = try? JSONSerialization.jsonObject(with: commentData) as? [String: Any] {
+                        selfDict["last_comment"] = commentDict
+                    }
+                    
+                    // Создаем новый Post из объединенного словаря
+                    let mergedData = try JSONSerialization.data(withJSONObject: selfDict)
+                    return try decoder.decode(Post.self, from: mergedData)
+                }
+            } catch {
+                print("⚠️ Failed to merge last_comment: \(error)")
+            }
+        }
+        return self
     }
 }
 
